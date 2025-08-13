@@ -1,26 +1,11 @@
-const article = document.querySelector("article");
-
-// `document.querySelector` may return null if the selector doesn't match anything.
-if (article) {
-  const text = article.textContent ?? '';
-  const wordMatchRegExp = /[^\s]+/g; // Regular expression
-  const words = text.match(wordMatchRegExp) || [];
-  // match returns an array of matches
-  const wordCount = words.length;
-  const readingTime = Math.round(wordCount / 200);
-  const badge = document.createElement("p");
-  // Use the same styling as the publish information in an article's header
-  badge.classList.add("color-secondary-text", "type--caption");
-  badge.textContent = `⏱️ ${readingTime} min read`;
-
-  // Support for API reference docs
-  const heading = article.querySelector("h1");
-  // Support for article docs with date
-  const date = article.querySelector("time")?.parentNode;
-
-  if (date && 'insertAdjacentElement' in date) {
-    (date as Element).insertAdjacentElement("afterend", badge);
-  } else if (heading && 'insertAdjacentElement' in heading) {
-    heading.insertAdjacentElement("afterend", badge);
+// 基础消息通道骨架：接收来自 Popup 的“翻译当前网页全文”指令
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!message || typeof message.type !== 'string') return false;
+  if (message.type === 'NATIVE_TRANSLATE_TRANSLATE_PAGE') {
+    // TODO: 这里后续将遍历文档并插入翻译结果。
+    // 先快速确认通路畅通。
+    // 目前无需返回值，避免类型不匹配
+    return false;
   }
-}
+  return false;
+});

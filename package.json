@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
     "dev": "rspack build --watch",
-    "build": "rspack build --mode production"
+    "build": "rspack build --mode production",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write"
   },
   "keywords": [
     "browser",
@@ -18,6 +20,7 @@
   "license": "MIT",
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
   "devDependencies": {
+    "@biomejs/biome": "^1.9.3",
     "@rspack/cli": "^1.4.11",
     "@rspack/core": "^1.4.11",
     "@tailwindcss/postcss": "^4.1.11",

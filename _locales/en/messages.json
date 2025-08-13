@@ -6,5 +6,65 @@
   "extension_description": {
     "message": "A tiny browser extension to enhance your development experience.",
     "description": "The description of the extension"
+  },
+  "popup_title": {
+    "message": "Native Translate",
+    "description": "Popup title"
+  },
+  "global_availability": {
+    "message": "Global availability",
+    "description": "Availability label"
+  },
+  "pair_availability": {
+    "message": "Language pair availability",
+    "description": "Pair availability label"
+  },
+  "checking": {
+    "message": "Checking…",
+    "description": "Checking state"
+  },
+  "recheck_availability": {
+    "message": "Re-check availability",
+    "description": "Recheck button"
+  },
+  "source_language": {
+    "message": "Source language",
+    "description": "Source language label"
+  },
+  "target_language": {
+    "message": "Target language",
+    "description": "Target language label"
+  },
+  "preparing_translator": {
+    "message": "Preparing (may download model)…",
+    "description": "Preparing translator"
+  },
+  "create_prepare_translator": {
+    "message": "Create/Prepare translator",
+    "description": "Create translator button"
+  },
+  "download_progress": {
+    "message": "Download progress",
+    "description": "Download progress label"
+  },
+  "translator_ready": {
+    "message": "Translator ready",
+    "description": "Ready notice"
+  },
+  "translate_full_page": {
+    "message": "Translate current page",
+    "description": "Translate full page button"
+  },
+  "translate_full_page_desc": {
+    "message": "This will send a command to the content script to insert translations into the page.",
+    "description": "Translate page description"
+  },
+  "footer_note": {
+    "message": "Powered by built-in AI Translator API. Model download depends on device requirements.",
+    "description": "Footer note"
+  },
+  "sidepanel_title": {
+    "message": "Native Translate Side Panel",
+    "description": "Side panel title"
   }
 }
