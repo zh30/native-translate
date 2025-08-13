@@ -143,6 +143,33 @@ const Popup: React.FC = () => {
     chrome.storage.local.set({ [STORAGE_KEY]: settings });
   }, [settings]);
 
+  // 自动准备：如果语言对曾经就绪或当前可用，则在 Popup 打开后自动创建翻译器
+  const autoPrepare = React.useCallback(async () => {
+    if (translatorReady || isCreating) return;
+    const api = window.Translator;
+    if (!api) return;
+    const pairKey = `${settings.sourceLanguage}->${settings.targetLanguage}`;
+    const ns: 'session' | 'local' = (chrome.storage as any).session ? 'session' : 'local';
+    const data = await chrome.storage[ns].get('nativeTranslate:readyPairs');
+    const map = (data?.['nativeTranslate:readyPairs'] as Record<string, number> | undefined) ?? {};
+    const knownReady = Boolean(map[pairKey]);
+    let available = false;
+    try {
+      const state = await api.availability({
+        sourceLanguage: settings.sourceLanguage,
+        targetLanguage: settings.targetLanguage,
+      });
+      available = state === 'available';
+    } catch (_e) { }
+    if (knownReady || available) {
+      await createTranslator();
+    }
+  }, [translatorReady, isCreating, settings.sourceLanguage, settings.targetLanguage]);
+
+  React.useEffect(() => {
+    void autoPrepare();
+  }, [autoPrepare]);
+
   const checkAvailability = React.useCallback(async () => {
     setError(null);
     setIsChecking(true);
@@ -231,13 +258,35 @@ const Popup: React.FC = () => {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab?.id) throw new Error(t('active_tab_not_found'));
-      await chrome.tabs.sendMessage(tab.id, {
-        type: 'NATIVE_TRANSLATE_TRANSLATE_PAGE',
-        payload: {
-          sourceLanguage: settings.sourceLanguage,
-          targetLanguage: settings.targetLanguage,
-        },
-      });
+      const send = async () => {
+        return chrome.tabs.sendMessage(tab.id!, {
+          type: 'NATIVE_TRANSLATE_TRANSLATE_PAGE',
+          payload: {
+            sourceLanguage: settings.sourceLanguage,
+            targetLanguage: settings.targetLanguage,
+          },
+        });
+      };
+
+      try {
+        await send();
+      } catch (err) {
+        // 若内容脚本未就绪，则主动注入后重试
+        try {
+          // 避免在受限页面注入
+          const url = tab.url ?? '';
+          if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
+            throw new Error('This page is not scriptable');
+          }
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['contentScript.js'],
+          });
+          await send();
+        } catch (injectionErr) {
+          throw injectionErr instanceof Error ? injectionErr : new Error('Failed to inject content script');
+        }
+      }
       window.close();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('send_translate_command_failed'));
@@ -308,7 +357,7 @@ const Popup: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Button onClick={handleTranslatePage} disabled={!translatorReady} className="w-full">
+        <Button onClick={handleTranslatePage} className="w-full">
           {t('translate_full_page')}
         </Button>
         <p className="text-[11px] text-gray-500 dark:text-gray-400">{t('translate_full_page_desc')}</p>

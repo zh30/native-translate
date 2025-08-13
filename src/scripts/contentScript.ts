@@ -245,7 +245,7 @@ async function translateBlocksSequentially(
 
   for (let i = 0; i < items.length; i += BATCH_SIZE) {
     const batch = items.slice(i, i + BATCH_SIZE);
-    const fragment = document.createDocumentFragment();
+    const inserts: Array<{ node: Element; parent: Node; next: ChildNode | null; appendInside: boolean }> = [];
 
     // 顺序翻译，遵循 API 的串行特性
     for (const { element, text } of batch) {
@@ -263,18 +263,19 @@ async function translateBlocksSequentially(
 
       if (translated) {
         const clone = createTranslationSpan(element, translated, targetLanguage);
-        // 决定插入策略：
-        // - 对 li/dt/dd：插入到元素内部末尾（避免在 ul/ol/dl 下出现非法兄弟）
-        // - 其他：作为同级兄弟插入在元素后面
         const tagUpper = element.tagName.toUpperCase();
-        if (tagUpper === 'LI' || tagUpper === 'DT' || tagUpper === 'DD') {
-          (clone as any).__appendTo__ = element;
-        } else {
-          (clone as any).__insertAfter__ = element;
+        const appendInside = tagUpper === 'LI' || tagUpper === 'DT' || tagUpper === 'DD';
+        const parent = appendInside ? (element as Node) : element.parentNode;
+        if (parent) {
+          inserts.push({
+            node: clone,
+            parent,
+            next: appendInside ? null : element.nextSibling,
+            appendInside,
+          });
+          // 标记原始元素已处理，避免重复翻译
+          (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
         }
-        fragment.appendChild(clone);
-        // 标记原始元素已处理，避免重复翻译
-        (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
       }
 
       done += 1;
@@ -282,15 +283,11 @@ async function translateBlocksSequentially(
     }
 
     // 统一插入，尽量降低重排次数
-    for (const node of Array.from(fragment.childNodes)) {
-      const appendTo = (node as any).__appendTo__ as Element | undefined;
-      const after = (node as any).__insertAfter__ as Element | undefined;
-      if (appendTo && appendTo.parentNode) {
-        appendTo.appendChild(node as Element);
-        continue;
-      }
-      if (after && after.parentNode) {
-        after.insertAdjacentElement('afterend', node as Element);
+    for (const ins of inserts) {
+      if (ins.appendInside) {
+        (ins.parent as Element).appendChild(ins.node);
+      } else if (ins.parent) {
+        (ins.parent as Element).insertBefore(ins.node, ins.next);
       }
     }
 
