@@ -1,0 +1,10 @@
+{
+  "extension_name": {
+    "message": "小小头盔",
+    "description": "The name of the extension"
+  },
+  "extension_description": {
+    "message": "一个增强开发体验的小型浏览器扩展。",
+    "description": "The description of the extension"
+  }
+}

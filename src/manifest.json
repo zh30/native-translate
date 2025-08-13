@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extension_name__",
+  "version": "0.0.2",
+  "description": "__MSG_extension_description__",
+  "minimum_chrome_version": "114",
+  "default_locale": "en",
+  "icons": {
+    "16": "public/icon16.png",
+    "32": "public/icon32.png",
+    "48": "public/icon48.png",
+    "128": "public/icon128.png"
+  },
+  "action": {
+    // "default_popup": "popup.html",
+    // "default_icon": {
+    //   "16": "public/icon16.png",
+    //   "32": "public/icon32.png",
+    //   "48": "public/icon48.png",
+    //   "128": "public/icon128.png"
+    // }
+    "default_title": "__MSG_extension_name__"
+  },
+  "side_panel": {
+    "default_path": "sidePanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "contentScript.js"
+      ]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "sidePanel"
+  ]
+}
