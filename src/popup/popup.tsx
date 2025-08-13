@@ -3,6 +3,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { t } from '@/utils/i18n';
 import { getUILocale, isRTLLanguage } from '@/utils/rtl';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { AppSelect } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 
 type AvailabilityState = 'unknown' | 'available' | 'downloadable' | 'unavailable';
 
@@ -240,18 +245,18 @@ const Popup: React.FC = () => {
   }, [settings.sourceLanguage, settings.targetLanguage]);
 
   const availabilityBadge = (state: AvailabilityState) => {
-    const map: Record<AvailabilityState, { text: string; cls: string }> = {
-      unknown: { text: t('availability_unknown'), cls: 'bg-gray-200 text-gray-700' },
-      available: { text: t('availability_available'), cls: 'bg-green-100 text-green-700' },
-      downloadable: { text: t('availability_downloadable'), cls: 'bg-yellow-100 text-yellow-800' },
-      unavailable: { text: t('availability_unavailable'), cls: 'bg-red-100 text-red-700' },
+    const map: Record<AvailabilityState, { text: string; variant: 'default' | 'success' | 'warning' | 'destructive' }> = {
+      unknown: { text: t('availability_unknown'), variant: 'default' },
+      available: { text: t('availability_available'), variant: 'success' },
+      downloadable: { text: t('availability_downloadable'), variant: 'warning' },
+      unavailable: { text: t('availability_unavailable'), variant: 'destructive' },
     };
     const v = map[state];
-    return <span className={`px-2 py-0.5 rounded text-xs ${v.cls}`}>{v.text}</span>;
+    return <Badge variant={v.variant}>{v.text}</Badge>;
   };
 
   return (
-    <div className="p-4 space-y-4 text-sm text-gray-900">
+    <div className="p-4 space-y-4 text-sm text-gray-900 dark:text-gray-100">
       <h1 className="text-lg font-semibold">{t('popup_title')}</h1>
 
       <div className="space-y-2">
@@ -263,79 +268,57 @@ const Popup: React.FC = () => {
           <span className="text-xs text-gray-600">{t('pair_availability')}</span>
           {availabilityBadge(availabilityPair)}
         </div>
-        <button
-          onClick={checkAvailability}
-          disabled={isChecking}
-          className="w-full inline-flex items-center justify-center rounded border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:opacity-60"
-        >
+        <Button onClick={checkAvailability} disabled={isChecking} variant="outline" className="w-full">
           {isChecking ? t('checking') : t('recheck_availability')}
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs text-gray-600">{t('source_language')}</label>
-        <select
-          className="w-full rounded border border-gray-300 bg-white p-2"
+        <Label>{t('source_language')}</Label>
+        <AppSelect
           value={settings.sourceLanguage}
-          onChange={(e) => setSettings((s) => ({ ...s, sourceLanguage: e.target.value as LanguageCode }))}
-        >
-          {SUPPORTED_LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>{l.label}</option>
-          ))}
-        </select>
+          onValueChange={(v) => setSettings((s) => ({ ...s, sourceLanguage: v as LanguageCode }))}
+          options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+        />
 
-        <label className="block text-xs text-gray-600 mt-2">{t('target_language')}</label>
-        <select
-          className="w-full rounded border border-gray-300 bg-white p-2"
+        <Label className="mt-2 inline-block">{t('target_language')}</Label>
+        <AppSelect
           value={settings.targetLanguage}
-          onChange={(e) => setSettings((s) => ({ ...s, targetLanguage: e.target.value as LanguageCode }))}
-        >
-          {SUPPORTED_LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>{l.label}</option>
-          ))}
-        </select>
+          onValueChange={(v) => setSettings((s) => ({ ...s, targetLanguage: v as LanguageCode }))}
+          options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+        />
       </div>
 
       <div className="space-y-2">
-        <button
-          onClick={createTranslator}
-          disabled={isCreating}
-          className="w-full inline-flex items-center justify-center rounded bg-black text-white px-3 py-2 hover:bg-gray-800 disabled:opacity-60"
-        >
+        <Button onClick={createTranslator} disabled={isCreating} variant="secondary" className="w-full">
           {isCreating ? t('preparing_translator') : t('create_prepare_translator')}
-        </button>
+        </Button>
         {(isCreating || downloadProgress > 0) && (
           <div className="w-full">
-            <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
               <span>{t('download_progress')}</span>
               <span>{downloadProgress}%</span>
             </div>
-            <div className="h-2 w-full bg-gray-200 rounded mt-1">
-              <div className="h-2 bg-blue-600 rounded" style={{ width: `${downloadProgress}%` }} />
-            </div>
+            <Progress value={downloadProgress} className="mt-1" />
           </div>
         )}
         {translatorReady && (
-          <div className="text-xs text-green-700">{t('translator_ready')}</div>
+          <div className="text-xs text-green-700 dark:text-green-400">{t('translator_ready')}</div>
         )}
       </div>
 
       <div className="space-y-2">
-        <button
-          onClick={handleTranslatePage}
-          disabled={!translatorReady}
-          className="w-full inline-flex items-center justify-center rounded bg-blue-600 text-white px-3 py-2 hover:bg-blue-700 disabled:opacity-60"
-        >
+        <Button onClick={handleTranslatePage} disabled={!translatorReady} className="w-full">
           {t('translate_full_page')}
-        </button>
-        <p className="text-[11px] text-gray-500">{t('translate_full_page_desc')}</p>
+        </Button>
+        <p className="text-[11px] text-gray-500 dark:text-gray-400">{t('translate_full_page_desc')}</p>
       </div>
 
       {error && (
-        <div className="text-xs text-red-600">{error}</div>
+        <div className="text-xs text-red-600 dark:text-red-400">{error}</div>
       )}
 
-      <footer className="pt-2 border-t border-gray-200 text-[11px] text-gray-500">
+      <footer className="pt-2 border-t border-gray-200 dark:border-neutral-800 text-[11px] text-gray-500 dark:text-gray-400">
         {t('footer_note')}
       </footer>
     </div>
