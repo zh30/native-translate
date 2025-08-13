@@ -1,7 +1,7 @@
 {
-  "name": "tiny-helmet",
-  "version": "0.0.2",
-  "description": "A tiny browser extension to enhance your development experience",
+  "name": "native-translate",
+  "version": "0.0.1",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -21,7 +21,7 @@
     "@rspack/cli": "^1.4.11",
     "@rspack/core": "^1.4.11",
     "@tailwindcss/postcss": "^4.1.11",
-    "@types/react": "^19.1.9",
+    "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "chrome-types": "^0.1.370",
     "css-loader": "^7.1.2",

@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "小小头盔",
+    "message": "原生翻译",
     "description": "The name of the extension"
   },
   "extension_description": {
-    "message": "一个增强开发体验的小型浏览器扩展。",
+    "message": "一个轻量、chrome 浏览器原生的 AI 翻译插件，不需要请求远程服务器，你的数据不离开浏览器",
     "description": "The description of the extension"
   }
 }
