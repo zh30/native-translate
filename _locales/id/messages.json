@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "Terjemahan Native",
+    "description": "Nama ekstensi"
+  },
+  "extension_description": {
+    "message": "Ekstensi ringan dengan terjemahan AI bawaan di browser.",
+    "description": "Deskripsi"
+  },
+  "popup_title": {
+    "message": "Terjemahan Native",
+    "description": "Judul popup"
+  },
+  "global_availability": {
+    "message": "Ketersediaan global",
+    "description": "Label"
+  },
+  "pair_availability": {
+    "message": "Ketersediaan pasangan bahasa",
+    "description": "Label"
+  },
+  "checking": {
+    "message": "Memeriksa…",
+    "description": "Status"
+  },
+  "recheck_availability": {
+    "message": "Periksa ulang ketersediaan",
+    "description": "Tombol"
+  },
+  "source_language": {
+    "message": "Bahasa sumber",
+    "description": "Label"
+  },
+  "target_language": {
+    "message": "Bahasa target",
+    "description": "Label"
+  },
+  "preparing_translator": {
+    "message": "Menyiapkan (mungkin mengunduh model)…",
+    "description": "Menyiapkan"
+  },
+  "create_prepare_translator": {
+    "message": "Buat/Siapkan penerjemah",
+    "description": "Tombol"
+  },
+  "download_progress": {
+    "message": "Progres unduhan",
+    "description": "Label"
+  },
+  "translator_ready": {
+    "message": "Penerjemah siap",
+    "description": "Notifikasi"
+  },
+  "translate_full_page": {
+    "message": "Terjemahkan halaman saat ini",
+    "description": "Tombol"
+  },
+  "translate_full_page_desc": {
+    "message": "Ini akan mengirim perintah ke skrip konten untuk menyisipkan terjemahan ke halaman.",
+    "description": "Deskripsi"
+  },
+  "footer_note": {
+    "message": "Didukung oleh API Penerjemah AI bawaan. Unduhan model bergantung pada perangkat.",
+    "description": "Catatan kaki"
+  },
+  "sidepanel_title": {
+    "message": "Panel Sisi Terjemahan Native",
+    "description": "Judul panel"
+  },
+  "unknown_error": {
+    "message": "Kesalahan tidak diketahui",
+    "description": "Kesalahan"
+  },
+  "translator_unavailable": {
+    "message": "API penerjemah tidak tersedia (memerlukan Chrome 138+ dan model siap)",
+    "description": "Tidak tersedia"
+  },
+  "create_translator_failed": {
+    "message": "Gagal membuat penerjemah",
+    "description": "Kesalahan"
+  },
+  "active_tab_not_found": {
+    "message": "Tab aktif tidak ditemukan",
+    "description": "Kesalahan"
+  },
+  "send_translate_command_failed": {
+    "message": "Gagal mengirim perintah terjemahan",
+    "description": "Kesalahan"
+  },
+  "availability_unknown": {
+    "message": "Tidak diketahui",
+    "description": "Badge"
+  },
+  "availability_available": {
+    "message": "Tersedia",
+    "description": "Badge"
+  },
+  "availability_downloadable": {
+    "message": "Dapat diunduh",
+    "description": "Badge"
+  },
+  "availability_unavailable": {
+    "message": "Tidak tersedia",
+    "description": "Badge"
+  },
+  "overlay_preparing": {
+    "message": "Menyiapkan penerjemah…",
+    "description": "Overlay"
+  },
+  "overlay_api_unavailable": {
+    "message": "API penerjemah tidak tersedia (memerlukan Chrome 138+)",
+    "description": "Overlay"
+  },
+  "overlay_using_cached": {
+    "message": "Menggunakan model cache…",
+    "description": "Overlay"
+  },
+  "overlay_downloading": {
+    "message": "Mengunduh model… $1%",
+    "description": "Overlay"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "Tidak ada yang diterjemahkan",
+    "description": "Overlay"
+  },
+  "overlay_translating": {
+    "message": "Menerjemahkan… $1% ($2/$3)",
+    "description": "Overlay"
+  },
+  "overlay_translation_complete": {
+    "message": "Terjemahan selesai",
+    "description": "Overlay"
+  }
+}

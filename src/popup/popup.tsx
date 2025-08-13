@@ -2,6 +2,7 @@ import '../styles/tailwind.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { t } from '@/utils/i18n';
+import { getUILocale, isRTLLanguage } from '@/utils/rtl';
 
 type AvailabilityState = 'unknown' | 'available' | 'downloadable' | 'unavailable';
 
@@ -16,7 +17,21 @@ type LanguageCode =
   | 'es'
   | 'it'
   | 'pt'
-  | 'ru';
+  | 'ru'
+  | 'ar'
+  | 'hi'
+  | 'bn'
+  | 'id'
+  | 'tr'
+  | 'vi'
+  | 'th'
+  | 'nl'
+  | 'pl'
+  | 'fa'
+  | 'ur'
+  | 'uk'
+  | 'sv'
+  | 'fil';
 
 interface TranslatorDownloadProgressEvent extends Event {
   // 0..1
@@ -67,6 +82,20 @@ const SUPPORTED_LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: 'it', label: 'Italiano' },
   { code: 'pt', label: 'Português' },
   { code: 'ru', label: 'Русский' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'hi', label: 'हिन्दी' },
+  { code: 'bn', label: 'বাংলা' },
+  { code: 'id', label: 'Bahasa Indonesia' },
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'vi', label: 'Tiếng Việt' },
+  { code: 'th', label: 'ไทย' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'pl', label: 'Polski' },
+  { code: 'fa', label: 'فارسی' },
+  { code: 'ur', label: 'اردو' },
+  { code: 'uk', label: 'Українська' },
+  { code: 'sv', label: 'Svenska' },
+  { code: 'fil', label: 'Filipino' },
 ];
 
 const STORAGE_KEY = 'nativeTranslate.settings';
@@ -93,6 +122,12 @@ const Popup: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    // 根据 UI 语言设置方向
+    const ui = getUILocale();
+    const dir = isRTLLanguage(ui) ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('lang', ui);
+
     chrome.storage.local.get(STORAGE_KEY, (res) => {
       const saved = (res?.[STORAGE_KEY] as PopupSettings | undefined) ?? defaultSettings;
       setSettings(saved);
@@ -113,7 +148,17 @@ const Popup: React.FC = () => {
         setAvailabilityPair('unavailable');
         return;
       }
-      const global = await api.availability();
+      let global: AvailabilityState;
+      try {
+        // 有些实现要求至少 1 个参数，这里传空对象以兼容
+        global = await (api as any).availability({});
+      } catch (_e) {
+        // 回退到使用当前语言对检测，避免零参报错
+        global = await api.availability({
+          sourceLanguage: settings.sourceLanguage,
+          targetLanguage: settings.targetLanguage,
+        });
+      }
       setAvailabilityGlobal(global);
       const pair = await api.availability({
         sourceLanguage: settings.sourceLanguage,
@@ -121,7 +166,7 @@ const Popup: React.FC = () => {
       });
       setAvailabilityPair(pair);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error');
+      setError(e instanceof Error ? e.message : t('unknown_error'));
       setAvailabilityGlobal('unavailable');
       setAvailabilityPair('unavailable');
     } finally {
@@ -141,7 +186,7 @@ const Popup: React.FC = () => {
     setTranslatorReady(false);
     try {
       const api = window.Translator;
-      if (!api) throw new Error('Translator API 不可用（需要 Chrome 138+ 且模型可用）');
+      if (!api) throw new Error(t('translator_unavailable'));
       const translator = await api.create({
         sourceLanguage: settings.sourceLanguage,
         targetLanguage: settings.targetLanguage,
@@ -156,11 +201,20 @@ const Popup: React.FC = () => {
       if (translator.ready) {
         await translator.ready;
       }
+      // 标记该语言对已就绪，便于内容脚本复用
+      try {
+        const key = `${settings.sourceLanguage}->${settings.targetLanguage}`;
+        const ns: 'session' | 'local' = (chrome.storage as any).session ? 'session' : 'local';
+        const data = await chrome.storage[ns].get('nativeTranslate:readyPairs');
+        const map = (data?.['nativeTranslate:readyPairs'] as Record<string, number> | undefined) ?? {};
+        map[key] = Date.now();
+        await chrome.storage[ns].set({ 'nativeTranslate:readyPairs': map });
+      } catch (_e) { }
       setTranslatorReady(true);
       // 更新可用性
       await checkAvailability();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '创建翻译器失败');
+      setError(e instanceof Error ? e.message : t('create_translator_failed'));
       setTranslatorReady(false);
     } finally {
       setIsCreating(false);
@@ -171,7 +225,7 @@ const Popup: React.FC = () => {
     setError(null);
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) throw new Error('未找到活动标签页');
+      if (!tab?.id) throw new Error(t('active_tab_not_found'));
       await chrome.tabs.sendMessage(tab.id, {
         type: 'NATIVE_TRANSLATE_TRANSLATE_PAGE',
         payload: {
@@ -181,16 +235,16 @@ const Popup: React.FC = () => {
       });
       window.close();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '发送翻译指令失败');
+      setError(e instanceof Error ? e.message : t('send_translate_command_failed'));
     }
   }, [settings.sourceLanguage, settings.targetLanguage]);
 
   const availabilityBadge = (state: AvailabilityState) => {
     const map: Record<AvailabilityState, { text: string; cls: string }> = {
-      unknown: { text: '未知', cls: 'bg-gray-200 text-gray-700' },
-      available: { text: '可用', cls: 'bg-green-100 text-green-700' },
-      downloadable: { text: '可下载', cls: 'bg-yellow-100 text-yellow-800' },
-      unavailable: { text: '不可用', cls: 'bg-red-100 text-red-700' },
+      unknown: { text: t('availability_unknown'), cls: 'bg-gray-200 text-gray-700' },
+      available: { text: t('availability_available'), cls: 'bg-green-100 text-green-700' },
+      downloadable: { text: t('availability_downloadable'), cls: 'bg-yellow-100 text-yellow-800' },
+      unavailable: { text: t('availability_unavailable'), cls: 'bg-red-100 text-red-700' },
     };
     const v = map[state];
     return <span className={`px-2 py-0.5 rounded text-xs ${v.cls}`}>{v.text}</span>;

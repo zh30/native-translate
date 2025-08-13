@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "Yerel Çeviri",
+    "description": "Eklenti adı"
+  },
+  "extension_description": {
+    "message": "Tarayıcıya yerleşik yapay zekâ çevirisiyle hafif bir eklenti.",
+    "description": "Açıklama"
+  },
+  "popup_title": {
+    "message": "Yerel Çeviri",
+    "description": "Açılır başlık"
+  },
+  "global_availability": {
+    "message": "Küresel kullanılabilirlik",
+    "description": "Etiket"
+  },
+  "pair_availability": {
+    "message": "Dil çifti kullanılabilirliği",
+    "description": "Etiket"
+  },
+  "checking": {
+    "message": "Kontrol ediliyor…",
+    "description": "Durum"
+  },
+  "recheck_availability": {
+    "message": "Kullanılabilirliği yeniden kontrol et",
+    "description": "Düğme"
+  },
+  "source_language": {
+    "message": "Kaynak dil",
+    "description": "Etiket"
+  },
+  "target_language": {
+    "message": "Hedef dil",
+    "description": "Etiket"
+  },
+  "preparing_translator": {
+    "message": "Hazırlanıyor (model indirilebilir)…",
+    "description": "Hazırlık"
+  },
+  "create_prepare_translator": {
+    "message": "Çevirmen oluştur/hazırla",
+    "description": "Düğme"
+  },
+  "download_progress": {
+    "message": "İndirme ilerlemesi",
+    "description": "Etiket"
+  },
+  "translator_ready": {
+    "message": "Çevirmen hazır",
+    "description": "Bildirim"
+  },
+  "translate_full_page": {
+    "message": "Geçerli sayfayı çevir",
+    "description": "Düğme"
+  },
+  "translate_full_page_desc": {
+    "message": "Bu, sayfaya çeviriler eklemek için içerik komut dosyasına bir komut gönderir.",
+    "description": "Açıklama"
+  },
+  "footer_note": {
+    "message": "Yerleşik Yapay Zekâ Çeviri API'si ile desteklenir. Model indirme cihazınıza bağlıdır.",
+    "description": "Alt bilgi"
+  },
+  "sidepanel_title": {
+    "message": "Yerel Çeviri Yan Paneli",
+    "description": "Panel başlığı"
+  },
+  "unknown_error": {
+    "message": "Bilinmeyen hata",
+    "description": "Hata"
+  },
+  "translator_unavailable": {
+    "message": "Çeviri API'si kullanılamıyor (Chrome 138+ ve hazır model gerekir)",
+    "description": "Kullanılamıyor"
+  },
+  "create_translator_failed": {
+    "message": "Çevirmen oluşturma başarısız",
+    "description": "Hata"
+  },
+  "active_tab_not_found": {
+    "message": "Etkin sekme bulunamadı",
+    "description": "Hata"
+  },
+  "send_translate_command_failed": {
+    "message": "Çeviri komutu gönderilemedi",
+    "description": "Hata"
+  },
+  "availability_unknown": {
+    "message": "Bilinmiyor",
+    "description": "Rozet"
+  },
+  "availability_available": {
+    "message": "Kullanılabilir",
+    "description": "Rozet"
+  },
+  "availability_downloadable": {
+    "message": "İndirilebilir",
+    "description": "Rozet"
+  },
+  "availability_unavailable": {
+    "message": "Kullanılamıyor",
+    "description": "Rozet"
+  },
+  "overlay_preparing": {
+    "message": "Çevirmen hazırlanıyor…",
+    "description": "Katman"
+  },
+  "overlay_api_unavailable": {
+    "message": "Çeviri API'si kullanılamıyor (Chrome 138+)",
+    "description": "Katman"
+  },
+  "overlay_using_cached": {
+    "message": "Önbellekteki model kullanılıyor…",
+    "description": "Katman"
+  },
+  "overlay_downloading": {
+    "message": "Model indiriliyor… $1%",
+    "description": "Katman"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "Çevrilecek bir şey yok",
+    "description": "Katman"
+  },
+  "overlay_translating": {
+    "message": "Çevriliyor… $1% ($2/$3)",
+    "description": "Katman"
+  },
+  "overlay_translation_complete": {
+    "message": "Çeviri tamamlandı",
+    "description": "Katman"
+  }
+}

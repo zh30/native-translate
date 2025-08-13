@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "การแปลแบบเนทีฟ",
+    "description": "ชื่อตัวขยาย"
+  },
+  "extension_description": {
+    "message": "ส่วนขยายแปลภาษาด้วย AI ที่ฝังในเบราว์เซอร์ น้ำหนักเบา.",
+    "description": "คำอธิบาย"
+  },
+  "popup_title": {
+    "message": "การแปลแบบเนทีฟ",
+    "description": "ชื่อหน้าต่างป๊อปอัป"
+  },
+  "global_availability": {
+    "message": "ความพร้อมใช้งานทั่วโลก",
+    "description": "ป้ายกำกับ"
+  },
+  "pair_availability": {
+    "message": "ความพร้อมของคู่ภาษา",
+    "description": "ป้ายกำกับ"
+  },
+  "checking": {
+    "message": "กำลังตรวจสอบ…",
+    "description": "สถานะ"
+  },
+  "recheck_availability": {
+    "message": "ตรวจสอบความพร้อมอีกครั้ง",
+    "description": "ปุ่ม"
+  },
+  "source_language": {
+    "message": "ภาษาต้นฉบับ",
+    "description": "ป้ายกำกับ"
+  },
+  "target_language": {
+    "message": "ภาษาเป้าหมาย",
+    "description": "ป้ายกำกับ"
+  },
+  "preparing_translator": {
+    "message": "กำลังเตรียมการ (อาจดาวน์โหลดโมเดล)…",
+    "description": "เตรียมการ"
+  },
+  "create_prepare_translator": {
+    "message": "สร้าง/เตรียมนักแปล",
+    "description": "ปุ่ม"
+  },
+  "download_progress": {
+    "message": "ความคืบหน้าการดาวน์โหลด",
+    "description": "ป้ายกำกับ"
+  },
+  "translator_ready": {
+    "message": "นักแปลพร้อมแล้ว",
+    "description": "ประกาศ"
+  },
+  "translate_full_page": {
+    "message": "แปลทั้งหน้าเว็บปัจจุบัน",
+    "description": "ปุ่ม"
+  },
+  "translate_full_page_desc": {
+    "message": "ระบบจะส่งคำสั่งไปยังสคริปต์เนื้อหาเพื่อฝังคำแปลลงในหน้าเว็บ.",
+    "description": "คำอธิบาย"
+  },
+  "footer_note": {
+    "message": "ขับเคลื่อนด้วย API การแปลด้วย AI ในตัว การดาวน์โหลดโมเดลขึ้นอยู่กับอุปกรณ์.",
+    "description": "ส่วนท้าย"
+  },
+  "sidepanel_title": {
+    "message": "แผงด้านข้างการแปลแบบเนทีฟ",
+    "description": "ชื่อแผง"
+  },
+  "unknown_error": {
+    "message": "ข้อผิดพลาดที่ไม่รู้จัก",
+    "description": "ข้อผิดพลาด"
+  },
+  "translator_unavailable": {
+    "message": "API นักแปลไม่พร้อมใช้งาน (ต้องใช้ Chrome 138+ และโมเดลพร้อม)",
+    "description": "ไม่พร้อมใช้งาน"
+  },
+  "create_translator_failed": {
+    "message": "สร้างนักแปลไม่สำเร็จ",
+    "description": "ข้อผิดพลาด"
+  },
+  "active_tab_not_found": {
+    "message": "ไม่พบแท็บที่ใช้งานอยู่",
+    "description": "ข้อผิดพลาด"
+  },
+  "send_translate_command_failed": {
+    "message": "ส่งคำสั่งแปลไม่สำเร็จ",
+    "description": "ข้อผิดพลาด"
+  },
+  "availability_unknown": {
+    "message": "ไม่ทราบ",
+    "description": "ตรา"
+  },
+  "availability_available": {
+    "message": "พร้อมใช้งาน",
+    "description": "ตรา"
+  },
+  "availability_downloadable": {
+    "message": "ดาวน์โหลดได้",
+    "description": "ตรา"
+  },
+  "availability_unavailable": {
+    "message": "ไม่พร้อมใช้งาน",
+    "description": "ตรา"
+  },
+  "overlay_preparing": {
+    "message": "กำลังเตรียมนักแปล…",
+    "description": "โอเวอร์เลย์"
+  },
+  "overlay_api_unavailable": {
+    "message": "API นักแปลไม่พร้อมใช้งาน (ต้องใช้ Chrome 138+)",
+    "description": "โอเวอร์เลย์"
+  },
+  "overlay_using_cached": {
+    "message": "กำลังใช้โมเดลที่แคชไว้…",
+    "description": "โอเวอร์เลย์"
+  },
+  "overlay_downloading": {
+    "message": "กำลังดาวน์โหลดโมเดล… $1%",
+    "description": "โอเวอร์เลย์"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "ไม่มีสิ่งที่จะต้องแปล",
+    "description": "โอเวอร์เลย์"
+  },
+  "overlay_translating": {
+    "message": "กำลังแปล… $1% ($2/$3)",
+    "description": "โอเวอร์เลย์"
+  },
+  "overlay_translation_complete": {
+    "message": "แปลเสร็จสิ้น",
+    "description": "โอเวอร์เลย์"
+  }
+}

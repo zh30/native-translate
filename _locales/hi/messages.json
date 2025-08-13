@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "नेटिव अनुवाद",
+    "description": "एक्सटेंशन का नाम"
+  },
+  "extension_description": {
+    "message": "ब्राउज़र में अंतर्निहित AI अनुवाद वाली हल्की एक्सटेंशन।",
+    "description": "विवरण"
+  },
+  "popup_title": {
+    "message": "नेटिव अनुवाद",
+    "description": "पॉपअप शीर्षक"
+  },
+  "global_availability": {
+    "message": "वैश्विक उपलब्धता",
+    "description": "लेबल"
+  },
+  "pair_availability": {
+    "message": "भाषा जोड़ी की उपलब्धता",
+    "description": "लेबल"
+  },
+  "checking": {
+    "message": "जांच हो रही है…",
+    "description": "स्थिति"
+  },
+  "recheck_availability": {
+    "message": "उपलब्धता पुनः जांचें",
+    "description": "बटन"
+  },
+  "source_language": {
+    "message": "स्रोत भाषा",
+    "description": "लेबल"
+  },
+  "target_language": {
+    "message": "लक्ष्य भाषा",
+    "description": "लेबल"
+  },
+  "preparing_translator": {
+    "message": "तैयार किया जा रहा है (मॉडल डाउनलोड हो सकता है)…",
+    "description": "तैयारी"
+  },
+  "create_prepare_translator": {
+    "message": "अनुवादक बनाएँ/तैयार करें",
+    "description": "बटन"
+  },
+  "download_progress": {
+    "message": "डाउनलोड प्रगति",
+    "description": "लेबल"
+  },
+  "translator_ready": {
+    "message": "अनुवादक तैयार है",
+    "description": "सूचना"
+  },
+  "translate_full_page": {
+    "message": "वर्तमान पृष्ठ का अनुवाद करें",
+    "description": "बटन"
+  },
+  "translate_full_page_desc": {
+    "message": "यह सामग्री स्क्रिप्ट को पृष्ठ में अनुवाद जोड़ने का आदेश भेजेगा।",
+    "description": "विवरण"
+  },
+  "footer_note": {
+    "message": "अंतर्निहित AI अनुवाद API द्वारा संचालित। मॉडल डाउनलोड डिवाइस पर निर्भर करता है।",
+    "description": "फुटर"
+  },
+  "sidepanel_title": {
+    "message": "नेटिव अनुवाद साइड पैनल",
+    "description": "शीर्षक"
+  },
+  "unknown_error": {
+    "message": "अज्ञात त्रुटि",
+    "description": "त्रुटि"
+  },
+  "translator_unavailable": {
+    "message": "अनुवाद API उपलब्ध नहीं (Chrome 138+ और मॉडल आवश्यक)",
+    "description": "उपलब्ध नहीं"
+  },
+  "create_translator_failed": {
+    "message": "अनुवादक बनाना विफल",
+    "description": "त्रुटि"
+  },
+  "active_tab_not_found": {
+    "message": "सक्रिय टैब नहीं मिला",
+    "description": "त्रुटि"
+  },
+  "send_translate_command_failed": {
+    "message": "अनुवाद आदेश भेजना विफल",
+    "description": "त्रुटि"
+  },
+  "availability_unknown": {
+    "message": "अज्ञात",
+    "description": "बैज"
+  },
+  "availability_available": {
+    "message": "उपलब्ध",
+    "description": "बैज"
+  },
+  "availability_downloadable": {
+    "message": "डाउनलोड करने योग्य",
+    "description": "बैज"
+  },
+  "availability_unavailable": {
+    "message": "उपलब्ध नहीं",
+    "description": "बैज"
+  },
+  "overlay_preparing": {
+    "message": "अनुवादक तैयार हो रहा है…",
+    "description": "ओवरले"
+  },
+  "overlay_api_unavailable": {
+    "message": "अनुवाद API उपलब्ध नहीं (Chrome 138+)",
+    "description": "ओवरले"
+  },
+  "overlay_using_cached": {
+    "message": "कैश्ड मॉडल का उपयोग हो रहा है…",
+    "description": "ओवरले"
+  },
+  "overlay_downloading": {
+    "message": "मॉडल डाउनलोड हो रहा है… $1%",
+    "description": "ओवरले"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "अनुवाद करने के लिए कुछ नहीं",
+    "description": "ओवरले"
+  },
+  "overlay_translating": {
+    "message": "अनुवाद हो रहा है… $1% ($2/$3)",
+    "description": "ओवरले"
+  },
+  "overlay_translation_complete": {
+    "message": "अनुवाद पूरा हुआ",
+    "description": "ओवरले"
+  }
+}

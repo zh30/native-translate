@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "Traducción Nativa",
+    "description": "Nombre de la extensión"
+  },
+  "extension_description": {
+    "message": "Una extensión ligera de traducción con IA integrada en el navegador.",
+    "description": "Descripción"
+  },
+  "popup_title": {
+    "message": "Traducción Nativa",
+    "description": "Título del popup"
+  },
+  "global_availability": {
+    "message": "Disponibilidad global",
+    "description": "Etiqueta"
+  },
+  "pair_availability": {
+    "message": "Disponibilidad del par de idiomas",
+    "description": "Etiqueta"
+  },
+  "checking": {
+    "message": "Comprobando…",
+    "description": "Estado"
+  },
+  "recheck_availability": {
+    "message": "Volver a comprobar disponibilidad",
+    "description": "Botón"
+  },
+  "source_language": {
+    "message": "Idioma de origen",
+    "description": "Etiqueta"
+  },
+  "target_language": {
+    "message": "Idioma de destino",
+    "description": "Etiqueta"
+  },
+  "preparing_translator": {
+    "message": "Preparando (puede descargar el modelo)…",
+    "description": "Preparando"
+  },
+  "create_prepare_translator": {
+    "message": "Crear/Preparar traductor",
+    "description": "Botón"
+  },
+  "download_progress": {
+    "message": "Progreso de descarga",
+    "description": "Etiqueta"
+  },
+  "translator_ready": {
+    "message": "Traductor listo",
+    "description": "Aviso"
+  },
+  "translate_full_page": {
+    "message": "Traducir página actual",
+    "description": "Botón"
+  },
+  "translate_full_page_desc": {
+    "message": "Esto enviará un comando al script de contenido para insertar traducciones en la página.",
+    "description": "Descripción"
+  },
+  "footer_note": {
+    "message": "Con tecnología de la API de traducción de IA integrada. La descarga del modelo depende del dispositivo.",
+    "description": "Pie"
+  },
+  "sidepanel_title": {
+    "message": "Panel lateral de Traducción Nativa",
+    "description": "Título panel"
+  },
+  "unknown_error": {
+    "message": "Error desconocido",
+    "description": "Error"
+  },
+  "translator_unavailable": {
+    "message": "API de traducción no disponible (requiere Chrome 138+ y modelo listo)",
+    "description": "No disponible"
+  },
+  "create_translator_failed": {
+    "message": "Error al crear el traductor",
+    "description": "Error"
+  },
+  "active_tab_not_found": {
+    "message": "No se encontró la pestaña activa",
+    "description": "Error"
+  },
+  "send_translate_command_failed": {
+    "message": "Error al enviar el comando de traducción",
+    "description": "Error"
+  },
+  "availability_unknown": {
+    "message": "Desconocido",
+    "description": "Insignia"
+  },
+  "availability_available": {
+    "message": "Disponible",
+    "description": "Insignia"
+  },
+  "availability_downloadable": {
+    "message": "Descargable",
+    "description": "Insignia"
+  },
+  "availability_unavailable": {
+    "message": "No disponible",
+    "description": "Insignia"
+  },
+  "overlay_preparing": {
+    "message": "Preparando traductor…",
+    "description": "Overlay"
+  },
+  "overlay_api_unavailable": {
+    "message": "API de traducción no disponible (requiere Chrome 138+)",
+    "description": "Overlay"
+  },
+  "overlay_using_cached": {
+    "message": "Usando modelo en caché…",
+    "description": "Overlay"
+  },
+  "overlay_downloading": {
+    "message": "Descargando modelo… $1%",
+    "description": "Overlay"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "Nada que traducir",
+    "description": "Overlay"
+  },
+  "overlay_translating": {
+    "message": "Traduciendo… $1% ($2/$3)",
+    "description": "Overlay"
+  },
+  "overlay_translation_complete": {
+    "message": "Traducción completada",
+    "description": "Overlay"
+  }
+}

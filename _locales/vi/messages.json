@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "Dịch Bản Địa",
+    "description": "Tên tiện ích"
+  },
+  "extension_description": {
+    "message": "Tiện ích dịch nhẹ sử dụng AI tích hợp trong trình duyệt.",
+    "description": "Mô tả"
+  },
+  "popup_title": {
+    "message": "Dịch Bản Địa",
+    "description": "Tiêu đề popup"
+  },
+  "global_availability": {
+    "message": "Khả dụng toàn cục",
+    "description": "Nhãn"
+  },
+  "pair_availability": {
+    "message": "Khả dụng cặp ngôn ngữ",
+    "description": "Nhãn"
+  },
+  "checking": {
+    "message": "Đang kiểm tra…",
+    "description": "Trạng thái"
+  },
+  "recheck_availability": {
+    "message": "Kiểm tra lại khả dụng",
+    "description": "Nút"
+  },
+  "source_language": {
+    "message": "Ngôn ngữ nguồn",
+    "description": "Nhãn"
+  },
+  "target_language": {
+    "message": "Ngôn ngữ đích",
+    "description": "Nhãn"
+  },
+  "preparing_translator": {
+    "message": "Đang chuẩn bị (có thể tải mô hình)…",
+    "description": "Chuẩn bị"
+  },
+  "create_prepare_translator": {
+    "message": "Tạo/Chuẩn bị bộ dịch",
+    "description": "Nút"
+  },
+  "download_progress": {
+    "message": "Tiến trình tải xuống",
+    "description": "Nhãn"
+  },
+  "translator_ready": {
+    "message": "Bộ dịch sẵn sàng",
+    "description": "Thông báo"
+  },
+  "translate_full_page": {
+    "message": "Dịch toàn bộ trang hiện tại",
+    "description": "Nút"
+  },
+  "translate_full_page_desc": {
+    "message": "Sẽ gửi lệnh tới content script để chèn bản dịch vào trang.",
+    "description": "Mô tả"
+  },
+  "footer_note": {
+    "message": "Sử dụng API Dịch AI tích hợp. Việc tải mô hình phụ thuộc vào thiết bị.",
+    "description": "Chú thích"
+  },
+  "sidepanel_title": {
+    "message": "Bảng Bên Dịch Bản Địa",
+    "description": "Tiêu đề panel"
+  },
+  "unknown_error": {
+    "message": "Lỗi không xác định",
+    "description": "Lỗi"
+  },
+  "translator_unavailable": {
+    "message": "API dịch không khả dụng (cần Chrome 138+ và mô hình sẵn sàng)",
+    "description": "Không khả dụng"
+  },
+  "create_translator_failed": {
+    "message": "Tạo bộ dịch thất bại",
+    "description": "Lỗi"
+  },
+  "active_tab_not_found": {
+    "message": "Không tìm thấy thẻ đang hoạt động",
+    "description": "Lỗi"
+  },
+  "send_translate_command_failed": {
+    "message": "Gửi lệnh dịch thất bại",
+    "description": "Lỗi"
+  },
+  "availability_unknown": {
+    "message": "Không rõ",
+    "description": "Huy hiệu"
+  },
+  "availability_available": {
+    "message": "Khả dụng",
+    "description": "Huy hiệu"
+  },
+  "availability_downloadable": {
+    "message": "Có thể tải",
+    "description": "Huy hiệu"
+  },
+  "availability_unavailable": {
+    "message": "Không khả dụng",
+    "description": "Huy hiệu"
+  },
+  "overlay_preparing": {
+    "message": "Đang chuẩn bị bộ dịch…",
+    "description": "Overlay"
+  },
+  "overlay_api_unavailable": {
+    "message": "API dịch không khả dụng (cần Chrome 138+)",
+    "description": "Overlay"
+  },
+  "overlay_using_cached": {
+    "message": "Đang dùng mô hình đã lưu…",
+    "description": "Overlay"
+  },
+  "overlay_downloading": {
+    "message": "Đang tải mô hình… $1%",
+    "description": "Overlay"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "Không có nội dung để dịch",
+    "description": "Overlay"
+  },
+  "overlay_translating": {
+    "message": "Đang dịch… $1% ($2/$3)",
+    "description": "Overlay"
+  },
+  "overlay_translation_complete": {
+    "message": "Hoàn tất dịch",
+    "description": "Overlay"
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "Native Vertalen",
+    "description": "Naam van de extensie"
+  },
+  "extension_description": {
+    "message": "Een lichte vertaalextensie met ingebouwde AI in de browser.",
+    "description": "Beschrijving"
+  },
+  "popup_title": {
+    "message": "Native Vertalen",
+    "description": "Titel van popup"
+  },
+  "global_availability": {
+    "message": "Wereldwijde beschikbaarheid",
+    "description": "Label"
+  },
+  "pair_availability": {
+    "message": "Beschikbaarheid taalkoppel",
+    "description": "Label"
+  },
+  "checking": {
+    "message": "Controleren…",
+    "description": "Status"
+  },
+  "recheck_availability": {
+    "message": "Beschikbaarheid opnieuw controleren",
+    "description": "Knop"
+  },
+  "source_language": {
+    "message": "Brontaal",
+    "description": "Label"
+  },
+  "target_language": {
+    "message": "Doeltaal",
+    "description": "Label"
+  },
+  "preparing_translator": {
+    "message": "Voorbereiden (model kan worden gedownload)…",
+    "description": "Voorbereiden"
+  },
+  "create_prepare_translator": {
+    "message": "Vertaler maken/voorbereiden",
+    "description": "Knop"
+  },
+  "download_progress": {
+    "message": "Downloadvoortgang",
+    "description": "Label"
+  },
+  "translator_ready": {
+    "message": "Vertaler gereed",
+    "description": "Melding"
+  },
+  "translate_full_page": {
+    "message": "Huidige pagina vertalen",
+    "description": "Knop"
+  },
+  "translate_full_page_desc": {
+    "message": "Stuurt een opdracht naar het inhoudsscript om vertalingen in de pagina in te voegen.",
+    "description": "Beschrijving"
+  },
+  "footer_note": {
+    "message": "Aangedreven door de ingebouwde AI Translator API. Het downloaden van het model is afhankelijk van het apparaat.",
+    "description": "Voettekst"
+  },
+  "sidepanel_title": {
+    "message": "Native Vertalen Zijpaneel",
+    "description": "Paneeltitel"
+  },
+  "unknown_error": {
+    "message": "Onbekende fout",
+    "description": "Fout"
+  },
+  "translator_unavailable": {
+    "message": "Vertaal-API niet beschikbaar (vereist Chrome 138+ en gereed model)",
+    "description": "Niet beschikbaar"
+  },
+  "create_translator_failed": {
+    "message": "Vertaler maken mislukt",
+    "description": "Fout"
+  },
+  "active_tab_not_found": {
+    "message": "Actief tabblad niet gevonden",
+    "description": "Fout"
+  },
+  "send_translate_command_failed": {
+    "message": "Verzenden van vertaalopdracht mislukt",
+    "description": "Fout"
+  },
+  "availability_unknown": {
+    "message": "Onbekend",
+    "description": "Badge"
+  },
+  "availability_available": {
+    "message": "Beschikbaar",
+    "description": "Badge"
+  },
+  "availability_downloadable": {
+    "message": "Downloadbaar",
+    "description": "Badge"
+  },
+  "availability_unavailable": {
+    "message": "Niet beschikbaar",
+    "description": "Badge"
+  },
+  "overlay_preparing": {
+    "message": "Vertaler wordt voorbereid…",
+    "description": "Overlay"
+  },
+  "overlay_api_unavailable": {
+    "message": "Vertaal-API niet beschikbaar (vereist Chrome 138+)",
+    "description": "Overlay"
+  },
+  "overlay_using_cached": {
+    "message": "Gecached model wordt gebruikt…",
+    "description": "Overlay"
+  },
+  "overlay_downloading": {
+    "message": "Model wordt gedownload… $1%",
+    "description": "Overlay"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "Niets om te vertalen",
+    "description": "Overlay"
+  },
+  "overlay_translating": {
+    "message": "Vertalen… $1% ($2/$3)",
+    "description": "Overlay"
+  },
+  "overlay_translation_complete": {
+    "message": "Vertaling voltooid",
+    "description": "Overlay"
+  }
+}

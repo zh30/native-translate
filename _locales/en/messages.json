@@ -66,5 +66,69 @@
   "sidepanel_title": {
     "message": "Native Translate Side Panel",
     "description": "Side panel title"
+  },
+  "unknown_error": {
+    "message": "Unknown error",
+    "description": "Generic error"
+  },
+  "translator_unavailable": {
+    "message": "Translator API unavailable (requires Chrome 138+ and model readiness)",
+    "description": "Translator unavailable"
+  },
+  "create_translator_failed": {
+    "message": "Failed to create translator",
+    "description": "Create translator failed"
+  },
+  "active_tab_not_found": {
+    "message": "Active tab not found",
+    "description": "Active tab missing"
+  },
+  "send_translate_command_failed": {
+    "message": "Failed to send translate command",
+    "description": "Send command failed"
+  },
+  "availability_unknown": {
+    "message": "Unknown",
+    "description": "Availability badge"
+  },
+  "availability_available": {
+    "message": "Available",
+    "description": "Availability badge"
+  },
+  "availability_downloadable": {
+    "message": "Downloadable",
+    "description": "Availability badge"
+  },
+  "availability_unavailable": {
+    "message": "Unavailable",
+    "description": "Availability badge"
+  },
+  "overlay_preparing": {
+    "message": "Preparing translator…",
+    "description": "Overlay preparing"
+  },
+  "overlay_api_unavailable": {
+    "message": "Translator API unavailable (requires Chrome 138+)",
+    "description": "Overlay API unavailable"
+  },
+  "overlay_using_cached": {
+    "message": "Using cached model…",
+    "description": "Overlay using cached"
+  },
+  "overlay_downloading": {
+    "message": "Downloading model… $1%",
+    "description": "Overlay downloading with percentage"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "Nothing to translate",
+    "description": "Overlay nothing"
+  },
+  "overlay_translating": {
+    "message": "Translating… $1% ($2/$3)",
+    "description": "Overlay translating with progress"
+  },
+  "overlay_translation_complete": {
+    "message": "Translation complete",
+    "description": "Overlay complete"
   }
 }

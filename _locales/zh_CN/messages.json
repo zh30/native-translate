@@ -66,5 +66,69 @@
   "sidepanel_title": {
     "message": "原生翻译侧边栏",
     "description": "Side Panel 标题"
+  },
+  "unknown_error": {
+    "message": "未知错误",
+    "description": "通用错误"
+  },
+  "translator_unavailable": {
+    "message": "Translator API 不可用（需要 Chrome 138+ 且模型就绪）",
+    "description": "翻译器不可用"
+  },
+  "create_translator_failed": {
+    "message": "创建翻译器失败",
+    "description": "创建失败"
+  },
+  "active_tab_not_found": {
+    "message": "未找到活动标签页",
+    "description": "找不到活动标签页"
+  },
+  "send_translate_command_failed": {
+    "message": "发送翻译指令失败",
+    "description": "发送失败"
+  },
+  "availability_unknown": {
+    "message": "未知",
+    "description": "可用性徽标"
+  },
+  "availability_available": {
+    "message": "可用",
+    "description": "可用性徽标"
+  },
+  "availability_downloadable": {
+    "message": "可下载",
+    "description": "可用性徽标"
+  },
+  "availability_unavailable": {
+    "message": "不可用",
+    "description": "可用性徽标"
+  },
+  "overlay_preparing": {
+    "message": "准备翻译器…",
+    "description": "浮层：准备"
+  },
+  "overlay_api_unavailable": {
+    "message": "Translator API 不可用（需要 Chrome 138+）",
+    "description": "浮层：API 不可用"
+  },
+  "overlay_using_cached": {
+    "message": "正在使用已缓存模型…",
+    "description": "浮层：使用缓存"
+  },
+  "overlay_downloading": {
+    "message": "正在下载模型… $1%",
+    "description": "浮层：下载中"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "没有可翻译内容",
+    "description": "浮层：无内容"
+  },
+  "overlay_translating": {
+    "message": "正在翻译… $1%（$2/$3）",
+    "description": "浮层：翻译进度"
+  },
+  "overlay_translation_complete": {
+    "message": "翻译完成",
+    "description": "浮层：完成"
   }
 }

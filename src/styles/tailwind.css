@@ -20,6 +20,7 @@
 
 @layer base {
   body {
-    direction: __MSG_@@bidi_dir__;
+    direction: __MSG_ @@bidi_dir__;
+    color-scheme: light dark;
   }
 }

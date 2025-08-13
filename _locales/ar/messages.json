@@ -1,0 +1,134 @@
+{
+  "extension_name": {
+    "message": "الترجمة الأصلية",
+    "description": "اسم الإضافة"
+  },
+  "extension_description": {
+    "message": "إضافة خفيفة للترجمة بالذكاء الاصطناعي مدمجة في المتصفح.",
+    "description": "الوصف"
+  },
+  "popup_title": {
+    "message": "الترجمة الأصلية",
+    "description": "عنوان النافذة"
+  },
+  "global_availability": {
+    "message": "التوفر العام",
+    "description": "وسم"
+  },
+  "pair_availability": {
+    "message": "توفر زوج اللغات",
+    "description": "وسم"
+  },
+  "checking": {
+    "message": "جارٍ التحقق…",
+    "description": "حالة"
+  },
+  "recheck_availability": {
+    "message": "إعادة التحقق من التوفر",
+    "description": "زر"
+  },
+  "source_language": {
+    "message": "لغة المصدر",
+    "description": "وسم"
+  },
+  "target_language": {
+    "message": "اللغة الهدف",
+    "description": "وسم"
+  },
+  "preparing_translator": {
+    "message": "جارٍ التحضير (قد يتم تنزيل النموذج)…",
+    "description": "تحضير"
+  },
+  "create_prepare_translator": {
+    "message": "إنشاء/تحضير المترجم",
+    "description": "زر"
+  },
+  "download_progress": {
+    "message": "تقدم التنزيل",
+    "description": "وسم"
+  },
+  "translator_ready": {
+    "message": "المترجم جاهز",
+    "description": "إشعار"
+  },
+  "translate_full_page": {
+    "message": "ترجمة الصفحة الحالية",
+    "description": "زر"
+  },
+  "translate_full_page_desc": {
+    "message": "سيتم إرسال أمر إلى سكربت المحتوى لإدراج الترجمات في الصفحة.",
+    "description": "وصف"
+  },
+  "footer_note": {
+    "message": "بدعم من واجهة برمجة تطبيقات الترجمة بالذكاء الاصطناعي المدمجة. يعتمد تنزيل النموذج على الجهاز.",
+    "description": "تذييل"
+  },
+  "sidepanel_title": {
+    "message": "لوحة جانبية للترجمة الأصلية",
+    "description": "عنوان"
+  },
+  "unknown_error": {
+    "message": "خطأ غير معروف",
+    "description": "خطأ"
+  },
+  "translator_unavailable": {
+    "message": "واجهة الترجمة غير متاحة (تتطلب Chrome 138+ والنموذج جاهز)",
+    "description": "غير متاح"
+  },
+  "create_translator_failed": {
+    "message": "فشل إنشاء المترجم",
+    "description": "فشل"
+  },
+  "active_tab_not_found": {
+    "message": "لم يتم العثور على علامة التبويب النشطة",
+    "description": "خطأ"
+  },
+  "send_translate_command_failed": {
+    "message": "فشل إرسال أمر الترجمة",
+    "description": "خطأ"
+  },
+  "availability_unknown": {
+    "message": "غير معروف",
+    "description": "شارة"
+  },
+  "availability_available": {
+    "message": "متاح",
+    "description": "شارة"
+  },
+  "availability_downloadable": {
+    "message": "قابل للتنزيل",
+    "description": "شارة"
+  },
+  "availability_unavailable": {
+    "message": "غير متاح",
+    "description": "شارة"
+  },
+  "overlay_preparing": {
+    "message": "جارٍ تحضير المترجم…",
+    "description": "تراكب"
+  },
+  "overlay_api_unavailable": {
+    "message": "واجهة الترجمة غير متاحة (تتطلب Chrome 138+)",
+    "description": "تراكب"
+  },
+  "overlay_using_cached": {
+    "message": "يتم استخدام نموذج مخزن مؤقتًا…",
+    "description": "تراكب"
+  },
+  "overlay_downloading": {
+    "message": "جارٍ تنزيل النموذج… $1%",
+    "description": "تراكب"
+  },
+  "overlay_nothing_to_translate": {
+    "message": "لا يوجد ما يترجم",
+    "description": "تراكب"
+  },
+  "overlay_translating": {
+    "message": "جارٍ الترجمة… $1% ($2/$3)",
+    "description": "تراكب"
+  },
+  "overlay_translation_complete": {
+    "message": "اكتملت الترجمة",
+    "description": "تراكب"
+  }
+}
