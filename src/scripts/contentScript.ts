@@ -81,6 +81,8 @@ const OVERLAY_ID = 'native-translate-overlay';
 const READY_PAIRS_KEY = 'nativeTranslate:readyPairs';
 const DETECTOR_READY_KEY = 'nativeTranslate:detectorReady';
 const POPUP_SETTINGS_KEY = 'nativeTranslate.settings';
+let preferredModifier: 'alt' | 'control' | 'shift' = 'alt';
+let tryTranslateRef: (() => void) | null = null;
 
 // 简单的内存缓存，避免相同文本重复翻译
 const translationCache = new Map<string, string>();
@@ -602,7 +604,7 @@ async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promis
   await translateFullPage(sourceLanguage, targetLanguage);
 }
 
-// 消息通道：接收 Popup 指令并启动全文翻译
+// 消息通道：接收 Popup 指令
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (!message || typeof message.type !== 'string') return false;
   if (message.type === 'NATIVE_TRANSLATE_TRANSLATE_PAGE') {
@@ -610,6 +612,16 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       targetLanguage: LanguageCode;
     };
     void translateFullPageAutoDetect(targetLanguage);
+    return false;
+  }
+  if (message.type === 'NATIVE_TRANSLATE_UPDATE_HOTKEY') {
+    const { hotkeyModifier } = (message.payload ?? {}) as {
+      hotkeyModifier?: 'alt' | 'control' | 'shift';
+    };
+    if (hotkeyModifier === 'alt' || hotkeyModifier === 'control' || hotkeyModifier === 'shift') {
+      preferredModifier = hotkeyModifier;
+      if (typeof tryTranslateRef === 'function') tryTranslateRef();
+    }
     return false;
   }
   return false;
@@ -703,7 +715,41 @@ async function translateElementOnDemand(element: Element): Promise<void> {
     if (isSameLanguage(sourceLanguage, targetLanguage)) {
       return;
     }
-    const translator = await getOrCreateTranslator(sourceLanguage, targetLanguage);
+    // 若模型未准备，显示与全文翻译一致的下载提示
+    let overlay: HTMLElement | null = null;
+    let lastPct = -1;
+    const knownReady = await wasPairReady(sourceLanguage, targetLanguage);
+    if (!knownReady) {
+      overlay = createOverlay();
+      updateOverlay(overlay, tCS('overlay_preparing'));
+    }
+
+    let translator: TranslatorInstance;
+    try {
+      translator = await getOrCreateTranslator(
+        sourceLanguage,
+        targetLanguage,
+        overlay
+          ? (pct) => {
+            if (pct !== lastPct) {
+              lastPct = pct;
+              updateOverlay(overlay!, tCS('overlay_downloading', [String(pct)]));
+            }
+          }
+          : undefined
+      );
+    } catch (_e) {
+      if (overlay) {
+        updateOverlay(overlay, tCS('overlay_api_unavailable'));
+        setTimeout(removeOverlay, 3000);
+      }
+      return;
+    }
+    if (overlay) {
+      // 仅在下载期间提示；下载完成后立即移除
+      removeOverlay();
+      overlay = null;
+    }
     const cacheKey = buildCacheKey(text, sourceLanguage, targetLanguage);
     let translated = translationCache.get(cacheKey);
     if (!translated) {
@@ -738,10 +784,9 @@ function initializeHoverAltTranslate(): void {
   let ctrlPressed = false;
   let shiftPressed = false;
   let lastTriggered: Element | null = null;
-  let preferred: 'alt' | 'control' | 'shift' = 'alt';
 
   void (async () => {
-    preferred = await getHoverHotkeyModifier();
+    preferredModifier = await getHoverHotkeyModifier();
   })();
 
   // 动态响应 Popup 设置变更
@@ -752,17 +797,18 @@ function initializeHoverAltTranslate(): void {
       if (!entry) return;
       const next = (entry.newValue as PopupSettings | undefined)?.hotkeyModifier;
       if (next === 'alt' || next === 'control' || next === 'shift') {
-        preferred = next;
+        preferredModifier = next;
         lastTriggered = null;
+        if (tryTranslateRef) tryTranslateRef();
       }
     });
   } catch (_e) { }
 
   const tryTranslate = () => {
     const shouldTrigger =
-      (preferred === 'alt' && altPressed) ||
-      (preferred === 'control' && ctrlPressed) ||
-      (preferred === 'shift' && shiftPressed);
+      (preferredModifier === 'alt' && altPressed) ||
+      (preferredModifier === 'control' && ctrlPressed) ||
+      (preferredModifier === 'shift' && shiftPressed);
     if (!shouldTrigger) return;
     if (isEditingContext()) return;
     if (!hoveredCandidate) return;
@@ -770,13 +816,18 @@ function initializeHoverAltTranslate(): void {
     lastTriggered = hoveredCandidate;
     void translateElementOnDemand(hoveredCandidate);
   };
+  tryTranslateRef = tryTranslate;
 
   document.addEventListener(
     'mousemove',
     (e) => {
       const target = e.target as Element | null;
       hoveredCandidate = pickTranslatableBlockFromTarget(target);
-      if (altPressed) {
+      if (
+        (preferredModifier === 'alt' && altPressed) ||
+        (preferredModifier === 'control' && ctrlPressed) ||
+        (preferredModifier === 'shift' && shiftPressed)
+      ) {
         tryTranslate();
       }
     },

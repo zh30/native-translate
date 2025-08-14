@@ -222,7 +222,36 @@ const Popup: React.FC = () => {
         <Label className="inline-block">{t('hover_hotkey')}</Label>
         <AppSelect
           value={settings.hotkeyModifier ?? 'alt'}
-          onValueChange={(v) => setSettings((s) => ({ ...s, hotkeyModifier: v as 'alt' | 'control' | 'shift' }))}
+          onValueChange={async (v) => {
+            const next = v as 'alt' | 'control' | 'shift';
+            setSettings((s) => ({ ...s, hotkeyModifier: next }));
+            try {
+              const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+              if (tab?.id) {
+                try {
+                  await chrome.tabs.sendMessage(tab.id, {
+                    type: 'NATIVE_TRANSLATE_UPDATE_HOTKEY',
+                    payload: { hotkeyModifier: next },
+                  });
+                } catch (_err) {
+                  // 若内容脚本未注入，尝试注入后重发
+                  const url = tab.url ?? '';
+                  if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
+                    try {
+                      await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        files: ['contentScript.js'],
+                      });
+                      await chrome.tabs.sendMessage(tab.id, {
+                        type: 'NATIVE_TRANSLATE_UPDATE_HOTKEY',
+                        payload: { hotkeyModifier: next },
+                      });
+                    } catch (_e) { }
+                  }
+                }
+              }
+            } catch (_e) { }
+          }}
           options={[
             { value: 'alt', label: t('hotkey_alt') },
             { value: 'control', label: t('hotkey_control') },
