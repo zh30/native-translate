@@ -4,7 +4,7 @@
     "description": "The name of the extension"
   },
   "extension_description": {
-    "message": "隐私优先的 Chrome 扩展，使用 Chrome 内置的 AI 翻译器与语言检测器。默认无云端调用、无遥测，内容永不出浏览器。模型在本地下载、运行并缓存，可离线使用。",
+    "message": "隐私优先的 Chrome 扩展，内置 AI 翻译。无云端与遥测；内容不出浏览器。模型本地运行并缓存，支持离线。",
     "description": "The description of the extension"
   },
   "popup_title": {

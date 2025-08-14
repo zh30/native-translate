@@ -4,7 +4,7 @@
     "description": "Tên tiện ích"
   },
   "extension_description": {
-    "message": "Tiện ích Chrome ưu tiên quyền riêng tư, sử dụng Trình Dịch AI và Trình Nhận Diện Ngôn Ngữ tích hợp của Chrome. Không gọi đám mây, không telemetry — nội dung của bạn không rời khỏi trình duyệt. Mô hình được tải xuống, chạy và lưu bộ nhớ đệm cục bộ để dùng ngoại tuyến.",
+    "message": "Tiện ích Chrome riêng tư với trình dịch AI tích hợp. Không đám mây hay telemetry; nội dung ở lại trong trình duyệt. Mô hình chạy cục bộ, ngoại tuyến.",
     "description": "Mô tả"
   },
   "popup_title": {

@@ -4,7 +4,7 @@
     "description": "Nama ekstensi"
   },
   "extension_description": {
-    "message": "Ekstensi Chrome berfokus privasi yang menggunakan Penerjemah AI dan Pendeteksi Bahasa bawaan Chrome. Tanpa panggilan cloud dan tanpa telemetri — konten Anda tidak pernah keluar dari browser. Model diunduh, dijalankan, dan dicache secara lokal untuk penggunaan luring.",
+    "message": "Ekstensi Chrome privat dengan penerjemah AI bawaan. Tanpa cloud/telemetri; konten tetap di browser. Model lokal, bisa offline.",
     "description": "Deskripsi"
   },
   "popup_title": {

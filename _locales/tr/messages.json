@@ -4,7 +4,7 @@
     "description": "Eklenti adı"
   },
   "extension_description": {
-    "message": "Gizlilik odaklı Chrome uzantısı; Chrome’un yerleşik Yapay Zekâ Çevirmeni ve Dil Algılayıcısını kullanır. Bulut çağrısı ve telemetri yok — içeriğiniz tarayıcıdan çıkmaz. Modeller yerel olarak indirilir, çalıştırılır ve önbelleğe alınır; çevrimdışı kullanılabilir.",
+    "message": "Gizlilik odaklı Chrome uzantısı, yerleşik Yapay Zekâ çevirmen ile. Bulut/telemetri yok; içerik tarayıcıyı terk etmez. Modeller yerel ve çevrimdışı.",
     "description": "Açıklama"
   },
   "popup_title": {

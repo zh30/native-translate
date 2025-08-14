@@ -4,7 +4,7 @@
     "description": "The name of the extension"
   },
   "extension_description": {
-    "message": "Privacy-first Chrome extension using Chrome’s built-in AI Translator and Language Detector. No cloud calls, no telemetry — your content never leaves the browser. Models download, run, and cache locally for offline use.",
+    "message": "Private, offline translation with Chrome's built-in AI. No cloud or telemetry: your text stays in the browser; models run locally.",
     "description": "The description of the extension"
   },
   "popup_title": {

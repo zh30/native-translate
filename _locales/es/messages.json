@@ -4,7 +4,7 @@
     "description": "Nombre de la extensión"
   },
   "extension_description": {
-    "message": "Extensión de Chrome centrada en la privacidad que usa el Traductor de IA y el Detector de idioma integrados en Chrome. Sin llamadas a la nube ni telemetría: tu contenido nunca sale del navegador. Los modelos se descargan, se ejecutan y se almacenan en caché localmente para uso sin conexión.",
+    "message": "Extensión privada para Chrome con traductor de IA integrado. Sin nube ni telemetría; tu contenido no sale del navegador. Modelos locales.",
     "description": "Descripción"
   },
   "popup_title": {

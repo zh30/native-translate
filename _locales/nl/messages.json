@@ -4,7 +4,7 @@
     "description": "Naam van de extensie"
   },
   "extension_description": {
-    "message": "Privacy‑eerst Chrome‑extensie die Chrome’s ingebouwde AI‑vertaler en taalherkenner gebruikt. Geen cloudverzoeken, geen telemetrie — je inhoud verlaat de browser nooit. Modellen worden lokaal gedownload, uitgevoerd en gecachet voor offline gebruik.",
+    "message": "Privacy‑eerst Chrome‑extensie met ingebouwde AI‑vertaler. Geen cloud of telemetrie; je inhoud verlaat de browser niet. Modellen lokaal, offline.",
     "description": "Beschrijving"
   },
   "popup_title": {
