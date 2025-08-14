@@ -80,12 +80,26 @@ const TRANSLATED_CLASS = 'native-translate-translation';
 const OVERLAY_ID = 'native-translate-overlay';
 const READY_PAIRS_KEY = 'nativeTranslate:readyPairs';
 const DETECTOR_READY_KEY = 'nativeTranslate:detectorReady';
+const POPUP_SETTINGS_KEY = 'nativeTranslate.settings';
 
 // 简单的内存缓存，避免相同文本重复翻译
 const translationCache = new Map<string, string>();
 
 function buildCacheKey(text: string, sourceLanguage: string, targetLanguage: string): string {
   return `${sourceLanguage}|${targetLanguage}|${text}`;
+}
+
+interface PopupSettings {
+  targetLanguage: LanguageCode;
+}
+
+async function getPreferredTargetLanguage(): Promise<LanguageCode> {
+  try {
+    const data = await chrome.storage.local.get(POPUP_SETTINGS_KEY);
+    const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
+    if (settings?.targetLanguage) return settings.targetLanguage;
+  } catch (_e) { }
+  return 'zh-CN';
 }
 
 function createOverlay(): HTMLElement {
@@ -554,3 +568,168 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   }
   return false;
 });
+
+// ========== 悬停 + Alt 翻译当前段落 ==========
+
+function isEditingContext(): boolean {
+  const ae = document.activeElement as HTMLElement | null;
+  if (!ae) return false;
+  if (ae.isContentEditable) return true;
+  const tag = ae.tagName.toLowerCase();
+  return tag === 'input' || tag === 'textarea';
+}
+
+function isAllowedBlockTag(tagLower: string): boolean {
+  return (
+    tagLower === 'article' ||
+    tagLower === 'section' ||
+    tagLower === 'p' ||
+    tagLower === 'li' ||
+    tagLower === 'blockquote' ||
+    tagLower === 'h1' ||
+    tagLower === 'h2' ||
+    tagLower === 'h3' ||
+    tagLower === 'h4' ||
+    tagLower === 'h5' ||
+    tagLower === 'h6' ||
+    tagLower === 'dd' ||
+    tagLower === 'dt' ||
+    tagLower === 'figcaption' ||
+    tagLower === 'summary' ||
+    tagLower === 'div'
+  );
+}
+
+function pickTranslatableBlockFromTarget(start: Element | null): Element | null {
+  let node: Element | null = start;
+  while (node && node !== document.documentElement) {
+    const tagLower = node.tagName?.toLowerCase?.() || '';
+    if (isAllowedBlockTag(tagLower)) {
+      if (shouldTranslateElement(node) && isElementVisible(node)) {
+        const text = getElementText(node);
+        if (text.length >= 20) {
+          if ((tagLower === 'div' || tagLower === 'section' || tagLower === 'article')) {
+            if (hasBlockDescendants(node)) {
+              // 继续向内找更具体的块级元素
+            } else if (!(tagLower === 'div' && text.split(/\s+/g).length < 8)) {
+              return node;
+            }
+          } else {
+            return node;
+          }
+        }
+      }
+    }
+    node = node.parentElement;
+  }
+  return null;
+}
+
+async function detectLanguageForText(text: string): Promise<LanguageCode | null> {
+  try {
+    const detector = await getOrCreateLanguageDetector();
+    const results = await detector.detect(text.slice(0, 2000));
+    if (results && results[0]?.detectedLanguage) {
+      return results[0].detectedLanguage;
+    }
+  } catch (_e) { }
+  return null;
+}
+
+const processingElements = new WeakSet<Element>();
+
+async function translateElementOnDemand(element: Element): Promise<void> {
+  if (!element) return;
+  if ((element as HTMLElement).getAttribute(TRANSLATED_ATTR) === '1') return;
+  if (element.querySelector(`.${TRANSLATED_CLASS}`)) return;
+  if (processingElements.has(element)) return;
+  const text = getElementText(element);
+  if (!text || text.length < 20) return;
+  processingElements.add(element);
+  try {
+    const targetLanguage = await getPreferredTargetLanguage();
+    let sourceLanguage = await detectLanguageForText(text);
+    // 回退到 html lang 或英语
+    if (!sourceLanguage) {
+      const htmlLang = document.documentElement.getAttribute('lang') || '';
+      sourceLanguage = htmlLang || 'en';
+    }
+    if (isSameLanguage(sourceLanguage, targetLanguage)) {
+      return;
+    }
+    const translator = await getOrCreateTranslator(sourceLanguage, targetLanguage);
+    const cacheKey = buildCacheKey(text, sourceLanguage, targetLanguage);
+    let translated = translationCache.get(cacheKey);
+    if (!translated) {
+      try {
+        translated = await translator.translate(text);
+        translationCache.set(cacheKey, translated);
+      } catch (_e) {
+        translated = '';
+      }
+    }
+    if (translated) {
+      const clone = createTranslationSpan(element, translated, targetLanguage);
+      (element as Element).appendChild(clone);
+      (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
+    }
+  } finally {
+    processingElements.delete(element);
+  }
+}
+
+function initializeHoverAltTranslate(): void {
+  if ((window as any).__nativeTranslateHoverAltInit) return;
+  (window as any).__nativeTranslateHoverAltInit = true;
+
+  let hoveredCandidate: Element | null = null;
+  let altPressed = false;
+  let lastTriggered: Element | null = null;
+
+  const tryTranslate = () => {
+    if (!altPressed) return;
+    if (isEditingContext()) return;
+    if (!hoveredCandidate) return;
+    if (hoveredCandidate === lastTriggered) return;
+    lastTriggered = hoveredCandidate;
+    void translateElementOnDemand(hoveredCandidate);
+  };
+
+  document.addEventListener(
+    'mousemove',
+    (e) => {
+      const target = e.target as Element | null;
+      hoveredCandidate = pickTranslatableBlockFromTarget(target);
+      if (altPressed) {
+        tryTranslate();
+      }
+    },
+    { capture: true, passive: true }
+  );
+
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key === 'Alt' || e.altKey) {
+        if (!altPressed) {
+          altPressed = true;
+          tryTranslate();
+        }
+      }
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'keyup',
+    (e) => {
+      if (e.key === 'Alt' || !e.altKey) {
+        altPressed = false;
+        lastTriggered = null;
+      }
+    },
+    { capture: true }
+  );
+}
+
+initializeHoverAltTranslate();
