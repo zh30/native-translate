@@ -3,9 +3,55 @@
 const path = require('path');
 const { defineConfig } = require('@rspack/cli');
 const rspack = require('@rspack/core');
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+class ZipAfterBuildPlugin {
+  /**
+   * @param {{ outputName?: string }=} options
+   */
+  constructor(options = {}) {
+    this.outputName = options.outputName || 'Native-translate.zip';
+  }
+
+  /**
+   * @param {import('@rspack/core').Compiler} compiler
+   */
+  apply(compiler) {
+    // eslint-disable-next-line no-console
+    console.log('[zip] Plugin apply, hooks:', {
+      hasAfterEmit: Boolean(compiler.hooks && compiler.hooks.afterEmit),
+      hasDone: Boolean(compiler.hooks && compiler.hooks.done),
+    });
+    const runZip = () => {
+      try {
+        const outDir = compiler.options.output && compiler.options.output.path ? compiler.options.output.path : path.resolve(process.cwd(), 'dist');
+        const zipPath = path.resolve(outDir, '..', this.outputName);
+        // eslint-disable-next-line no-console
+        console.log(`[zip] Start zipping from ${outDir} -> ${zipPath}`);
+        try {
+          fs.unlinkSync(zipPath);
+        } catch { }
+        execSync(`zip -r "${zipPath}" .`, { cwd: outDir, stdio: 'inherit' });
+        // eslint-disable-next-line no-console
+        console.log(`[zip] Created ${zipPath}`);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[zip] Failed to create zip:', err);
+      }
+    };
+
+    if (compiler.hooks.afterEmit) {
+      compiler.hooks.afterEmit.tap('ZipAfterBuildPlugin', () => runZip());
+    } else if (compiler.hooks.done) {
+      compiler.hooks.done.tap('ZipAfterBuildPlugin', () => runZip());
+    }
+  }
+}
 
 module.exports = (env, argv) => {
-  const mode = argv?.mode || 'development';
+  const cliMode = argv?.mode;
+  const mode = cliMode || process.env.NODE_ENV || 'development';
   const isProd = mode === 'production';
 
   return defineConfig({
@@ -106,6 +152,7 @@ module.exports = (env, argv) => {
           { from: '_locales', to: '_locales' },
         ],
       }),
+      new ZipAfterBuildPlugin({ outputName: 'Native-translate.zip' }),
     ],
     devtool: isProd ? false : 'cheap-module-source-map',
     cache: true,
