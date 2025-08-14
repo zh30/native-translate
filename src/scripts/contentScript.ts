@@ -12,19 +12,8 @@ function tCS(key: string, substitutions?: Array<string | number>): string {
 }
 
 
-// 基础类型声明（与 Popup 对齐的最小声明）
-type LanguageCode =
-  | 'en'
-  | 'zh-CN'
-  | 'zh-TW'
-  | 'ja'
-  | 'ko'
-  | 'fr'
-  | 'de'
-  | 'es'
-  | 'it'
-  | 'pt'
-  | 'ru';
+// 语言代码：使用通用 BCP-47 字符串，兼容检测结果与翻译器要求
+type LanguageCode = string;
 
 interface TranslatorDownloadProgressEvent extends Event {
   loaded?: number; // 0..1
@@ -55,6 +44,34 @@ interface TranslatorStatic {
   create: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance>;
 }
 
+// Language Detector API 类型声明（参考文档 https://developer.chrome.com/docs/ai/language-detection?hl=zh-cn）
+type AvailabilityState = 'unknown' | 'available' | 'downloadable' | 'unavailable';
+
+interface LanguageDetectorDownloadProgressEvent extends Event {
+  loaded?: number; // 0..1
+}
+
+interface LanguageDetectorMonitor {
+  addEventListener: (
+    type: 'downloadprogress',
+    listener: (e: LanguageDetectorDownloadProgressEvent) => void
+  ) => void;
+}
+
+interface LanguageDetectionResult {
+  detectedLanguage: string; // BCP-47
+  confidence: number; // 0..1
+}
+
+interface LanguageDetectorInstance {
+  detect: (text: string) => Promise<LanguageDetectionResult[]>;
+}
+
+interface LanguageDetectorStatic {
+  availability: () => Promise<AvailabilityState>;
+  create: (opts?: { monitor?: (m: LanguageDetectorMonitor) => void }) => Promise<LanguageDetectorInstance>;
+}
+
 // 避免与其他文件的全局 Window 扩展冲突，这里不增强 Window 类型，使用 any 访问
 
 // 运行时常量
@@ -62,6 +79,7 @@ const TRANSLATED_ATTR = 'data-native-translate-done';
 const TRANSLATED_CLASS = 'native-translate-translation';
 const OVERLAY_ID = 'native-translate-overlay';
 const READY_PAIRS_KEY = 'nativeTranslate:readyPairs';
+const DETECTOR_READY_KEY = 'nativeTranslate:detectorReady';
 
 // 简单的内存缓存，避免相同文本重复翻译
 const translationCache = new Map<string, string>();
@@ -360,6 +378,82 @@ async function getOrCreateTranslator(
   return translator;
 }
 
+function primarySubtag(lang: string | undefined): string {
+  if (!lang) return '';
+  return lang.split('-')[0].toLowerCase();
+}
+
+function isSameLanguage(a: string, b: string): boolean {
+  return primarySubtag(a) === primarySubtag(b);
+}
+
+function buildDetectionSample(maxChars = 4000): string {
+  const blocks = collectTranslatableBlocks(document.body);
+  if (blocks.length === 0) {
+    // 回退到全文可见文本（可能较长）
+    return (document.body?.innerText || '').trim().slice(0, maxChars);
+  }
+  let sample = '';
+  for (const item of blocks) {
+    if (!item.text) continue;
+    if (sample.length + item.text.length > maxChars) break;
+    sample += (sample ? '\n' : '') + item.text;
+    if (sample.length >= maxChars) break;
+  }
+  return sample.slice(0, maxChars);
+}
+
+async function getOrCreateLanguageDetector(onProgress?: (pct: number) => void): Promise<LanguageDetectorInstance> {
+  const api = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
+  if (!api) throw new Error('Language Detector API unavailable');
+  const cacheKey = '__nativeLanguageDetector';
+  const cached = (window as any)[cacheKey] as LanguageDetectorInstance | undefined;
+  if (cached) return cached;
+  let lastPct = -1;
+  const detector = await api.create({
+    monitor(m) {
+      if (!onProgress) return;
+      m.addEventListener('downloadprogress', (e) => {
+        const loaded = typeof e.loaded === 'number' ? e.loaded : 0;
+        const pct = Math.round(loaded * 100);
+        if (pct !== lastPct) {
+          lastPct = pct;
+          onProgress(pct);
+        }
+      });
+    },
+  });
+  (window as any)[cacheKey] = detector;
+  try {
+    const storageNs: 'session' | 'local' = (chrome.storage as any).session ? 'session' : 'local';
+    await chrome.storage[storageNs].set({ [DETECTOR_READY_KEY]: Date.now() });
+  } catch (_e) { }
+  return detector;
+}
+
+async function detectSourceLanguageForPage(onProgress?: (pct: number) => void): Promise<{ lang: LanguageCode; confidence: number } | null> {
+  const api = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
+  if (!api) return null;
+  try {
+    const state = await api.availability();
+    // 如果尚未下载模型，则创建时会触发下载
+    if (state === 'unavailable') return null;
+  } catch (_e) { }
+
+  const sample = buildDetectionSample();
+  if (!sample || sample.split(/\s+/g).length < 4) {
+    // 样本过短，退回 documentElement 的 lang 提示
+    const htmlLang = document.documentElement.getAttribute('lang') || '';
+    if (htmlLang) return { lang: htmlLang, confidence: 0.5 };
+  }
+
+  const detector = await getOrCreateLanguageDetector(onProgress);
+  const results = await detector.detect(sample);
+  if (!results || results.length === 0) return null;
+  const best = results[0];
+  return { lang: best.detectedLanguage, confidence: best.confidence };
+}
+
 async function translateFullPage(
   sourceLanguage: LanguageCode,
   targetLanguage: LanguageCode
@@ -410,15 +504,49 @@ async function translateFullPage(
   setTimeout(removeOverlay, 1500);
 }
 
+async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promise<void> {
+  const overlay = createOverlay();
+  const translatorApi = (window as any).Translator as TranslatorStatic | undefined;
+  const detectorApi = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
+  if (!translatorApi) {
+    updateOverlay(overlay, tCS('overlay_api_unavailable'));
+    setTimeout(removeOverlay, 3000);
+    return;
+  }
+
+  // 检测源语言（显示下载进度）
+  let lastPct = -1;
+  if (detectorApi) {
+    updateOverlay(overlay, tCS('overlay_preparing'));
+  }
+  const detection = await detectSourceLanguageForPage((pct) => {
+    if (pct !== lastPct) {
+      updateOverlay(overlay, tCS('overlay_downloading', [String(pct)]));
+      lastPct = pct;
+    }
+  });
+
+  const htmlLang = document.documentElement.getAttribute('lang') || '';
+  const sourceLanguage = detection?.lang || htmlLang || 'en';
+
+  // 如果源语言与目标语言一致，直接提示无需翻译
+  if (isSameLanguage(sourceLanguage, targetLanguage)) {
+    updateOverlay(overlay, tCS('overlay_nothing_to_translate'));
+    setTimeout(removeOverlay, 1500);
+    return;
+  }
+
+  await translateFullPage(sourceLanguage, targetLanguage);
+}
+
 // 消息通道：接收 Popup 指令并启动全文翻译
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (!message || typeof message.type !== 'string') return false;
   if (message.type === 'NATIVE_TRANSLATE_TRANSLATE_PAGE') {
-    const { sourceLanguage, targetLanguage } = (message.payload ?? {}) as {
-      sourceLanguage: LanguageCode;
+    const { targetLanguage } = (message.payload ?? {}) as {
       targetLanguage: LanguageCode;
     };
-    void translateFullPage(sourceLanguage, targetLanguage);
+    void translateFullPageAutoDetect(targetLanguage);
     return false;
   }
   return false;
