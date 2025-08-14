@@ -126,6 +126,17 @@ function removeOverlay(): void {
   if (el && el.parentNode) el.parentNode.removeChild(el);
 }
 
+function clearPreviousTranslationsAndMarks(): void {
+  const inserted = Array.from(document.querySelectorAll(`.${TRANSLATED_CLASS}`));
+  for (const el of inserted) {
+    el.remove();
+  }
+  const marked = Array.from(document.querySelectorAll(`[${TRANSLATED_ATTR}="1"]`));
+  for (const el of marked) {
+    (el as HTMLElement).removeAttribute(TRANSLATED_ATTR);
+  }
+}
+
 function isElementVisible(element: Element): boolean {
   if (!(element instanceof HTMLElement)) return false;
   const style = window.getComputedStyle(element);
@@ -263,7 +274,7 @@ async function translateBlocksSequentially(
 
   for (let i = 0; i < items.length; i += BATCH_SIZE) {
     const batch = items.slice(i, i + BATCH_SIZE);
-    const inserts: Array<{ node: Element; parent: Node; next: ChildNode | null; appendInside: boolean }> = [];
+    const inserts: Array<{ node: Element; element: Node; }> = [];
 
     // 顺序翻译，遵循 API 的串行特性
     for (const { element, text } of batch) {
@@ -281,19 +292,12 @@ async function translateBlocksSequentially(
 
       if (translated) {
         const clone = createTranslationSpan(element, translated, targetLanguage);
-        const tagUpper = element.tagName.toUpperCase();
-        const appendInside = tagUpper === 'LI' || tagUpper === 'DT' || tagUpper === 'DD';
-        const parent = appendInside ? (element as Node) : element.parentNode;
-        if (parent) {
-          inserts.push({
-            node: clone,
-            parent,
-            next: appendInside ? null : element.nextSibling,
-            appendInside,
-          });
-          // 标记原始元素已处理，避免重复翻译
-          (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
-        }
+        inserts.push({
+          node: clone,
+          element,
+        });
+        // 标记原始元素已处理，避免重复翻译
+        (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
       }
 
       done += 1;
@@ -302,11 +306,7 @@ async function translateBlocksSequentially(
 
     // 统一插入，尽量降低重排次数
     for (const ins of inserts) {
-      if (ins.appendInside) {
-        (ins.parent as Element).appendChild(ins.node);
-      } else if (ins.parent) {
-        (ins.parent as Element).insertBefore(ins.node, ins.next);
-      }
+      (ins.element as Element).appendChild(ins.node);
     }
 
     // 让出事件循环，避免长任务阻塞
@@ -535,6 +535,9 @@ async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promis
     setTimeout(removeOverlay, 1500);
     return;
   }
+
+  // 切换目标语言需要清理旧翻译与标记，确保可以重新翻译
+  clearPreviousTranslationsAndMarks();
 
   await translateFullPage(sourceLanguage, targetLanguage);
 }
