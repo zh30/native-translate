@@ -522,7 +522,7 @@ async function translateFullPage(
 ): Promise<void> {
   const overlay = createOverlay();
 
-  const api = window.Translator;
+  const api = (window as any).Translator as TranslatorStatic | undefined;
   if (!api) {
     updateOverlay(overlay, tCS('overlay_api_unavailable'));
     setTimeout(removeOverlay, 3000);

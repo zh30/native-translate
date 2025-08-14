@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Native Vertalen",
+    "message": "Native Vertalen — Ingebouwde, privacy‑eerst AI‑vertaling",
     "description": "Naam van de extensie"
   },
   "extension_description": {
-    "message": "Een lichte vertaalextensie met ingebouwde AI in de browser.",
+    "message": "Privacy‑eerst Chrome‑extensie die Chrome’s ingebouwde AI‑vertaler en taalherkenner gebruikt. Geen cloudverzoeken, geen telemetrie — je inhoud verlaat de browser nooit. Modellen worden lokaal gedownload, uitgevoerd en gecachet voor offline gebruik.",
     "description": "Beschrijving"
   },
   "popup_title": {

@@ -4,11 +4,10 @@ import ReactDOM from 'react-dom/client';
 import { t } from '@/utils/i18n';
 import { getUILocale, isRTLLanguage } from '@/utils/rtl';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { AppSelect } from '@/components/ui/select';
 
-type AvailabilityState = 'unknown' | 'available' | 'downloadable' | 'unavailable';
+// Removed global availability check types and UI; popup page context cannot reliably query Translator availability
 
 type LanguageCode =
   | 'en'
@@ -37,23 +36,7 @@ type LanguageCode =
   | 'sv'
   | 'fil';
 
-interface TranslatorCreateOptions {
-  sourceLanguage: LanguageCode;
-  targetLanguage: LanguageCode;
-}
-
-interface TranslatorStatic {
-  availability: (
-    opts?: { sourceLanguage?: LanguageCode; targetLanguage?: LanguageCode }
-  ) => Promise<AvailabilityState>;
-  create: (opts: TranslatorCreateOptions) => Promise<{ ready?: Promise<void> }>;
-}
-
-declare global {
-  interface Window {
-    Translator?: TranslatorStatic;
-  }
-}
+// Removed Translator typing in popup; translation runs in content script
 
 const SUPPORTED_LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: 'en', label: 'English' },
@@ -97,8 +80,7 @@ const defaultSettings: PopupSettings = {
 
 const Popup: React.FC = () => {
   const [settings, setSettings] = React.useState<PopupSettings>(defaultSettings);
-  const [availabilityGlobal, setAvailabilityGlobal] = React.useState<AvailabilityState>('unknown');
-  const [isChecking, setIsChecking] = React.useState<boolean>(false);
+  // Removed global availability state
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -118,33 +100,7 @@ const Popup: React.FC = () => {
     chrome.storage.local.set({ [STORAGE_KEY]: settings });
   }, [settings]);
 
-  const checkAvailability = React.useCallback(async () => {
-    setError(null);
-    setIsChecking(true);
-    try {
-      const api = window.Translator;
-      if (!api) {
-        setAvailabilityGlobal('unavailable');
-        return;
-      }
-      let global: AvailabilityState;
-      try {
-        global = await (api as any).availability({});
-      } catch (_e) {
-        global = 'unknown';
-      }
-      setAvailabilityGlobal(global);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t('unknown_error'));
-      setAvailabilityGlobal('unavailable');
-    } finally {
-      setIsChecking(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    void checkAvailability();
-  }, [checkAvailability]);
+  // Removed global availability check logic
 
   const handleTranslatePage = React.useCallback(async () => {
     setError(null);
@@ -184,30 +140,13 @@ const Popup: React.FC = () => {
     }
   }, [settings.targetLanguage]);
 
-  const availabilityBadge = (state: AvailabilityState) => {
-    const map: Record<AvailabilityState, { text: string; variant: 'default' | 'success' | 'warning' | 'destructive' }> = {
-      unknown: { text: t('availability_unknown'), variant: 'default' },
-      available: { text: t('availability_available'), variant: 'success' },
-      downloadable: { text: t('availability_downloadable'), variant: 'warning' },
-      unavailable: { text: t('availability_unavailable'), variant: 'destructive' },
-    };
-    const v = map[state];
-    return <Badge variant={v.variant}>{v.text}</Badge>;
-  };
+  // Removed availability badge UI
 
   return (
     <div className="p-4 space-y-4 text-sm text-gray-900 dark:text-gray-100">
       <h1 className="text-lg font-semibold">{t('popup_title')}</h1>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-600">{t('global_availability')}</span>
-          {availabilityBadge(availabilityGlobal)}
-        </div>
-        <Button onClick={checkAvailability} disabled={isChecking} variant="outline" className="w-full">
-          {isChecking ? t('checking') : t('recheck_availability')}
-        </Button>
-      </div>
+      {/* Removed global availability section */}
 
       <div className="space-y-2">
         <Label className="inline-block">{t('target_language')}</Label>

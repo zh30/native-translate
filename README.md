@@ -1,68 +1,84 @@
-# Native Translate — Private, Local AI Translation for Chrome
+# Native Translate — Private, Built-in AI Translation
 
 English | [简体中文](./README.zh-CN.md)
 
-An open-source, privacy-first Chrome extension for instant, on-device translation. No cloud calls. No telemetry. Your data never leaves your browser.
+Native Translate is a privacy‑first Chrome extension that uses Chrome’s built‑in built-in AI Translator and Language Detector. No cloud calls, no telemetry — your content never leaves the browser. Models download and run locally (with progress feedback) and are cached for offline use.
 
-- Open-source (MIT)
-- Data-safe by design: zero external requests for translation by default
-- Local AI: designed to run models entirely on your device (WebGPU when available)
-- Fast: near-instant responses with GPU acceleration and smart caching
-- Lightweight: minimal permissions, small footprint
+- Open‑source (MIT)
+- Local‑first: translation and detection run on device
+- Privacy by design: zero external translation requests by default
+- Fast and robust: progress overlay, caching, RTL/LTR aware
+- Minimal permissions, lightweight UI
 
-## Why Native Translate
+## Features
 
-- Open by default: transparent code, reproducible builds
-- Private by design: your content stays local, no server component
-- Local-first AI: supports on-device model execution; offline-friendly
-- Built for speed: leverages WebGPU/CPU paths and avoids network latency
+- Full‑page in‑page translation: append translated text under the original blocks to preserve layout
+- Hover‑to‑translate: hold a modifier (Alt/Control/Shift) and hover a paragraph to translate just that block
+- Automatic source language detection (on device) with download progress overlay
+- Model caching per language pair; auto reuse when available
+- RTL/LTR aware rendering for the target language; UI locale/dir auto‑set
+- Localized UI via Chrome i18n (`_locales/`)
 
-## Current Status
+## Requirements
 
-This repository provides a Chrome Extension MV3 foundation with:
-- React 19 + TypeScript + Tailwind CSS v4 + Rspack
-- Entries: background service worker, content script, side panel, optional popup
-- i18n: English and Simplified Chinese (`_locales/`)
-- Demo content script that renders a reading-time badge (placeholder for future translation flow)
-
-Planned: integrate local on-device translation models and UI for model selection/management.
-
-## Installation
-
-Requirements:
-- Chrome 138+ (MV3 Side Panel APIs)
+- Chrome 138+ (Manifest V3, Side Panel APIs, Built-in AI)
 - pnpm 9+
 
-Steps:
+Note: On first use, Chrome may download on‑device models. Availability depends on device capability.
+
+## Install from source
+
 1. Install dependencies: `pnpm install`
 2. Build the extension: `pnpm build`
 3. Open `chrome://extensions`
-4. Enable Developer mode
+4. Enable “Developer mode”
 5. Click “Load unpacked” and select the `dist` folder
 
 ## Usage
 
-- Click the extension icon to open the side panel
-- The side panel is auto-enabled on `zhanghe.dev` for demo purposes
-- Translation UI and local model runtime are in progress; the current content script showcases the integration surface
+- Open the popup (toolbar icon)
+  - Pick a target language
+  - Choose the hover modifier (Alt/Control/Shift)
+  - Click “Translate current page” for full‑page translation
+- Hover‑translate: hold the selected modifier and hover a paragraph; a translation is appended under the original
+- A small overlay shows model download and translation progress when needed
+- Special pages (e.g., `chrome://`, some store pages) do not allow script injection
+- Re‑running full‑page translation clears old inserted translations and re‑inserts with the new target
 
 ## Privacy & Security
 
 - No analytics, no tracking, no cloud translation by default
 - All logic runs inside the browser (service worker, content script, side panel)
-- Permissions requested: `storage`, `activeTab`, `scripting`, `tabs`, `sidePanel`
-- Offline-friendly once local models are provisioned
+- Works offline after models are downloaded and cached
+
+Permissions used:
+
+- `storage` — persist settings and readiness metadata
+- `activeTab`, `tabs` — interact with the current tab
+- `scripting` — inject content script if not yet loaded
+- `sidePanel` — optional side panel entry
+
+## Architecture
+
+- `src/scripts/contentScript.ts` — translation engine and UI overlay; auto‑detects language, downloads models with progress, appends translations under blocks, supports hover‑to‑translate, caches per line and per pair
+- `src/popup/popup.tsx` — user settings (target language, hover modifier) and “Translate current page” action; injects content script if needed
+- `src/scripts/background.ts` — toggles the Side Panel on specific origin for demo; configures action click behavior
+- `src/sidePanel/sidePanel.tsx` — minimal side panel scaffold
+- `src/utils/i18n.ts`, `src/utils/rtl.ts` — i18n helper and RTL/LTR utilities
+- `_locales/` — localized strings (English, Simplified Chinese, and more)
 
 ## Development
 
 Scripts:
-- `pnpm dev` – development build with watch
-- `pnpm build` – production build
-- `pnpm tsc` – TypeScript type check
+
+- `pnpm dev` — watch build
+- `pnpm build` — production build
+- `pnpm tsc` — TypeScript type check
 
 Tech stack:
-- React 19, TypeScript, Tailwind CSS v4
-- Rspack (SWC) multi-entry build targeting MV3
+
+- React 19, TypeScript, Tailwind CSS v4, Radix UI primitives
+- Rspack (SWC) multi‑entry build for MV3
 
 Project layout:
 ```
@@ -81,16 +97,21 @@ src/
     tailwind.css
 ```
 
+## Troubleshooting
+
+- “Translator API unavailable”: ensure Chrome 138+ and that your device supports on‑device models
+- No effect on a page: some pages block script injection (e.g., `chrome://`); try another site
+- Slow first run: model download happens once per capability; subsequent usage reuses cached models
+
 ## Roadmap
 
-- On-device translation via WebGPU-capable runtimes (local models)
-- Model management UI (download/import, caching, offline packs)
-- Context menu translate, keyboard shortcuts, quick actions
-- Edge/Firefox support where feasible
+- Context‑menu translate and keyboard shortcuts
+- Richer side panel (history, pin favorites)
+- Cross‑browser support where feasible
 
 ## Contributing
 
-Contributions are welcome! Issues and PRs are appreciated. Please follow conventional TypeScript, React, and Tailwind best practices.
+Issues and PRs are welcome. Please follow TypeScript/React/Tailwind best practices.
 
 ## License
 

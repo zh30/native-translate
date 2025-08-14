@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Native Translate",
+    "message": "Native Translate — Private, Built-in AI Translation",
     "description": "The name of the extension"
   },
   "extension_description": {
-    "message": "A tiny browser extension to enhance your development experience.",
+    "message": "Privacy-first Chrome extension using Chrome’s built-in AI Translator and Language Detector. No cloud calls, no telemetry — your content never leaves the browser. Models download, run, and cache locally for offline use.",
     "description": "The description of the extension"
   },
   "popup_title": {

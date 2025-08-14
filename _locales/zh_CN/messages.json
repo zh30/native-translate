@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "原生翻译",
+    "message": "原生翻译 — 隐私优先的内置 AI 翻译",
     "description": "The name of the extension"
   },
   "extension_description": {
-    "message": "一个轻量、chrome 浏览器原生的 AI 翻译插件，不需要请求远程服务器，你的数据不离开浏览器",
+    "message": "隐私优先的 Chrome 扩展，使用 Chrome 内置的 AI 翻译器与语言检测器。默认无云端调用、无遥测，内容永不出浏览器。模型在本地下载、运行并缓存，可离线使用。",
     "description": "The description of the extension"
   },
   "popup_title": {

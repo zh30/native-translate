@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Tradução Nativa",
+    "message": "Tradução Nativa — Tradução de IA integrada, com privacidade",
     "description": "Nome da extensão"
   },
   "extension_description": {
-    "message": "Uma extensão leve de tradução por IA integrada ao navegador.",
+    "message": "Extensão do Chrome com foco em privacidade que usa o Tradutor de IA e o Detector de Idioma integrados no Chrome. Sem chamadas à nuvem nem telemetria — seu conteúdo nunca sai do navegador. Os modelos são baixados, executados e armazenados em cache localmente para uso off‑line.",
     "description": "Descrição"
   },
   "popup_title": {

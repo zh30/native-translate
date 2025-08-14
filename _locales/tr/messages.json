@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Yerel Çeviri",
+    "message": "Yerel Çeviri — Entegre, gizlilik odaklı Yapay Zekâ çeviri",
     "description": "Eklenti adı"
   },
   "extension_description": {
-    "message": "Tarayıcıya yerleşik yapay zekâ çevirisiyle hafif bir eklenti.",
+    "message": "Gizlilik odaklı Chrome uzantısı; Chrome’un yerleşik Yapay Zekâ Çevirmeni ve Dil Algılayıcısını kullanır. Bulut çağrısı ve telemetri yok — içeriğiniz tarayıcıdan çıkmaz. Modeller yerel olarak indirilir, çalıştırılır ve önbelleğe alınır; çevrimdışı kullanılabilir.",
     "description": "Açıklama"
   },
   "popup_title": {

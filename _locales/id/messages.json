@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "Terjemahan Native",
+    "message": "Terjemahan Native — AI bawaan, berfokus privasi",
     "description": "Nama ekstensi"
   },
   "extension_description": {
-    "message": "Ekstensi ringan dengan terjemahan AI bawaan di browser.",
+    "message": "Ekstensi Chrome berfokus privasi yang menggunakan Penerjemah AI dan Pendeteksi Bahasa bawaan Chrome. Tanpa panggilan cloud dan tanpa telemetri — konten Anda tidak pernah keluar dari browser. Model diunduh, dijalankan, dan dicache secara lokal untuk penggunaan luring.",
     "description": "Deskripsi"
   },
   "popup_title": {
