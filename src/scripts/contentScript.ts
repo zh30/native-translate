@@ -266,6 +266,7 @@ function createTranslationSpan(original: Element, translatedText: string, target
   if (span instanceof HTMLElement) {
     span.style.display = 'block';
     span.style.marginTop = '4px';
+    span.style.whiteSpace = 'pre-wrap';
     // 根据目标语言方向设置对齐
     const rtl = /^(ar|he|fa|ur|ps)(-|$)/i.test(targetLanguage);
     span.dir = rtl ? 'rtl' : 'ltr';
@@ -273,6 +274,35 @@ function createTranslationSpan(original: Element, translatedText: string, target
   }
   span.textContent = translatedText;
   return span;
+}
+
+async function translateTextPreservingNewlines(
+  translator: TranslatorInstance,
+  text: string,
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode
+): Promise<string> {
+  // 按原始换行分段翻译，保证换行结构不被打乱
+  const lines = text.split(/\r?\n/);
+  const out: string[] = [];
+  for (const line of lines) {
+    if (!line) {
+      out.push('');
+      continue;
+    }
+    const lineKey = buildCacheKey(line, sourceLanguage, targetLanguage);
+    let translatedLine = translationCache.get(lineKey);
+    if (!translatedLine) {
+      try {
+        translatedLine = await translator.translate(line);
+        translationCache.set(lineKey, translatedLine);
+      } catch (_e) {
+        translatedLine = '';
+      }
+    }
+    out.push(translatedLine);
+  }
+  return out.join('\n');
 }
 
 async function translateBlocksSequentially(
@@ -297,7 +327,12 @@ async function translateBlocksSequentially(
       if (!translated) {
         // 翻译可能抛错，保持健壮性
         try {
-          translated = await translator.translate(text);
+          translated = await translateTextPreservingNewlines(
+            translator,
+            text,
+            sourceLanguage,
+            targetLanguage
+          );
           translationCache.set(cacheKey, translated);
         } catch (_e) {
           translated = '';
@@ -662,7 +697,12 @@ async function translateElementOnDemand(element: Element): Promise<void> {
     let translated = translationCache.get(cacheKey);
     if (!translated) {
       try {
-        translated = await translator.translate(text);
+        translated = await translateTextPreservingNewlines(
+          translator,
+          text,
+          sourceLanguage,
+          targetLanguage
+        );
         translationCache.set(cacheKey, translated);
       } catch (_e) {
         translated = '';
