@@ -91,6 +91,7 @@ function buildCacheKey(text: string, sourceLanguage: string, targetLanguage: str
 
 interface PopupSettings {
   targetLanguage: LanguageCode;
+  hotkeyModifier?: 'alt' | 'control' | 'shift';
 }
 
 async function getPreferredTargetLanguage(): Promise<LanguageCode> {
@@ -100,6 +101,16 @@ async function getPreferredTargetLanguage(): Promise<LanguageCode> {
     if (settings?.targetLanguage) return settings.targetLanguage;
   } catch (_e) { }
   return 'zh-CN';
+}
+
+async function getHoverHotkeyModifier(): Promise<'alt' | 'control' | 'shift'> {
+  try {
+    const data = await chrome.storage.local.get(POPUP_SETTINGS_KEY);
+    const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
+    const value = settings?.hotkeyModifier || 'alt';
+    if (value === 'alt' || value === 'control' || value === 'shift') return value;
+  } catch (_e) { }
+  return 'alt';
 }
 
 function createOverlay(): HTMLElement {
@@ -724,10 +735,35 @@ function initializeHoverAltTranslate(): void {
 
   let hoveredCandidate: Element | null = null;
   let altPressed = false;
+  let ctrlPressed = false;
+  let shiftPressed = false;
   let lastTriggered: Element | null = null;
+  let preferred: 'alt' | 'control' | 'shift' = 'alt';
+
+  void (async () => {
+    preferred = await getHoverHotkeyModifier();
+  })();
+
+  // 动态响应 Popup 设置变更
+  try {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local') return;
+      const entry = changes?.[POPUP_SETTINGS_KEY];
+      if (!entry) return;
+      const next = (entry.newValue as PopupSettings | undefined)?.hotkeyModifier;
+      if (next === 'alt' || next === 'control' || next === 'shift') {
+        preferred = next;
+        lastTriggered = null;
+      }
+    });
+  } catch (_e) { }
 
   const tryTranslate = () => {
-    if (!altPressed) return;
+    const shouldTrigger =
+      (preferred === 'alt' && altPressed) ||
+      (preferred === 'control' && ctrlPressed) ||
+      (preferred === 'shift' && shiftPressed);
+    if (!shouldTrigger) return;
     if (isEditingContext()) return;
     if (!hoveredCandidate) return;
     if (hoveredCandidate === lastTriggered) return;
@@ -750,12 +786,10 @@ function initializeHoverAltTranslate(): void {
   document.addEventListener(
     'keydown',
     (e) => {
-      if (e.key === 'Alt' || e.altKey) {
-        if (!altPressed) {
-          altPressed = true;
-          tryTranslate();
-        }
-      }
+      altPressed = e.altKey || e.key === 'Alt' || altPressed;
+      ctrlPressed = e.ctrlKey || e.key === 'Control' || ctrlPressed;
+      shiftPressed = e.shiftKey || e.key === 'Shift' || shiftPressed;
+      tryTranslate();
     },
     { capture: true }
   );
@@ -763,10 +797,10 @@ function initializeHoverAltTranslate(): void {
   document.addEventListener(
     'keyup',
     (e) => {
-      if (e.key === 'Alt' || !e.altKey) {
-        altPressed = false;
-        lastTriggered = null;
-      }
+      if (e.key === 'Alt' || !e.altKey) altPressed = false;
+      if (e.key === 'Control' || !e.ctrlKey) ctrlPressed = false;
+      if (e.key === 'Shift' || !e.shiftKey) shiftPressed = false;
+      lastTriggered = null;
     },
     { capture: true }
   );

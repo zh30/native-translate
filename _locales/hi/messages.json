@@ -59,6 +59,26 @@
     "message": "यह सामग्री स्क्रिप्ट को पृष्ठ में अनुवाद जोड़ने का आदेश भेजेगा।",
     "description": "विवरण"
   },
+  "hover_hotkey": {
+    "message": "हॉवर अनुवाद शॉर्टकट",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "चुनी हुई मॉडिफ़ायर कुंजी दबाए रखें और पाठ पर हॉवर करें ताकि उस अनुच्छेद का अनुवाद हो।",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "अंतर्निहित AI अनुवाद API द्वारा संचालित। मॉडल डाउनलोड डिवाइस पर निर्भर करता है।",
     "description": "फुटर"

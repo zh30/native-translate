@@ -59,6 +59,26 @@
     "message": "Stuurt een opdracht naar het inhoudsscript om vertalingen in de pagina in te voegen.",
     "description": "Beschrijving"
   },
+  "hover_hotkey": {
+    "message": "Sneltoets voor vertalen bij zweven",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "Houd de geselecteerde modificatietoets ingedrukt terwijl je over tekst zweeft om die alinea te vertalen.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "Aangedreven door de ingebouwde AI Translator API. Het downloaden van het model is afhankelijk van het apparaat.",
     "description": "Voettekst"

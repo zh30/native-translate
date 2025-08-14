@@ -59,6 +59,26 @@
     "message": "该操作会向当前标签页的内容脚本发送指令，后续会在页面内插入翻译结果。",
     "description": "翻译页面描述"
   },
+  "hover_hotkey": {
+    "message": "悬停翻译快捷键",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "按住所选修饰键并将鼠标悬停在文本上，即可翻译该段落。",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "使用内置 AI Translator API。模型下载需满足设备条件。",
     "description": "页脚说明"

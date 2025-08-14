@@ -59,6 +59,26 @@
     "message": "This will send a command to the content script to insert translations into the page.",
     "description": "Translate page description"
   },
+  "hover_hotkey": {
+    "message": "Hover translate hotkey",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "Press and hold the selected modifier while hovering text to translate that paragraph.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "Powered by built-in AI Translator API. Model download depends on device requirements.",
     "description": "Footer note"

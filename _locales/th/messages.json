@@ -59,6 +59,26 @@
     "message": "ระบบจะส่งคำสั่งไปยังสคริปต์เนื้อหาเพื่อฝังคำแปลลงในหน้าเว็บ.",
     "description": "คำอธิบาย"
   },
+  "hover_hotkey": {
+    "message": "ปุ่มลัดแปลเมื่อวางเมาส์",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "กดค้างปุ่มปรับแต่งที่เลือกไว้ขณะวางเมาส์เหนือข้อความเพื่อแปลย่อหน้านั้น.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "ขับเคลื่อนด้วย API การแปลด้วย AI ในตัว การดาวน์โหลดโมเดลขึ้นอยู่กับอุปกรณ์.",
     "description": "ส่วนท้าย"

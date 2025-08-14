@@ -87,10 +87,12 @@ const STORAGE_KEY = 'nativeTranslate.settings';
 
 interface PopupSettings {
   targetLanguage: LanguageCode;
+  hotkeyModifier?: 'alt' | 'control' | 'shift';
 }
 
 const defaultSettings: PopupSettings = {
   targetLanguage: 'zh-CN',
+  hotkeyModifier: 'alt',
 };
 
 const Popup: React.FC = () => {
@@ -214,6 +216,20 @@ const Popup: React.FC = () => {
           onValueChange={(v) => setSettings((s) => ({ ...s, targetLanguage: v as LanguageCode }))}
           options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="inline-block">{t('hover_hotkey')}</Label>
+        <AppSelect
+          value={settings.hotkeyModifier ?? 'alt'}
+          onValueChange={(v) => setSettings((s) => ({ ...s, hotkeyModifier: v as 'alt' | 'control' | 'shift' }))}
+          options={[
+            { value: 'alt', label: t('hotkey_alt') },
+            { value: 'control', label: t('hotkey_control') },
+            { value: 'shift', label: t('hotkey_shift') },
+          ]}
+        />
+        <p className="text-[11px] text-gray-500 dark:text-gray-400">{t('hover_hotkey_desc')}</p>
       </div>
 
       <div className="space-y-2">

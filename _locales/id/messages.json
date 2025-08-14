@@ -59,6 +59,26 @@
     "message": "Ini akan mengirim perintah ke skrip konten untuk menyisipkan terjemahan ke halaman.",
     "description": "Deskripsi"
   },
+  "hover_hotkey": {
+    "message": "Pintasan terjemahan saat mengarahkan kursor",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "Tekan dan tahan tombol pengubah yang dipilih sambil mengarahkan kursor ke teks untuk menerjemahkan paragraf tersebut.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "Didukung oleh API Penerjemah AI bawaan. Unduhan model bergantung pada perangkat.",
     "description": "Catatan kaki"

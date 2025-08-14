@@ -59,6 +59,26 @@
     "message": "سيتم إرسال أمر إلى سكربت المحتوى لإدراج الترجمات في الصفحة.",
     "description": "وصف"
   },
+  "hover_hotkey": {
+    "message": "مفتاح اختصار الترجمة عند التحويم",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "اضغط مع الاستمرار على مفتاح التعديل المحدد أثناء تحويم المؤشر فوق النص لترجمة الفقرة.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "بدعم من واجهة برمجة تطبيقات الترجمة بالذكاء الاصطناعي المدمجة. يعتمد تنزيل النموذج على الجهاز.",
     "description": "تذييل"

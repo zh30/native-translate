@@ -59,6 +59,26 @@
     "message": "Sẽ gửi lệnh tới content script để chèn bản dịch vào trang.",
     "description": "Mô tả"
   },
+  "hover_hotkey": {
+    "message": "Phím tắt dịch khi rê chuột",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "Nhấn giữ phím bổ trợ đã chọn khi rê chuột qua văn bản để dịch đoạn đó.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "Sử dụng API Dịch AI tích hợp. Việc tải mô hình phụ thuộc vào thiết bị.",
     "description": "Chú thích"

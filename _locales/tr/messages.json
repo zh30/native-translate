@@ -59,6 +59,26 @@
     "message": "Bu, sayfaya çeviriler eklemek için içerik komut dosyasına bir komut gönderir.",
     "description": "Açıklama"
   },
+  "hover_hotkey": {
+    "message": "Fareyle üzerine gelince çeviri kısayolu",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "Metnin üzerine gelirken seçilen değiştirici tuşu basılı tutarak o paragrafı çevirin.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "Yerleşik Yapay Zekâ Çeviri API'si ile desteklenir. Model indirme cihazınıza bağlıdır.",
     "description": "Alt bilgi"

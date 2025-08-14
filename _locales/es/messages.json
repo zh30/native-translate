@@ -59,6 +59,26 @@
     "message": "Esto enviará un comando al script de contenido para insertar traducciones en la página.",
     "description": "Descripción"
   },
+  "hover_hotkey": {
+    "message": "Atajo para traducir al pasar el ratón",
+    "description": "Label for hover modifier hotkey"
+  },
+  "hover_hotkey_desc": {
+    "message": "Mantén pulsado el modificador seleccionado mientras pasas el ratón sobre el texto para traducir ese párrafo.",
+    "description": "Description for hover hotkey behavior"
+  },
+  "hotkey_alt": {
+    "message": "Alt (Option)",
+    "description": "Alt label"
+  },
+  "hotkey_control": {
+    "message": "Control",
+    "description": "Control label"
+  },
+  "hotkey_shift": {
+    "message": "Shift",
+    "description": "Shift label"
+  },
   "footer_note": {
     "message": "Con tecnología de la API de traducción de IA integrada. La descarga del modelo depende del dispositivo.",
     "description": "Pie"
