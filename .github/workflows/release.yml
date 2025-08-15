@@ -3,7 +3,7 @@ name: Release Chrome Extension
 on:
   push:
     tags:
-      - 'v*' # 触发条件：推送以 v 开头的tag
+      - 'v*'
 
 jobs:
   build-and-publish:
@@ -13,8 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取完整的 git 历史用于版本号
-          
+          fetch-depth: 0
+
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -41,26 +41,15 @@ jobs:
       - name: Create ZIP file
         run: pnpm zip
 
-      - name: Upload to Chrome Web Store
-        uses: mnao305/chrome-extension-upload@v5.0.0
-        with:
-          file-path: Tiny-helmet.zip
-          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-          client-id: ${{ secrets.CHROME_CLIENT_ID }}
-          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          publish: true
+      # 上传到 Chrome 商店的步骤已被删除
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: Tiny-helmet.zip
+          files: Tiny-helmet.zip # 确保这个文件名和 pnpm zip 命令生成的文件名一致
           name: Release ${{ env.VERSION }}
           body: |
             Release version ${{ env.VERSION }}
-            
-            Changes in this version:
-            - Please check the commit history for detailed changes
           draft: false
           prerelease: false
         env:
