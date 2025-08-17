@@ -61,6 +61,7 @@ module.exports = (env, argv) => {
       sidePanel: './src/sidePanel/sidePanel.tsx',
       background: './src/scripts/background.ts',
       contentScript: './src/scripts/contentScript.ts',
+      offscreen: './src/offscreen/devReloader.ts',
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
@@ -145,6 +146,12 @@ module.exports = (env, argv) => {
         chunks: ['sidePanel'],
         minify: isProd,
       }),
+      new rspack.HtmlRspackPlugin({
+        template: './src/offscreen/devReloader.html',
+        filename: 'offscreen.html',
+        chunks: ['offscreen'],
+        minify: isProd,
+      }),
       new rspack.CopyRspackPlugin({
         patterns: [
           { from: 'public', to: 'public' },
@@ -152,7 +159,7 @@ module.exports = (env, argv) => {
           { from: '_locales', to: '_locales' },
         ],
       }),
-      new ZipAfterBuildPlugin({ outputName: 'Native-translate.zip' }),
+      ...(isProd ? [new ZipAfterBuildPlugin({ outputName: 'Native-translate.zip' })] : []),
     ],
     devtool: isProd ? false : 'cheap-module-source-map',
     cache: true,

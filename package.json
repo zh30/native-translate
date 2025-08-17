@@ -1,12 +1,12 @@
 {
   "name": "native-translate",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "dev": "rspack build --watch",
+    "dev": "node scripts/dev-reload-server.mjs & rspack build --watch",
     "build": "rspack build --mode production",
     "lint": "biome check .",
     "lint:fix": "biome check . --write"
@@ -20,23 +20,23 @@
   "license": "MIT",
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
   "devDependencies": {
-    "@biomejs/biome": "^1.9.3",
+    "@biomejs/biome": "^1.9.4",
     "@rspack/cli": "^1.4.11",
     "@rspack/core": "^1.4.11",
-    "@tailwindcss/postcss": "^4.1.11",
+    "@tailwindcss/postcss": "^4.1.12",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "chrome-types": "^0.1.370",
+    "chrome-types": "^0.1.371",
     "css-loader": "^7.1.2",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.1.1",
-    "tailwindcss": "^4.1.11",
+    "tailwindcss": "^4.1.12",
     "ts-loader": "^9.5.2",
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

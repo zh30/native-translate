@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "अंतर्निहित AI अनुवाद API द्वारा संचालित। मॉडल डाउनलोड डिवाइस पर निर्भर करता है।",
+    "message": "अंतर्निहित AI अनुवाद API द्वारा संचालित। मॉडल डाउनलोड डिवाइस पर निर्भर करता है। — @Henry: https://zhanghe.dev/products/native-translate",
     "description": "फुटर"
   },
   "sidepanel_title": {

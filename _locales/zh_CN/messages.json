@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "使用内置 AI Translator API。模型下载需满足设备条件。",
+    "message": "使用内置 AI Translator API。模型下载需满足设备条件。— @Henry：https://zhanghe.dev/products/native-translate",
     "description": "页脚说明"
   },
   "sidepanel_title": {

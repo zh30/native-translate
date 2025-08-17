@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "Yerleşik Yapay Zekâ Çeviri API'si ile desteklenir. Model indirme cihazınıza bağlıdır.",
+    "message": "Yerleşik Yapay Zekâ Çeviri API'si ile desteklenir. Model indirme cihazınıza bağlıdır. — @Henry: https://zhanghe.dev/products/native-translate",
     "description": "Alt bilgi"
   },
   "sidepanel_title": {

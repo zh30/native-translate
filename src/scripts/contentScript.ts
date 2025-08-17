@@ -44,6 +44,128 @@ interface TranslatorStatic {
   create: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance>;
 }
 
+// 适配不同浏览器实现（历史/新规范）：
+// - 旧提案：window.Translator.create(...)
+// - 新提案：window.translation.createTranslator(...)
+type TranslatorStaticAdapter = {
+  create: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance>;
+};
+
+function directResolveTranslatorAdapter(): TranslatorStaticAdapter | null {
+  const w = window as any;
+  const legacy = w?.Translator as TranslatorStatic | undefined;
+  if (legacy && typeof legacy.create === 'function') {
+    return { create: legacy.create.bind(legacy) };
+  }
+  const modern = w?.translation as { createTranslator?: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance> } | undefined;
+  if (modern && typeof modern.createTranslator === 'function') {
+    return { create: modern.createTranslator.bind(modern) };
+  }
+  return null;
+}
+
+async function resolveTranslatorAdapterWithRetry(maxWaitMs = 1200): Promise<TranslatorStaticAdapter | null> {
+  const cacheKey = '__nativeTranslateAdapter';
+  const cached = (window as any)[cacheKey] as TranslatorStaticAdapter | undefined;
+  if (cached) return cached;
+  let adapter = directResolveTranslatorAdapter();
+  if (adapter) {
+    (window as any)[cacheKey] = adapter;
+    return adapter;
+  }
+  const deadline = Date.now() + maxWaitMs;
+  while (Date.now() < deadline) {
+    await new Promise<void>((r) => setTimeout(r, 150));
+    adapter = directResolveTranslatorAdapter();
+    if (adapter) {
+      (window as any)[cacheKey] = adapter;
+      return adapter;
+    }
+  }
+  return null;
+}
+
+// ========= 主世界桥（page world bridge）=========
+const BRIDGE_SCRIPT_ID = 'native-translate-bridge';
+const BRIDGE_REQ_TYPE = '__NT_BRIDGE_REQ';
+const BRIDGE_RES_TYPE = '__NT_BRIDGE_RES';
+
+interface BridgeRequest {
+  type: typeof BRIDGE_REQ_TYPE;
+  id: string;
+  action: 'translate';
+  source: LanguageCode;
+  target: LanguageCode;
+  text: string;
+}
+
+interface BridgeResponse {
+  type: typeof BRIDGE_RES_TYPE;
+  id: string;
+  ok: boolean;
+  result?: string;
+  error?: string;
+}
+
+let bridgeInitialized = false;
+const pendingBridgeResponses = new Map<string, (res: BridgeResponse) => void>();
+
+function ensurePageBridgeInjected(): void {
+  if (document.getElementById(BRIDGE_SCRIPT_ID)) return;
+  const script = document.createElement('script');
+  script.id = BRIDGE_SCRIPT_ID;
+  script.textContent = `(() => {\n  if (window.__nativeTranslateBridgeInit) return;\n  window.__nativeTranslateBridgeInit = true;\n  const pool = new Map();\n  function directAdapter() {\n    const legacy = window.Translator;\n    if (legacy && typeof legacy.create === 'function') {\n      return { create: legacy.create.bind(legacy) };\n    }\n    const modern = window.translation;\n    if (modern && typeof modern.createTranslator === 'function') {\n      return { create: modern.createTranslator.bind(modern) };\n    }\n    return null;\n  }\n  async function getTranslator(source, target) {\n    const key = source + '->' + target;\n    if (pool.has(key)) return pool.get(key);\n    const adapter = directAdapter();\n    if (!adapter) throw new Error('Translator API unavailable');\n    const t = await adapter.create({ sourceLanguage: source, targetLanguage: target });\n    if (t && t.ready) {\n      try { await t.ready; } catch (e) {}\n    }\n    pool.set(key, t);\n    return t;\n  }\n  window.addEventListener('message', async (event) => {\n    const data = event && event.data;\n    if (!data || data.type !== '${BRIDGE_REQ_TYPE}') return;\n    try {\n      if (data.action === 'translate') {\n        const t = await getTranslator(data.source, data.target);\n        const out = await t.translate(data.text);\n        window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: true, result: out }, '*');\n      }\n    } catch (err) {\n      const msg = (err && (err.message || String(err))) || 'bridge_error';\n      window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: false, error: msg }, '*');\n    }\n  }, { capture: false });\n})();`;
+  (document.documentElement || document.head || document.body || document).appendChild(script);
+}
+
+function initBridgeMessageChannel(): void {
+  if (bridgeInitialized) return;
+  bridgeInitialized = true;
+  window.addEventListener('message', (event: MessageEvent) => {
+    const data = event?.data as BridgeResponse | undefined;
+    if (!data || (data as any).type !== BRIDGE_RES_TYPE) return;
+    const handler = pendingBridgeResponses.get(data.id);
+    if (handler) {
+      pendingBridgeResponses.delete(data.id);
+      handler(data);
+    }
+  });
+}
+
+function randomId(): string {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+async function bridgeTranslate(
+  text: string,
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode
+): Promise<string> {
+  ensurePageBridgeInjected();
+  initBridgeMessageChannel();
+  const id = randomId();
+  const payload: BridgeRequest = {
+    type: BRIDGE_REQ_TYPE,
+    id,
+    action: 'translate',
+    source: sourceLanguage,
+    target: targetLanguage,
+    text,
+  };
+  return new Promise<string>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      pendingBridgeResponses.delete(id);
+      reject(new Error('bridge_timeout'));
+    }, 10000);
+    pendingBridgeResponses.set(id, (res) => {
+      clearTimeout(timeout);
+      if (res.ok && typeof res.result === 'string') resolve(res.result);
+      else reject(new Error(res.error || 'bridge_error'));
+    });
+    window.postMessage(payload, '*');
+  });
+}
+
 // Language Detector API 类型声明（参考文档 https://developer.chrome.com/docs/ai/language-detection?hl=zh-cn）
 type AvailabilityState = 'unknown' | 'available' | 'downloadable' | 'unavailable';
 
@@ -290,7 +412,7 @@ function createTranslationSpan(original: Element, translatedText: string, target
 }
 
 async function translateTextPreservingNewlines(
-  translator: TranslatorInstance,
+  translator: TranslatorInstance | null,
   text: string,
   sourceLanguage: LanguageCode,
   targetLanguage: LanguageCode
@@ -307,7 +429,11 @@ async function translateTextPreservingNewlines(
     let translatedLine = translationCache.get(lineKey);
     if (!translatedLine) {
       try {
-        translatedLine = await translator.translate(line);
+        if (translator) {
+          translatedLine = await translator.translate(line);
+        } else {
+          translatedLine = await bridgeTranslate(line, sourceLanguage, targetLanguage);
+        }
         translationCache.set(lineKey, translatedLine);
       } catch (_e) {
         translatedLine = '';
@@ -319,7 +445,7 @@ async function translateTextPreservingNewlines(
 }
 
 async function translateBlocksSequentially(
-  translator: TranslatorInstance,
+  translator: TranslatorInstance | null,
   items: Array<{ element: Element; text: string }>,
   sourceLanguage: LanguageCode,
   targetLanguage: LanguageCode,
@@ -410,8 +536,8 @@ async function getOrCreateTranslator(
   targetLanguage: LanguageCode,
   onProgress?: (pct: number) => void
 ): Promise<TranslatorInstance> {
-  const api = (window as any).Translator as TranslatorStatic | undefined;
-  if (!api) throw new Error('Translator API unavailable');
+  const adapter = await resolveTranslatorAdapterWithRetry(1000);
+  if (!adapter) throw new Error('Translator API unavailable');
 
   const pool = ((window as any).__nativeTranslatePool ||= new Map<string, TranslatorInstance>());
   const pairKey = getPairKey(sourceLanguage, targetLanguage);
@@ -419,7 +545,7 @@ async function getOrCreateTranslator(
   if (existing) return existing;
 
   let lastPct = 0;
-  const translator = await api.create({
+  const translator = await adapter.create({
     sourceLanguage,
     targetLanguage,
     monitor(m) {
@@ -522,22 +648,24 @@ async function translateFullPage(
 ): Promise<void> {
   const overlay = createOverlay();
 
-  const api = (window as any).Translator as TranslatorStatic | undefined;
-  if (!api) {
-    updateOverlay(overlay, tCS('overlay_api_unavailable'));
-    setTimeout(removeOverlay, 3000);
-    return;
-  }
+  // 不再因内容脚本世界缺少 API 而提前返回；
+  // 若无法直接获取，将回退到主世界桥进行翻译。
 
   const knownReady = await wasPairReady(sourceLanguage, targetLanguage);
   updateOverlay(overlay, knownReady ? tCS('overlay_using_cached') : tCS('overlay_preparing'));
   let lastPct = -1;
-  const translator = await getOrCreateTranslator(sourceLanguage, targetLanguage, (pct) => {
-    if (pct !== lastPct) {
-      updateOverlay(overlay, tCS('overlay_downloading', [String(pct)]));
-      lastPct = pct;
-    }
-  });
+  let translator: TranslatorInstance | null = null;
+  try {
+    translator = await getOrCreateTranslator(sourceLanguage, targetLanguage, (pct) => {
+      if (pct !== lastPct) {
+        updateOverlay(overlay, tCS('overlay_downloading', [String(pct)]));
+        lastPct = pct;
+      }
+    });
+  } catch (_err) {
+    // 内容脚本世界无法访问时，退回桥翻译
+    translator = null;
+  }
 
   const blocks = collectTranslatableBlocks(document.body);
   if (blocks.length === 0) {
@@ -724,7 +852,7 @@ async function translateElementOnDemand(element: Element): Promise<void> {
       updateOverlay(overlay, tCS('overlay_preparing'));
     }
 
-    let translator: TranslatorInstance;
+    let translator: TranslatorInstance | null;
     try {
       translator = await getOrCreateTranslator(
         sourceLanguage,
@@ -739,14 +867,11 @@ async function translateElementOnDemand(element: Element): Promise<void> {
           : undefined
       );
     } catch (_e) {
-      if (overlay) {
-        updateOverlay(overlay, tCS('overlay_api_unavailable'));
-        setTimeout(removeOverlay, 3000);
-      }
-      return;
+      // 回退到桥翻译（主世界）
+      translator = null;
     }
+    // 无论是否回退到桥翻译，都移除下载提示层（后续不再有下载进度）
     if (overlay) {
-      // 仅在下载期间提示；下载完成后立即移除
       removeOverlay();
       overlay = null;
     }

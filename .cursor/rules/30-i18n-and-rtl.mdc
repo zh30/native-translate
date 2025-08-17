@@ -1,0 +1,20 @@
+---
+globs: src/**/*.ts,src/**/*.tsx
+description: 国际化（Chrome i18n）与 RTL 方向设置规范
+---
+## i18n 与 RTL
+
+- **消息函数**：使用 [src/utils/i18n.ts](mdc:src/utils/i18n.ts) 的 `t(key, substitutions?)`，在缺失或调用异常时回退为 `key`。
+- **UI 方向**：在页面入口按 UI 语言设置 `dir` 与 `lang`：
+
+```ts
+import { getUILocale, isRTLLanguage } from '@/utils/rtl';
+const ui = getUILocale();
+document.documentElement.setAttribute('dir', isRTLLanguage(ui) ? 'rtl' : 'ltr');
+document.documentElement.setAttribute('lang', ui);
+```
+
+- **CSS 层**：`tailwind.css` 中 `body { direction: __MSG_@@bidi_dir__; }` 依赖 Chrome 本地化替换。不要移除该占位符。
+- **本地化目录**：在 [_locales/](mdc:_locales) 中新增/维护 `messages.json`，键名与 `t()` 调用保持一致。
+- **类型提示**：可在组件内维护受控的语言代码联合类型（参照 `popup.tsx` 的 `LanguageCode`）。
+

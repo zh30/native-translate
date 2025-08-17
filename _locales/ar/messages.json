@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "بدعم من واجهة برمجة تطبيقات الترجمة بالذكاء الاصطناعي المدمجة. يعتمد تنزيل النموذج على الجهاز.",
+    "message": "بدعم من واجهة برمجة تطبيقات الترجمة بالذكاء الاصطناعي المدمجة. يعتمد تنزيل النموذج على الجهاز. — @Henry: https://zhanghe.dev/products/native-translate",
     "description": "تذييل"
   },
   "sidepanel_title": {

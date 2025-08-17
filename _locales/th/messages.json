@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "ขับเคลื่อนด้วย API การแปลด้วย AI ในตัว การดาวน์โหลดโมเดลขึ้นอยู่กับอุปกรณ์.",
+    "message": "ขับเคลื่อนด้วย API การแปลด้วย AI ในตัว การดาวน์โหลดโมเดลขึ้นอยู่กับอุปกรณ์. — @Henry: https://zhanghe.dev/products/native-translate",
     "description": "ส่วนท้าย"
   },
   "sidepanel_title": {

@@ -1,0 +1,20 @@
+---
+globs: *.ts,*.tsx
+description: TypeScript 严格模式、路径别名与 React 19 约定
+---
+## TypeScript 与路径别名
+
+- **严格模式**：`tsconfig.json` 已启用 `strict: true`。新增类型时避免使用 `any`，优先 `unknown`、字面量类型、联合类型、枚举或对象字面量。
+- **目标与库**：保持 `target` 为 `ES2020`，`lib` 包含 `DOM`, `DOM.Iterable`, `ES2020`，以兼容扩展运行时与异步迭代。
+- **路径别名**：使用 `@/*` 指向 `src/*`，在 TS 与 Rspack 均已配置。新增文件请使用绝对导入。
+- **React 19**：采用自动 JSX 运行时与函数式组件。Props 与返回值必须显式声明：
+
+```ts
+interface MyComponentProps { title: string; count?: number }
+export const MyComponent: React.FC<MyComponentProps> = ({ title, count }) => (
+  <h1>{title} {count ?? 0}</h1>
+);
+```
+
+- **工具函数**：遵循 `src/utils/` 下的命名与导出风格。例如 `cn` 返回 `string`，不可返回 `unknown`。
+

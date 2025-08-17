@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "Aangedreven door de ingebouwde AI Translator API. Het downloaden van het model is afhankelijk van het apparaat.",
+    "message": "Aangedreven door de ingebouwde AI Translator API. Het downloaden van het model is afhankelijk van het apparaat. — @Henry: https://zhanghe.dev/products/native-translate",
     "description": "Voettekst"
   },
   "sidepanel_title": {

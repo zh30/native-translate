@@ -1,0 +1,17 @@
+---
+description: 浏览器扩展构建（Rspack）与 Manifest 合约
+---
+## 构建与清单合约
+
+- **入口声明**：构建入口在 [rspack.config.js](mdc:rspack.config.js) 中：`popup`, `sidePanel`, `background`, `contentScript`。产物文件名固定为 `[name].js` 与 `[name].css`，禁止 runtimeChunk 与 splitChunks，以便与清单严格对应。
+- **拷贝与产物**：通过 Copy 插件复制 `public/`、`src/manifest.json` 与 `_locales/`。保持路径一致。
+- **Zip 打包**：构建完成后自动压缩为 `Native-translate.zip`。如需关闭，临时移除 Zip 插件注册。
+- **Manifest 对齐**：
+  - `background.service_worker`: `background.js`
+  - `content_scripts[].js`: `contentScript.js`
+  - `action.default_popup`: `popup.html`
+  - `side_panel.default_path`: `sidePanel.html`
+  - 如改名，需同步修改入口与清单。
+- **资源类型**：图片与字体使用 `asset/resource`，保持输出目录：`assets/` 与 `assets/fonts/`。
+- **最高层隐藏**：在覆盖页面 UI（尤其内容脚本）中，悬浮层使用 `z-[2147483647]` 避免被站点样式覆盖。
+

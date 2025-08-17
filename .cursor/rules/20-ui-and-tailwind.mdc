@@ -1,0 +1,13 @@
+---
+globs: *.tsx
+description: UI 组件与 Tailwind 使用规范
+---
+## Tailwind 与 UI 规范
+
+- **Tailwind 入口**：通过 [src/styles/tailwind.css](mdc:src/styles/tailwind.css) 导入。页面入口需首先 `import '../styles/tailwind.css'`。
+- **类合并**：使用 `cn`（clsx + tailwind-merge）合并类名，避免冲突：`className={cn('p-2', conditional && 'text-blue-600')}`。
+- **组件变体**：优先使用 `class-variance-authority` 定义变体，如 [src/components/ui/button.tsx](mdc:src/components/ui/button.tsx)。新增组件参照此模式定义 `variants` 与 `defaultVariants`。
+- **选择器组件**：参照 [src/components/ui/select.tsx](mdc:src/components/ui/select.tsx) 的 Radix Select 封装。Layer 保持 `z-[2147483647]`，避免在内容脚本覆盖页面被遮挡。
+- **暗色模式**：使用 `dark:` 前缀支持深色主题，尽量避免自定义 CSS；若确需自定义，集中于 `tailwind.css`。
+- **排版密度**：默认 `text-sm` 与紧凑间距，延续现有设计语言。
+

@@ -80,7 +80,7 @@
     "description": "Shift label"
   },
   "footer_note": {
-    "message": "Sử dụng API Dịch AI tích hợp. Việc tải mô hình phụ thuộc vào thiết bị.",
+    "message": "Sử dụng API Dịch AI tích hợp. Việc tải mô hình phụ thuộc vào thiết bị. — @Henry: https://zhanghe.dev/products/native-translate",
     "description": "Chú thích"
   },
   "sidepanel_title": {
