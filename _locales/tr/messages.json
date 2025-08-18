@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "Girdi alanlarına yazdığınız metin çevrilirken kullanılır.",
     "description": "Popup: Giriş hedef dil açıklaması"
+  },
+  "open_sidepanel": {
+    "message": "Yan panelde çevir",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "Otomatik algıla",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "Çevrilecek metni buraya yazın…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "Çevrilen metin burada görünecek…",
+    "description": "Side panel: output placeholder"
   }
 }

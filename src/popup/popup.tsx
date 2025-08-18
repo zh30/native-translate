@@ -7,67 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AppSelect } from '@/components/ui/select';
 import { Globe2, Keyboard, Languages, PanelRightOpen, Wand2 } from 'lucide-react';
+import { LanguageCode, SUPPORTED_LANGUAGES, DEFAULT_TARGET_LANGUAGE, DEFAULT_INPUT_TARGET_LANGUAGE } from '@/shared/languages';
+import { POPUP_SETTINGS_KEY } from '@/shared/settings';
+import { MSG_TRANSLATE_PAGE, MSG_UPDATE_HOTKEY } from '@/shared/messages';
 
 // Removed global availability check types and UI; popup page context cannot reliably query Translator availability
 
-type LanguageCode =
-  | 'en'
-  | 'zh-CN'
-  | 'zh-TW'
-  | 'ja'
-  | 'ko'
-  | 'fr'
-  | 'de'
-  | 'es'
-  | 'it'
-  | 'pt'
-  | 'ru'
-  | 'ar'
-  | 'hi'
-  | 'bn'
-  | 'id'
-  | 'tr'
-  | 'vi'
-  | 'th'
-  | 'nl'
-  | 'pl'
-  | 'fa'
-  | 'ur'
-  | 'uk'
-  | 'sv'
-  | 'fil';
-
 // Removed Translator typing in popup; translation runs in content script
-
-const SUPPORTED_LANGUAGES: { code: LanguageCode; label: string }[] = [
-  { code: 'en', label: 'English' },
-  { code: 'zh-CN', label: '简体中文' },
-  { code: 'zh-TW', label: '繁體中文' },
-  { code: 'ja', label: '日本語' },
-  { code: 'ko', label: '한국어' },
-  { code: 'fr', label: 'Français' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'es', label: 'Español' },
-  { code: 'it', label: 'Italiano' },
-  { code: 'pt', label: 'Português' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'hi', label: 'हिन्दी' },
-  { code: 'bn', label: 'বাংলা' },
-  { code: 'id', label: 'Bahasa Indonesia' },
-  { code: 'tr', label: 'Türkçe' },
-  { code: 'vi', label: 'Tiếng Việt' },
-  { code: 'th', label: 'ไทย' },
-  { code: 'nl', label: 'Nederlands' },
-  { code: 'pl', label: 'Polski' },
-  { code: 'fa', label: 'فارسی' },
-  { code: 'ur', label: 'اردو' },
-  { code: 'uk', label: 'Українська' },
-  { code: 'sv', label: 'Svenska' },
-  { code: 'fil', label: 'Filipino' },
-];
-
-const STORAGE_KEY = 'nativeTranslate.settings';
 
 interface PopupSettings {
   targetLanguage: LanguageCode;
@@ -76,9 +22,9 @@ interface PopupSettings {
 }
 
 const defaultSettings: PopupSettings = {
-  targetLanguage: 'zh-CN',
+  targetLanguage: DEFAULT_TARGET_LANGUAGE,
   hotkeyModifier: 'alt',
-  inputTargetLanguage: 'en',
+  inputTargetLanguage: DEFAULT_INPUT_TARGET_LANGUAGE,
 };
 
 const Popup: React.FC = () => {
@@ -93,14 +39,14 @@ const Popup: React.FC = () => {
     document.documentElement.setAttribute('dir', dir);
     document.documentElement.setAttribute('lang', ui);
 
-    chrome.storage.local.get(STORAGE_KEY, (res) => {
-      const saved = (res?.[STORAGE_KEY] as PopupSettings | undefined) ?? defaultSettings;
+    chrome.storage.local.get(POPUP_SETTINGS_KEY, (res) => {
+      const saved = (res?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined) ?? defaultSettings;
       setSettings(saved);
     });
   }, []);
 
   React.useEffect(() => {
-    chrome.storage.local.set({ [STORAGE_KEY]: settings });
+    chrome.storage.local.set({ [POPUP_SETTINGS_KEY]: settings });
   }, [settings]);
 
   // Removed global availability check logic
@@ -112,7 +58,7 @@ const Popup: React.FC = () => {
       if (!tab?.id) throw new Error(t('active_tab_not_found'));
       const send = async () => {
         return chrome.tabs.sendMessage(tab.id!, {
-          type: 'NATIVE_TRANSLATE_TRANSLATE_PAGE',
+          type: MSG_TRANSLATE_PAGE,
           payload: {
             targetLanguage: settings.targetLanguage,
           },
@@ -192,7 +138,7 @@ const Popup: React.FC = () => {
               if (tab?.id) {
                 try {
                   await chrome.tabs.sendMessage(tab.id, {
-                    type: 'NATIVE_TRANSLATE_UPDATE_HOTKEY',
+                    type: MSG_UPDATE_HOTKEY,
                     payload: { hotkeyModifier: next },
                   });
                 } catch (_err) {
@@ -205,7 +151,7 @@ const Popup: React.FC = () => {
                         files: ['contentScript.js'],
                       });
                       await chrome.tabs.sendMessage(tab.id, {
-                        type: 'NATIVE_TRANSLATE_UPDATE_HOTKEY',
+                        type: MSG_UPDATE_HOTKEY,
                         payload: { hotkeyModifier: next },
                       });
                     } catch (_e) { }

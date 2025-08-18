@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "ใช้เมื่อแปลข้อความที่คุณพิมพ์ในช่องป้อนข้อมูล.",
     "description": "Popup: คำอธิบายภาษาเป้าหมายสำหรับการป้อนข้อมูล"
+  },
+  "open_sidepanel": {
+    "message": "แปลในแผงด้านข้าง",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "ตรวจจับอัตโนมัติ",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "พิมพ์ข้อความที่จะแปลได้ที่นี่…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "ข้อความที่แปลแล้วจะแสดงที่นี่…",
+    "description": "Side panel: output placeholder"
   }
 }

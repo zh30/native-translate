@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "Gebruikt bij het vertalen van tekst die je in invoervelden typt.",
     "description": "Popup: Beschrijving doeltaal voor invoer"
+  },
+  "open_sidepanel": {
+    "message": "Vertalen in zijpaneel",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "Automatisch detecteren",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "Typ hier tekst om te vertalen…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "De vertaalde tekst verschijnt hier…",
+    "description": "Side panel: output placeholder"
   }
 }

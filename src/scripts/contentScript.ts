@@ -202,7 +202,8 @@ const TRANSLATED_CLASS = 'native-translate-translation';
 const OVERLAY_ID = 'native-translate-overlay';
 const READY_PAIRS_KEY = 'nativeTranslate:readyPairs';
 const DETECTOR_READY_KEY = 'nativeTranslate:detectorReady';
-const POPUP_SETTINGS_KEY = 'nativeTranslate.settings';
+import { POPUP_SETTINGS_KEY } from '@/shared/settings';
+import { MSG_TRANSLATE_PAGE, MSG_UPDATE_HOTKEY, MSG_TRANSLATE_TEXT } from '@/shared/messages';
 let preferredModifier: 'alt' | 'control' | 'shift' = 'alt';
 let tryTranslateRef: (() => void) | null = null;
 
@@ -817,14 +818,14 @@ async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promis
 // 消息通道：接收 Popup 指令
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (!message || typeof message.type !== 'string') return false;
-  if (message.type === 'NATIVE_TRANSLATE_TRANSLATE_PAGE') {
+  if (message.type === MSG_TRANSLATE_PAGE) {
     const { targetLanguage } = (message.payload ?? {}) as {
       targetLanguage: LanguageCode;
     };
     void translateFullPageAutoDetect(targetLanguage);
     return false;
   }
-  if (message.type === 'NATIVE_TRANSLATE_UPDATE_HOTKEY') {
+  if (message.type === MSG_UPDATE_HOTKEY) {
     const { hotkeyModifier } = (message.payload ?? {}) as {
       hotkeyModifier?: 'alt' | 'control' | 'shift';
     };
@@ -853,7 +854,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 // 侧边栏请求：翻译任意文本 / 语言检测
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message || typeof message.type !== 'string') return false;
-  if (message.type === 'NATIVE_TRANSLATE_TRANSLATE_TEXT') {
+  if (message.type === MSG_TRANSLATE_TEXT) {
     const { text, sourceLanguage, targetLanguage } = (message.payload ?? {}) as {
       text: string;
       sourceLanguage: LanguageCode | 'auto';

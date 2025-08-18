@@ -8,63 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { debounce } from 'radash';
 import { ArrowLeftRight, Languages, Type, Sparkles } from 'lucide-react';
+import { LanguageCode, SUPPORTED_LANGUAGES, DEFAULT_TARGET_LANGUAGE } from '@/shared/languages';
+import { MSG_TRANSLATE_TEXT, MSG_EASTER_CONFETTI } from '@/shared/messages';
 
-type LanguageCode =
-  | 'en'
-  | 'zh-CN'
-  | 'zh-TW'
-  | 'ja'
-  | 'ko'
-  | 'fr'
-  | 'de'
-  | 'es'
-  | 'it'
-  | 'pt'
-  | 'ru'
-  | 'ar'
-  | 'hi'
-  | 'bn'
-  | 'id'
-  | 'tr'
-  | 'vi'
-  | 'th'
-  | 'nl'
-  | 'pl'
-  | 'fa'
-  | 'ur'
-  | 'uk'
-  | 'sv'
-  | 'fil';
 
 type LanguageOption = LanguageCode | 'auto';
 
-const SUPPORTED_LANGUAGES: { code: LanguageCode; label: string }[] = [
-  { code: 'en', label: 'English' },
-  { code: 'zh-CN', label: '简体中文' },
-  { code: 'zh-TW', label: '繁體中文' },
-  { code: 'ja', label: '日本語' },
-  { code: 'ko', label: '한국어' },
-  { code: 'fr', label: 'Français' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'es', label: 'Español' },
-  { code: 'it', label: 'Italiano' },
-  { code: 'pt', label: 'Português' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'hi', label: 'हिन्दी' },
-  { code: 'bn', label: 'বাংলা' },
-  { code: 'id', label: 'Bahasa Indonesia' },
-  { code: 'tr', label: 'Türkçe' },
-  { code: 'vi', label: 'Tiếng Việt' },
-  { code: 'th', label: 'ไทย' },
-  { code: 'nl', label: 'Nederlands' },
-  { code: 'pl', label: 'Polski' },
-  { code: 'fa', label: 'فارسی' },
-  { code: 'ur', label: 'اردو' },
-  { code: 'uk', label: 'Українська' },
-  { code: 'sv', label: 'Svenska' },
-  { code: 'fil', label: 'Filipino' },
-];
 
 // ============ Local built-in AI APIs (optional, best-effort) ============
 interface TranslatorInstance {
@@ -157,9 +106,11 @@ interface ConfettiParticle {
   rotationSpeed: number;
   gravity: number;
   drag: number;
+  ageMs: number;
+  ttlMs: number;
 }
 
-function playConfetti(durationMs: number = 1600, particleCount: number = 180): Promise<void> {
+function playConfetti(durationMs: number = 3000, particleCount: number = 320): Promise<void> {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -174,6 +125,7 @@ function playConfetti(durationMs: number = 1600, particleCount: number = 180): P
     canvas.style.height = '100%';
     canvas.style.pointerEvents = 'none';
     canvas.style.zIndex = '999999';
+    canvas.style.opacity = '1';
     document.body.appendChild(canvas);
 
     const dpr = Math.max(window.devicePixelRatio || 1, 1);
@@ -187,20 +139,50 @@ function playConfetti(durationMs: number = 1600, particleCount: number = 180): P
     const rand = (min: number, max: number) => min + Math.random() * (max - min);
     const COLORS = ['#FFC700', '#FF85C0', '#60A5FA', '#34D399', '#F472B6', '#FBBF24'];
 
-    const particles: ConfettiParticle[] = Array.from({ length: particleCount }).map(() => ({
-      x: rand(0, canvas.width),
-      y: -rand(0, canvas.height * 0.2),
-      vx: rand(-1.5, 1.5) * dpr,
-      vy: rand(1, 3) * dpr,
-      size: rand(6, 12) * dpr,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      rotation: rand(0, Math.PI * 2),
-      rotationSpeed: rand(-0.2, 0.2),
-      gravity: rand(0.04, 0.08) * dpr,
-      drag: rand(0.985, 0.995),
-    }));
+    const particles: ConfettiParticle[] = [];
+    const emissionDuration = Math.max(800, Math.floor(durationMs * 0.55));
+    const fadeOutDuration = Math.min(1200, Math.floor(durationMs * 0.4));
+    const targetRatePerMs = particleCount / emissionDuration; // particles per ms
+    let spawnRemainder = 0;
+
+    const spawn = (count: number) => {
+      for (let i = 0; i < count; i++) {
+        // 三路喷口：左上、右上、随机顶端，提升横向覆盖
+        const lane = Math.random();
+        let x = 0;
+        let vx = 0;
+        if (lane < 0.33) {
+          x = rand(canvas.width * 0.05, canvas.width * 0.2);
+          vx = rand(1.2, 3.2) * dpr;
+        } else if (lane < 0.66) {
+          x = rand(canvas.width * 0.8, canvas.width * 0.95);
+          vx = -rand(1.2, 3.2) * dpr;
+        } else {
+          x = rand(0, canvas.width);
+          vx = rand(-2.0, 2.0) * dpr;
+        }
+        particles.push({
+          x,
+          y: rand(-24 * dpr, 6 * dpr),
+          vx,
+          vy: rand(2.4, 5.2) * dpr,
+          size: rand(6, 12) * dpr,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          rotation: rand(0, Math.PI * 2),
+          rotationSpeed: rand(-0.3, 0.3),
+          gravity: rand(0.08, 0.14) * dpr,
+          drag: rand(0.988, 0.996),
+          ageMs: 0,
+          ttlMs: rand(durationMs * 0.9, durationMs * 1.3),
+        });
+      }
+    };
+
+    // 初始少量即刻爆发，避免只在顶部一角
+    spawn(Math.floor(particleCount * 0.25));
 
     const start = performance.now();
+    let last = start;
     let raf = 0;
 
     const cleanup = () => {
@@ -211,14 +193,40 @@ function playConfetti(durationMs: number = 1600, particleCount: number = 180): P
 
     const tick = (now: number) => {
       const elapsed = now - start;
+      const dt = Math.min(32, now - last); // clamp dt to reduce frame spikes
+      last = now;
+
+      // 持续喷射，覆盖全屏
+      if (elapsed < emissionDuration) {
+        const quota = targetRatePerMs * dt + spawnRemainder;
+        const toSpawn = Math.floor(quota);
+        spawnRemainder = quota - toSpawn;
+        if (toSpawn > 0) spawn(toSpawn);
+      }
+
+      // 结尾淡出
+      const fadeStart = durationMs - fadeOutDuration;
+      const alpha = elapsed >= fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / fadeOutDuration) : 1;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const p of particles) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      // 更新并绘制
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.ageMs += dt;
         p.vx *= p.drag;
         p.vy *= p.drag;
         p.vy += p.gravity;
         p.x += p.vx;
         p.y += p.vy;
         p.rotation += p.rotationSpeed;
+
+        // 出界或寿命到期则移除
+        if (p.y > canvas.height + 40 * dpr || p.x < -40 * dpr || p.x > canvas.width + 40 * dpr || p.ageMs > p.ttlMs) {
+          particles.splice(i, 1);
+          continue;
+        }
 
         ctx.save();
         ctx.translate(p.x, p.y);
@@ -229,11 +237,15 @@ function playConfetti(durationMs: number = 1600, particleCount: number = 180): P
         ctx.fillRect(-w / 2, -h / 2, w, h);
         ctx.restore();
       }
-      if (elapsed < durationMs) {
-        raf = requestAnimationFrame(tick);
-      } else {
+
+      ctx.restore();
+
+      // 结束条件：时间到且没有粒子
+      if (elapsed >= durationMs && particles.length === 0) {
         cleanup();
         resolve();
+      } else {
+        raf = requestAnimationFrame(tick);
       }
     };
 
@@ -243,7 +255,7 @@ function playConfetti(durationMs: number = 1600, particleCount: number = 180): P
 
 const SidePanel: React.FC = () => {
   const [sourceLanguage, setSourceLanguage] = React.useState<LanguageOption>('auto');
-  const [targetLanguage, setTargetLanguage] = React.useState<LanguageCode>('zh-CN');
+  const [targetLanguage, setTargetLanguage] = React.useState<LanguageCode>(DEFAULT_TARGET_LANGUAGE);
   const [inputText, setInputText] = React.useState<string>('');
   const [outputText, setOutputText] = React.useState<string>('');
   const [detectedSource, setDetectedSource] = React.useState<LanguageCode | null>(null);
@@ -271,7 +283,7 @@ const SidePanel: React.FC = () => {
 
   // 进入站点或背景标记变化时，触发一次撒花彩蛋
   React.useEffect(() => {
-    const KEY = 'NATIVE_TRANSLATE_EASTER_EGG_CONFETTI';
+    const KEY = MSG_EASTER_CONFETTI;
 
     const tryOnce = async () => {
       try {
@@ -301,7 +313,7 @@ const SidePanel: React.FC = () => {
     chrome.storage.onChanged.addListener(onStorageChanged);
 
     const runtimeListener: Parameters<typeof chrome.runtime.onMessage.addListener>[0] = (message) => {
-      if ((message as { type?: string } | undefined)?.type === 'NATIVE_TRANSLATE_EASTER_EGG_CONFETTI') {
+      if ((message as { type?: string } | undefined)?.type === MSG_EASTER_CONFETTI) {
         void playConfetti();
       }
       return false;
@@ -376,7 +388,7 @@ const SidePanel: React.FC = () => {
         // 2) 回退到内容脚本（页面主世界桥或直接使用内容脚本的内置 API）
         const sendTranslate = async () => {
           const res = await chrome.tabs.sendMessage(tabId, {
-            type: 'NATIVE_TRANSLATE_TRANSLATE_TEXT',
+            type: MSG_TRANSLATE_TEXT,
             payload: {
               text: inputText,
               sourceLanguage,

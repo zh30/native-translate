@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "Usado ao traduzir o texto que você digita em campos de entrada.",
     "description": "Popup: Descrição do idioma de destino para entrada"
+  },
+  "open_sidepanel": {
+    "message": "Traduzir no painel lateral",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "Detecção automática",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "Digite aqui o texto para traduzir…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "O texto traduzido aparecerá aqui…",
+    "description": "Side panel: output placeholder"
   }
 }

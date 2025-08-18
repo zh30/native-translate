@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "इनपुट फ़ील्ड में आप जो लिखते हैं, उसे इसी भाषा में अनुवादित किया जाएगा।",
     "description": "Popup: इनपुट लक्ष्य भाषा विवरण"
+  },
+  "open_sidepanel": {
+    "message": "साइड पैनल अनुवाद",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "स्वतः पहचान",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "यहाँ अनुवाद के लिए पाठ लिखें…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "अनुवादित पाठ यहाँ दिखाई देगा…",
+    "description": "Side panel: output placeholder"
   }
 }

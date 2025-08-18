@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "Dùng khi dịch văn bản bạn gõ trong các ô nhập.",
     "description": "Popup: Mô tả ngôn ngữ đích cho nhập liệu"
+  },
+  "open_sidepanel": {
+    "message": "Dịch ở bảng bên",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "Tự động phát hiện",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "Nhập văn bản cần dịch tại đây…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "Văn bản đã dịch sẽ xuất hiện ở đây…",
+    "description": "Side panel: output placeholder"
   }
 }

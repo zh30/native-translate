@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "Digunakan saat menerjemahkan teks yang Anda ketik di kolom input.",
     "description": "Popup: Deskripsi bahasa target input"
+  },
+  "open_sidepanel": {
+    "message": "Terjemah panel samping",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "Deteksi otomatis",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "Ketik teks untuk diterjemahkan di sini…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "Teks hasil terjemahan akan muncul di sini…",
+    "description": "Side panel: output placeholder"
   }
 }

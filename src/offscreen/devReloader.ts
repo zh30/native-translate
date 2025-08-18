@@ -1,3 +1,4 @@
+import { MSG_DEV_RELOAD } from '@/shared/messages';
 declare const __DEV__: boolean;
 
 const PORT = Number((self as any).NT_DEV_RELOAD_PORT || 5174);
@@ -7,7 +8,7 @@ function connect() {
   try {
     const es = new EventSource(URL_EVENTS);
     es.onmessage = () => {
-      chrome.runtime.sendMessage({ type: 'NATIVE_TRANSLATE_DEV_RELOAD' }).catch(() => { });
+      chrome.runtime.sendMessage({ type: MSG_DEV_RELOAD }).catch(() => { });
     };
     es.onerror = () => {
       try { es.close(); } catch { }

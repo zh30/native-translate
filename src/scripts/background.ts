@@ -2,6 +2,8 @@ declare const __DEV__: boolean;
 
 const ZHANGHE_ORIGIN = 'https://zhanghe.dev';
 
+import { MSG_EASTER_CONFETTI, MSG_DEV_RELOAD } from '@/shared/messages';
+
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (!tab.url) return;
   const url = new URL(tab.url);
@@ -20,7 +22,7 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
     if (info.status === 'complete') {
       (async () => {
         try {
-          await chrome.storage.local.set({ NATIVE_TRANSLATE_EASTER_EGG_CONFETTI: true });
+          await chrome.storage.local.set({ [MSG_EASTER_CONFETTI]: true });
           await chrome.sidePanel.open({ tabId });
         } catch (e) {
           console.error('auto-open side panel failed', e);
@@ -93,7 +95,7 @@ if (__DEV__) {
   devInjectAllOpenTabs();
 
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg && msg.type === 'NATIVE_TRANSLATE_DEV_RELOAD') {
+    if (msg && msg.type === MSG_DEV_RELOAD) {
       try {
         chrome.runtime.reload();
       } catch (e) {

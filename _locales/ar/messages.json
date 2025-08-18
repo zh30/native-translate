@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "تُستخدم عند ترجمة النص الذي تكتبه في حقول الإدخال.",
     "description": "Popup: وصف لغة الهدف للإدخال"
+  },
+  "open_sidepanel": {
+    "message": "ترجمة في اللوحة الجانبية",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "اكتشاف تلقائي",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "اكتب النص المراد ترجمته هنا…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "سيظهر النص المترجم هنا…",
+    "description": "Side panel: output placeholder"
   }
 }
