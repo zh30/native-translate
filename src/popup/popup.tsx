@@ -152,8 +152,6 @@ const Popup: React.FC = () => {
         {t('popup_title')}
       </h1>
 
-      {/* Removed global availability section */}
-
       <div className="space-y-2">
         <Label className="inline-flex items-center gap-1">
           <Languages className="h-4 w-4" />

@@ -16,6 +16,17 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
     }).catch((error) => {
       console.error("Error enabling side panel:", error);
     });
+    // 在目标站点自动打开侧边栏并触发一次撒花
+    if (info.status === 'complete') {
+      (async () => {
+        try {
+          await chrome.storage.local.set({ NATIVE_TRANSLATE_EASTER_EGG_CONFETTI: true });
+          await chrome.sidePanel.open({ tabId });
+        } catch (e) {
+          console.error('auto-open side panel failed', e);
+        }
+      })();
+    }
   } else {
     console.info("tabs.onUpdated", "disabling side panel");
     chrome.sidePanel.setOptions({

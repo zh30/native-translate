@@ -145,6 +145,102 @@ async function detectLanguageLocal(text: string): Promise<LanguageCode | null> {
   }
 }
 
+// ============ Confetti (no-deps, lightweight) ============
+interface ConfettiParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  color: string;
+  rotation: number;
+  rotationSpeed: number;
+  gravity: number;
+  drag: number;
+}
+
+function playConfetti(durationMs: number = 1600, particleCount: number = 180): Promise<void> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      resolve();
+      return;
+    }
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '999999';
+    document.body.appendChild(canvas);
+
+    const dpr = Math.max(window.devicePixelRatio || 1, 1);
+    const resize = () => {
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const rand = (min: number, max: number) => min + Math.random() * (max - min);
+    const COLORS = ['#FFC700', '#FF85C0', '#60A5FA', '#34D399', '#F472B6', '#FBBF24'];
+
+    const particles: ConfettiParticle[] = Array.from({ length: particleCount }).map(() => ({
+      x: rand(0, canvas.width),
+      y: -rand(0, canvas.height * 0.2),
+      vx: rand(-1.5, 1.5) * dpr,
+      vy: rand(1, 3) * dpr,
+      size: rand(6, 12) * dpr,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      rotation: rand(0, Math.PI * 2),
+      rotationSpeed: rand(-0.2, 0.2),
+      gravity: rand(0.04, 0.08) * dpr,
+      drag: rand(0.985, 0.995),
+    }));
+
+    const start = performance.now();
+    let raf = 0;
+
+    const cleanup = () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+      canvas.remove();
+    };
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of particles) {
+        p.vx *= p.drag;
+        p.vy *= p.drag;
+        p.vy += p.gravity;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rotation += p.rotationSpeed;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = p.color;
+        const w = p.size;
+        const h = p.size * 0.6;
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+        ctx.restore();
+      }
+      if (elapsed < durationMs) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        cleanup();
+        resolve();
+      }
+    };
+
+    raf = requestAnimationFrame(tick);
+  });
+}
+
 const SidePanel: React.FC = () => {
   const [sourceLanguage, setSourceLanguage] = React.useState<LanguageOption>('auto');
   const [targetLanguage, setTargetLanguage] = React.useState<LanguageCode>('zh-CN');
@@ -171,6 +267,51 @@ const SidePanel: React.FC = () => {
         activeTabIdRef.current = null;
       }
     })();
+  }, []);
+
+  // 进入站点或背景标记变化时，触发一次撒花彩蛋
+  React.useEffect(() => {
+    const KEY = 'NATIVE_TRANSLATE_EASTER_EGG_CONFETTI';
+
+    const tryOnce = async () => {
+      try {
+        const res = await chrome.storage.local.get(KEY);
+        if (res && (res as Record<string, unknown>)[KEY] === true) {
+          await playConfetti();
+          await chrome.storage.local.remove(KEY);
+        }
+      } catch {
+        // noop
+      }
+    };
+
+    void tryOnce();
+
+    const onStorageChanged: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (changes, areaName) => {
+      if (areaName !== 'local') return;
+      const change = changes[KEY];
+      if (change && change.newValue === true) {
+        void (async () => {
+          await playConfetti();
+          await chrome.storage.local.remove(KEY);
+        })();
+      }
+    };
+
+    chrome.storage.onChanged.addListener(onStorageChanged);
+
+    const runtimeListener: Parameters<typeof chrome.runtime.onMessage.addListener>[0] = (message) => {
+      if ((message as { type?: string } | undefined)?.type === 'NATIVE_TRANSLATE_EASTER_EGG_CONFETTI') {
+        void playConfetti();
+      }
+      return false;
+    };
+    chrome.runtime.onMessage.addListener(runtimeListener);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(onStorageChanged);
+      chrome.runtime.onMessage.removeListener(runtimeListener);
+    };
   }, []);
 
   const pingOnce = React.useCallback(async (tabId: number): Promise<boolean> => {
