@@ -45,6 +45,7 @@ src/
   utils/                # Utility functions (e.g., i18n, RTL handling)
   styles/
     tailwind.css        # Tailwind base styles
+  shared/               # Shared types and constants
 public/                 # Static assets (icons)
 _locales/               # i18n message files
 ```
@@ -62,22 +63,27 @@ _locales/               # i18n message files
     - Caching translations in memory to avoid redundant API calls.
     - Listening for messages from the popup (e.g., to trigger full-page translation or update settings).
     - Bridging API calls to the main world when the content script world lacks access.
+    - Managing translation model pools and readiness states.
 
 2.  **`src/popup/popup.tsx`**: The UI that appears when the extension icon is clicked in the toolbar. It allows users to:
     - Select the target language for full-page translation.
     - Select the target language for input field translation.
     - Choose the modifier key for hover-to-translate.
     - Trigger full-page translation for the active tab.
+    - Open the side panel.
     - It communicates with the content script via `chrome.tabs.sendMessage`.
 
 3.  **`src/scripts/background.ts`**: The background service worker. It handles:
     - Toggling the Side Panel for specific origins (e.g., zhanghe.dev).
     - Configuring the behavior of the extension's action (toolbar icon click) to open the side panel.
     - Development features like auto-reloading and injecting content scripts into open tabs.
+    - Automatically enabling the side panel for specific websites.
 
 4.  **`src/sidePanel/sidePanel.tsx`**: A minimal placeholder for the extension's side panel.
 
-5.  **`_locales/`**: Contains message files for internationalization (English, Chinese, etc.).
+5.  **`src/shared/`**: Contains shared types, constants, and message definitions used across different parts of the extension.
+
+6.  **`_locales/`**: Contains message files for internationalization (English, Chinese, etc.).
 
 ## Development Workflow
 
@@ -111,3 +117,6 @@ _locales/               # i18n message files
 - **Content Security Policy (CSP):** As an MV3 extension, the CSP is strict. All scripts must be bundled and included in the extension package. This is handled by Rspack.
 - **Permissions:** The extension requires specific permissions (`storage`, `activeTab`, `scripting`, `tabs`, `sidePanel`, `offscreen`) as declared in `manifest.json`. These are necessary for its functionality.
 - **API Availability and Fallbacks:** The extension checks for API availability and gracefully handles cases where APIs are not available in the content script world by using a bridge to the main world.
+- **IME Handling:** Special care is taken to avoid triggering translation during IME composition in input fields.
+- **Model Caching:** Translation models are cached for efficiency and offline use, with mechanisms to track readiness state.
+- **Memory Management:** Translations are cached in memory to avoid redundant API calls, and WeakSets are used to track processing state to prevent duplicate operations.

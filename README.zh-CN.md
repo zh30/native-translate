@@ -12,11 +12,12 @@
 
 ## 功能特性
 
-- 网页全文翻译：在不破坏布局的前提下，将译文以“同级新行”追加到原文下方
+- 网页全文翻译：在不破坏布局前提下，将译文以“同级新行”追加到原文下方
 - 悬停翻译：按住修饰键（Alt/Control/Shift）并将鼠标悬停到段落，即可仅翻译该段
 - 输入内联翻译：在输入框、文本域或可编辑区域，连续输入三个空格可将已有内容翻译为所选的「输入目标语言」
-- 本地自动识别源语言，显示模型下载进度
-- 逐行与语言对缓存：已下载/已翻译的内容会被复用，加速后续翻译
+- 侧边栏自由文本翻译：支持自动识别来源语种；优先使用面板内的本地内置 API，不可用时自动回退到内容脚本
+- 本地自动识别源语言，带下载进度浮层
+- 逐行与语言对缓存：已下载/已翻译内容会被复用，加速后续翻译
 - 目标语言方向感知：根据目标语言自动设置 LTR/RTL 与对齐
 - 内置多语言界面文案（Chrome i18n，见 `_locales/`）
 
@@ -49,6 +50,11 @@
 - 特殊页面（如 `chrome://`、部分商店页）不支持脚本注入
 - 重新进行全文翻译会清理旧译文与标记，再按新目标语言插入译文
 
+- 侧边栏
+  - 在弹窗中点击「打开侧边栏」
+  - 左侧输入文本；来源语言可选「自动」或固定语种，右侧选择目标语言
+  - 输入时自动翻译；面板会优先尝试本地内置 API，不可用时回退到内容脚本路径
+
 ## 隐私与权限
 
 - 无统计、无跟踪，默认不调用云端翻译
@@ -67,8 +73,9 @@
 
 - `src/scripts/contentScript.ts`：翻译核心与浮层；自动识别语言、显示下载进度、按块级元素追加译文、悬停翻译、输入三连空格翻译、逐行与语言对缓存；必要时回退到「主世界桥」完成翻译
 - `src/popup/popup.tsx`：设置界面（目标语言、修饰键、输入目标语言）与「翻译当前网页全文」；必要时注入内容脚本
-- `src/scripts/background.ts`：在特定域（演示用）开关侧边栏；配置点击行为；开发模式下的自动重载接入
-- `src/sidePanel/sidePanel.tsx`：最小化侧边栏示例
+- `src/scripts/background.ts`：按域启用/禁用侧边栏、action 点击行为、开发阶段自动重载辅助
+- `src/sidePanel/sidePanel.tsx`：侧边栏自由文本翻译，自动检测语言；优先本地内置 API，失败时回退到内容脚本；包含轻量彩蛋
+- `src/shared/*`：跨上下文的常量与类型（语言、消息、设置）
 - `src/utils/i18n.ts`、`src/utils/rtl.ts`：i18n 与 RTL/LTR 工具
 - `_locales/`：多语言界面文案（含中英等）
 
@@ -95,6 +102,14 @@
 ```
 src/
   manifest.json
+  components/
+    ui/
+      button.tsx
+      select.tsx
+      label.tsx
+      textarea.tsx
+      progress.tsx
+      badge.tsx
   popup/
     popup.html
     popup.tsx
@@ -104,6 +119,14 @@ src/
   scripts/
     background.ts
     contentScript.ts
+  shared/
+    languages.ts
+    messages.ts
+    settings.ts
+  utils/
+    cn.ts
+    i18n.ts
+    rtl.ts
   offscreen/
     devReloader.html
     devReloader.ts
@@ -118,6 +141,7 @@ src/
 - 首次使用缓慢：首次可能下载模型；后续会复用缓存
 - 悬停翻译未触发：请在弹窗中设置修饰键（Alt/Control/Shift），并悬停到较长的文本块
 - 输入三连空格未触发：仅对文本输入/文本域/contenteditable 生效，且在输入法组合（IME）期间不会触发；请在光标末尾连续输入三个空格
+- 侧边栏提示「Translator API 不可用」：面板会自动回退到内容脚本路径；请确认当前活动标签页允许脚本注入后再试
 
 ## 路线图
 

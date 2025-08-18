@@ -12,9 +12,10 @@ Native Translate is a privacy‑first Chrome extension that uses Chrome’s buil
 
 ## Features
 
-- Full‑page in‑page translation: append translated text under the original blocks to preserve layout
+- Full‑page in‑page translation: append translated text under original blocks to preserve layout
 - Hover‑to‑translate: hold a modifier (Alt/Control/Shift) and hover a paragraph to translate just that block
-- Inline input translation: in text fields and contenteditable areas, type three spaces in a row to translate what you’ve typed into your selected “Input target language”
+- Inline input translation: in text fields and contenteditable, type three spaces in a row to translate what you’ve typed into the selected “Input target language”
+- Side Panel text translation: free‑text translation with auto‑detect; prefers built‑in local APIs in the panel, falls back to the content script when unavailable
 - Automatic source language detection (on device) with download progress overlay
 - Model caching per language pair and per line; auto‑reuse when available
 - RTL/LTR aware rendering for the target language; UI locale/dir auto‑set
@@ -49,6 +50,11 @@ Note: On first use, Chrome may download on‑device models. Availability depends
 - Special pages (e.g., `chrome://`, some store pages) do not allow script injection
 - Re‑running full‑page translation clears old inserted translations and re‑inserts with the new target
 
+- Side Panel
+  - From the popup, click “Open Side Panel”
+  - Type text on the left; choose Source = Auto (default) or a fixed language, and choose target on the right
+  - Translation runs as you type; the panel first tries local built‑in APIs, then falls back to the content script if not available
+
 ## Privacy & Security
 
 - No analytics, no tracking, no cloud translation by default
@@ -65,10 +71,11 @@ Permissions used:
 
 ## Architecture
 
-- `src/scripts/contentScript.ts` — translation engine and UI overlay; auto‑detects language, downloads models with progress, appends translations under blocks, supports hover‑to‑translate, triple‑space input translation, caches per line and per language pair, and falls back to a page‑world bridge if needed
-- `src/popup/popup.tsx` — user settings (target language, hover modifier, input target language) and “Translate current page” action; injects content script if needed
-- `src/scripts/background.ts` — demo side‑panel toggle on a specific origin; configures action click behavior; dev auto‑reload helper wiring
-- `src/sidePanel/sidePanel.tsx` — minimal side panel scaffold
+- `src/scripts/contentScript.ts` — translation engine and overlay; auto‑detects language, shows download progress, appends translations under blocks, supports hover‑to‑translate and triple‑space input translation, caches per line and per language pair, and falls back to a page‑world bridge when needed
+- `src/popup/popup.tsx` — settings (target language, hover modifier, input target language) and “Translate current page”; injects content script when needed
+- `src/scripts/background.ts` — side panel enable/disable per origin, action click behavior, and dev auto‑reload helper
+- `src/sidePanel/sidePanel.tsx` — free‑text translator with auto‑detect; prefers local built‑in APIs and falls back to content script; includes lightweight confetti easter egg
+- `src/shared/*` — cross‑context types and constants (languages, messages, settings)
 - `src/utils/i18n.ts`, `src/utils/rtl.ts` — i18n helper and RTL/LTR utilities
 - `_locales/` — localized strings (English, Simplified Chinese, and more)
 
@@ -95,6 +102,14 @@ Project layout:
 ```
 src/
   manifest.json
+  components/
+    ui/
+      button.tsx
+      select.tsx
+      label.tsx
+      textarea.tsx
+      progress.tsx
+      badge.tsx
   popup/
     popup.html
     popup.tsx
@@ -104,6 +119,14 @@ src/
   scripts/
     background.ts
     contentScript.ts
+  shared/
+    languages.ts
+    messages.ts
+    settings.ts
+  utils/
+    cn.ts
+    i18n.ts
+    rtl.ts
   offscreen/
     devReloader.html
     devReloader.ts
@@ -118,6 +141,7 @@ src/
 - Slow first run: model download happens once per capability; subsequent usage reuses cached models
 - Hover translate not firing: set the desired modifier in the popup (Alt/Control/Shift) and ensure you’re hovering a sizable text block
 - Triple‑space input translation not firing: only triggers in text inputs/textarea/contenteditable when not composing with an IME; press space three times at the caret end
+- Side panel shows “Translator API unavailable”: the panel will automatically fall back to the content script path when possible; ensure the active tab allows script injection and try again
 
 ## Roadmap
 

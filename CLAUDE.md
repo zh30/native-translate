@@ -145,25 +145,34 @@ scripts/
 
 ## Cursor Rules Summary
 
-### Project Structure
-- Entry points must match manifest.json exactly (background.js, contentScript.js, popup.html, sidePanel.html)
-- Use `@/*` path aliases for absolute imports from `src/`
-- Maintain strict naming consistency between build outputs and manifest references
+### Project Structure & Entry Points
+- **Entry points must match manifest.json exactly**: background.js, contentScript.js, popup.html, sidePanel.html
+- **Use `@/*` path aliases** for absolute imports from `src/` (configured in both tsconfig.json and rspack.config.js)
+- **Maintain strict naming consistency** between build outputs and manifest references
+- **Core configuration files**: rspack.config.js, tsconfig.json, biome.json, package.json
+- **Browser extension manifest**: src/manifest.json with minimum Chrome version 138+
 
 ### TypeScript & React 19
-- Strict TypeScript mode enabled with explicit type annotations
-- React 19 with automatic JSX runtime and function components
-- Import order: React → third-party → local (types, components, utils)
-- Component props must be explicitly typed with interfaces
+- **Strict TypeScript mode**: `strict: true` enabled, avoid `any` types, prefer `unknown` or explicit types
+- **Explicit type annotations**: Public APIs must have complete function signatures and return types
+- **React 19 patterns**: Function components with hooks, automatic JSX runtime, explicit prop typing
+- **Import order**: React → third-party → local (types, components, utils)
+- **Component props must be explicitly typed** with interfaces
+- **Target & libs**: ES2020 with DOM, DOM.Iterable, ES2020 for extension runtime compatibility
 
 ### UI & Styling
-- Use Radix UI components from `src/components/ui/`
-- Tailwind CSS with `cn()` utility for class merging
-- Z-index for overlays: `z-[2147483647]` to avoid being covered by page content
-- Component variants using `class-variance-authority` pattern
+- **Use Radix UI components** from `src/components/ui/` (Button, Select, Label, Progress, Textarea)
+- **Tailwind CSS with `cn()` utility** for class merging (clsx + tailwind-merge)
+- **Z-index for overlays**: `z-[2147483647]` to avoid being covered by page content
+- **Component variants** using `class-variance-authority` pattern
+- **Dark mode support**: Use `dark:` prefix, avoid custom CSS when possible
+- **Typography**: Default `text-sm` with compact spacing
+- **Import global styles**: Each entry point must import `../styles/tailwind.css`
 
 ### Extension Development
-- Manifest v3 with service worker architecture
-- Chrome 138+ required for built-in AI APIs
-- Development builds include auto-reload functionality via SSE server
-- Production builds automatically create zip distribution package
+- **Manifest v3** with service worker architecture
+- **Chrome 138+ required** for built-in AI APIs
+- **Development builds** include auto-reload functionality via SSE server
+- **Production builds** automatically create zip distribution package
+- **Multi-frame support**: Content scripts run in all frames including about:blank
+- **Path mapping**: Use `@/*` aliases consistently across TypeScript and build config
