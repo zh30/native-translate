@@ -10,9 +10,10 @@ Native Translate is a privacy-focused Chrome extension that leverages Chrome's b
 
 - **Full-page Translation:** Appends translated text beneath the original content blocks.
 - **Hover-to-Translate:** Hold a selected modifier key (Alt/Ctrl/Shift) and hover over a paragraph to translate it inline.
+- **Input Field Translation:** In editable text fields (input/textarea/contentEditable), type three spaces to translate the current content to a preferred language.
 - **Offline Capability:** Models are cached for offline use after downloading.
 - **Privacy by Design:** No external network requests for translation by default. No telemetry or analytics.
-- **Localized UI:** Uses Chrome's i18n framework for multi-language support.
+- **Localized UI:** Uses Chrome's i18n framework for multi-language support (English, Chinese, etc.).
 
 ### Technologies
 
@@ -51,24 +52,28 @@ _locales/               # i18n message files
 ### Core Components
 
 1.  **`src/scripts/contentScript.ts`**: The heart of the extension. It handles:
-    - Detecting the source language of the page content.
+    - Detecting the source language of the page content or specific text.
     - Downloading and managing translation models via Chrome's `Translator` API.
-    - Performing the actual translation of text blocks.
+    - Performing the actual translation of text blocks or input field content.
     - Injecting the translated text into the page DOM.
     - Managing the UI overlay for progress/status messages.
     - Implementing the hover-to-translate functionality by listening to mouse/keyboard events.
+    - Implementing the input field translation feature by listening to key events.
     - Caching translations in memory to avoid redundant API calls.
-    - Listening for messages from the popup (e.g., to trigger full-page translation).
+    - Listening for messages from the popup (e.g., to trigger full-page translation or update settings).
+    - Bridging API calls to the main world when the content script world lacks access.
 
 2.  **`src/popup/popup.tsx`**: The UI that appears when the extension icon is clicked in the toolbar. It allows users to:
-    - Select the target language for translation.
+    - Select the target language for full-page translation.
+    - Select the target language for input field translation.
     - Choose the modifier key for hover-to-translate.
     - Trigger full-page translation for the active tab.
     - It communicates with the content script via `chrome.tabs.sendMessage`.
 
 3.  **`src/scripts/background.ts`**: The background service worker. It handles:
-    - Toggling the Side Panel (if enabled).
-    - Configuring the behavior of the extension's action (toolbar icon click).
+    - Toggling the Side Panel for specific origins (e.g., zhanghe.dev).
+    - Configuring the behavior of the extension's action (toolbar icon click) to open the side panel.
+    - Development features like auto-reloading and injecting content scripts into open tabs.
 
 4.  **`src/sidePanel/sidePanel.tsx`**: A minimal placeholder for the extension's side panel.
 
@@ -77,7 +82,7 @@ _locales/               # i18n message files
 ## Development Workflow
 
 - **Install Dependencies:** `pnpm install`
-- **Development Build (Watch):** `pnpm dev` (Uses `rspack build --watch`)
+- **Development Build (Watch):** `pnpm dev` (Uses `rspack build --watch` and a development reload server)
 - **Production Build:** `pnpm build` (Uses `rspack build --mode production`)
 - **Type Checking:** `pnpm tsc`
 - **Linting:** `pnpm lint` or `pnpm lint:fix` (Uses Biome)
@@ -85,12 +90,13 @@ _locales/               # i18n message files
 ### Rspack Configuration (`rspack.config.js`)
 
 - Configured for a multi-entry MV3 extension.
-- Entries: `popup`, `sidePanel`, `background`, `contentScript`.
+- Entries: `popup`, `sidePanel`, `background`, `contentScript`, `offscreen`.
 - Uses `swc-loader` for TypeScript/TSX.
 - Uses `postcss-loader` and `tailwindcss` for styling.
 - Copies static assets (`public/`, `manifest.json`, `_locales/`) to the `dist/` folder.
 - Automatically zips the `dist/` folder into `Native-translate.zip` after a production build.
 - Ensures clean output directory on each build.
+- Sets up an `offscreen` document for development auto-reload features.
 
 ## Deployment
 
@@ -99,8 +105,9 @@ _locales/               # i18n message files
 
 ## Important Considerations for Qwen Code
 
-- **Chrome APIs:** The code heavily relies on Chrome Extension APIs (e.g., `chrome.i18n`, `chrome.storage`, `chrome.tabs`, `chrome.scripting`, `chrome.runtime`) and the experimental Built-in AI APIs (`window.Translator`, `window.LanguageDetector`). Understanding these APIs' behavior is crucial.
+- **Chrome APIs:** The code heavily relies on Chrome Extension APIs (e.g., `chrome.i18n`, `chrome.storage`, `chrome.tabs`, `chrome.scripting`, `chrome.runtime`) and the experimental Built-in AI APIs (`window.Translator`, `window.LanguageDetector`, `window.translation.createTranslator`). Understanding these APIs' behavior is crucial.
 - **Asynchronous Nature:** Translation and model downloading are asynchronous operations managed with Promises. State management (e.g., model readiness, download progress) is important.
 - **DOM Manipulation:** The content script dynamically injects translated text and UI elements into web pages. Selecting appropriate elements and avoiding conflicts with existing page structure/styles is handled by specific logic in `contentScript.ts`.
 - **Content Security Policy (CSP):** As an MV3 extension, the CSP is strict. All scripts must be bundled and included in the extension package. This is handled by Rspack.
-- **Permissions:** The extension requires specific permissions (`storage`, `activeTab`, `scripting`, `tabs`, `sidePanel`) as declared in `manifest.json`. These are necessary for its functionality.
+- **Permissions:** The extension requires specific permissions (`storage`, `activeTab`, `scripting`, `tabs`, `sidePanel`, `offscreen`) as declared in `manifest.json`. These are necessary for its functionality.
+- **API Availability and Fallbacks:** The extension checks for API availability and gracefully handles cases where APIs are not available in the content script world by using a bridge to the main world.

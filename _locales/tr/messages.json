@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "Çeviri tamamlandı",
     "description": "Katman"
+  },
+  "input_target_language": {
+    "message": "Giriş için hedef dil",
+    "description": "Popup: Giriş hedef dil etiketi"
+  },
+  "input_target_language_desc": {
+    "message": "Girdi alanlarına yazdığınız metin çevrilirken kullanılır.",
+    "description": "Popup: Giriş hedef dil açıklaması"
   }
 }

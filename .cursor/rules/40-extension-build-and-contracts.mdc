@@ -1,5 +1,20 @@
 ---
 description: 浏览器扩展构建（Rspack）与 Manifest 合约
+globs: "src/**/*,rspack.config.js,package.json"
+---
+# 扩展构建与 Manifest 合约
+
+- 使用 Rspack 打包，入口与产物文件名必须与 [src/manifest.json](mdc:src/manifest.json) 中声明一致：
+  - `background.service_worker` → `background.js`
+  - `content_scripts[].js` → `contentScript.js`
+  - `action.default_popup` → `popup.html`
+  - `side_panel.default_path` → `sidePanel.html`
+- 开发模式不生成 zip 包；仅在 `pnpm run build` 时打包最终产物（遵循工作流与发布约定）。
+- 统一从 [rspack.config.js](mdc:rspack.config.js) 管理多入口与输出，改名时同步更新 `manifest.json`，保持一一对应。
+- 静态资源（图标等）放在 `public/`，参考 [public/icon.png](mdc:public/icon.png)。
+
+---
+description: 浏览器扩展构建（Rspack）与 Manifest 合约
 ---
 ## 构建与清单合约
 

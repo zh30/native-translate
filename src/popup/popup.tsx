@@ -71,11 +71,13 @@ const STORAGE_KEY = 'nativeTranslate.settings';
 interface PopupSettings {
   targetLanguage: LanguageCode;
   hotkeyModifier?: 'alt' | 'control' | 'shift';
+  inputTargetLanguage?: LanguageCode;
 }
 
 const defaultSettings: PopupSettings = {
   targetLanguage: 'zh-CN',
   hotkeyModifier: 'alt',
+  inputTargetLanguage: 'en',
 };
 
 const Popup: React.FC = () => {
@@ -155,6 +157,16 @@ const Popup: React.FC = () => {
           onValueChange={(v) => setSettings((s) => ({ ...s, targetLanguage: v as LanguageCode }))}
           options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="inline-block">{t('input_target_language')}</Label>
+        <AppSelect
+          value={settings.inputTargetLanguage ?? 'en'}
+          onValueChange={(v) => setSettings((s) => ({ ...s, inputTargetLanguage: v as LanguageCode }))}
+          options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+        />
+        <p className="text-[11px] text-gray-500 dark:text-gray-400">{t('input_target_language_desc')}</p>
       </div>
 
       <div className="space-y-2">

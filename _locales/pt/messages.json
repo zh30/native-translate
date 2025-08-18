@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "Tradução concluída",
     "description": "Overlay"
+  },
+  "input_target_language": {
+    "message": "Idioma de destino para entradas",
+    "description": "Popup: Rótulo do idioma de destino para entrada"
+  },
+  "input_target_language_desc": {
+    "message": "Usado ao traduzir o texto que você digita em campos de entrada.",
+    "description": "Popup: Descrição do idioma de destino para entrada"
   }
 }

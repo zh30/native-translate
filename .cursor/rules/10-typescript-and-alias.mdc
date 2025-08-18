@@ -1,4 +1,20 @@
 ---
+description: TypeScript 严格模式、路径别名与 React 19 约定
+globs: "*.ts,*.tsx"
+---
+# TypeScript 严格模式与路径别名
+
+- **严格模式**：默认在 `tsconfig.json` 启用 `strict`。新增类型需完整声明，避免使用 `any`，优先 `unknown` 或范型。
+- **显式导出类型**：公共 API 必须显式注解函数签名与返回类型；避免隐式导出推断。
+- **路径别名**：使用 `@/*` 指向 `src/*`。示例：
+  - `import { cn } from '@/utils/cn'`
+  - `import { Button } from '@/components/ui/button'`
+- **React 19 相关**：
+  - 优先函数组件与 Hooks；组件 props、局部 state、上下文值均需类型。
+  - 合理使用 Actions、`useOptimistic`、`useFormStatus`、`use` 等能力，注意定义请求与响应类型。
+- **导入顺序**：React → 第三方 → 本地（类型、组件、工具）。
+
+---
 globs: *.ts,*.tsx
 description: TypeScript 严格模式、路径别名与 React 19 约定
 ---

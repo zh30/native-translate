@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "Terjemahan selesai",
     "description": "Overlay"
+  },
+  "input_target_language": {
+    "message": "Bahasa target untuk input",
+    "description": "Popup: Label bahasa target input"
+  },
+  "input_target_language_desc": {
+    "message": "Digunakan saat menerjemahkan teks yang Anda ketik di kolom input.",
+    "description": "Popup: Deskripsi bahasa target input"
   }
 }

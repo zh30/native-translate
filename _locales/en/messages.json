@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "Translation complete",
     "description": "Overlay complete"
+  },
+  "input_target_language": {
+    "message": "Input target language",
+    "description": "Popup: Input target language label"
+  },
+  "input_target_language_desc": {
+    "message": "Used when translating text you type into fields.",
+    "description": "Popup: Input target language description"
   }
 }

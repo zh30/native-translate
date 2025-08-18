@@ -14,8 +14,9 @@
 
 - 网页全文翻译：在不破坏布局的前提下，将译文以“同级新行”追加到原文下方
 - 悬停翻译：按住修饰键（Alt/Control/Shift）并将鼠标悬停到段落，即可仅翻译该段
-- 本地自动识别源语言，显示模型下载进度并缓存
-- 语言对缓存：已下载的语言对会被复用，加速后续翻译
+- 输入内联翻译：在输入框、文本域或可编辑区域，连续输入三个空格可将已有内容翻译为所选的「输入目标语言」
+- 本地自动识别源语言，显示模型下载进度
+- 逐行与语言对缓存：已下载/已翻译的内容会被复用，加速后续翻译
 - 目标语言方向感知：根据目标语言自动设置 LTR/RTL 与对齐
 - 内置多语言界面文案（Chrome i18n，见 `_locales/`）
 
@@ -29,19 +30,22 @@
 ## 源码安装
 
 1. 安装依赖：`pnpm install`
-2. 构建扩展：`pnpm build`
+2. 开发模式：`pnpm dev`（输出到 `dist/`，并在开发环境启用自动重载）
 3. 打开 `chrome://extensions`
 4. 开启「开发者模式」
 5. 点击「加载已解压的扩展程序」，选择 `dist` 目录
+6. 生产构建：`pnpm build`（构建完成会在项目根目录生成 `Native-translate.zip`）
 
 ## 使用说明
 
 - 点击工具栏图标打开弹窗：
   - 选择目标语言
   - 选择悬停翻译的修饰键（Alt/Control/Shift）
+  - 可设置「输入目标语言」用于输入场景翻译
   - 点击「翻译当前网页全文」发送翻译指令
 - 悬停翻译：按住所选修饰键并将鼠标悬停到段落，即可在原文下方追加译文
-- 首次使用时，浮层会显示模型下载/准备/翻译进度
+- 输入内联翻译：在 input/textarea/contenteditable 中，光标处连续按三次空格，将把已输入文本翻译成「输入目标语言」
+- 浮层会在需要时显示模型下载与翻译进度
 - 特殊页面（如 `chrome://`、部分商店页）不支持脚本注入
 - 重新进行全文翻译会清理旧译文与标记，再按新目标语言插入译文
 
@@ -57,23 +61,30 @@
 - `activeTab`、`tabs`：与当前标签页交互
 - `scripting`：在未注入时动态注入内容脚本
 - `sidePanel`：可选的侧边栏入口
+- `offscreen`：仅用于开发阶段的自动重载辅助
 
 ## 架构概览
 
-- `src/scripts/contentScript.ts`：翻译核心与浮层；自动识别语言、显示下载进度、按块级元素追加译文、悬停翻译、逐行/语言对缓存
-- `src/popup/popup.tsx`：设置界面（目标语言、修饰键）与“翻译当前网页全文”；必要时注入内容脚本
-- `src/scripts/background.ts`：在特定域（演示用）开关侧边栏；配置点击行为
+- `src/scripts/contentScript.ts`：翻译核心与浮层；自动识别语言、显示下载进度、按块级元素追加译文、悬停翻译、输入三连空格翻译、逐行与语言对缓存；必要时回退到「主世界桥」完成翻译
+- `src/popup/popup.tsx`：设置界面（目标语言、修饰键、输入目标语言）与「翻译当前网页全文」；必要时注入内容脚本
+- `src/scripts/background.ts`：在特定域（演示用）开关侧边栏；配置点击行为；开发模式下的自动重载接入
 - `src/sidePanel/sidePanel.tsx`：最小化侧边栏示例
 - `src/utils/i18n.ts`、`src/utils/rtl.ts`：i18n 与 RTL/LTR 工具
 - `_locales/`：多语言界面文案（含中英等）
+
+构建与产物：
+
+- 使用 Rspack（SWC）多入口构建，面向 MV3
+- 入口/输出文件名与 `manifest.json` 一一对应（`background.js`、`contentScript.js`、`popup.html`、`sidePanel.html`）
 
 ## 开发
 
 脚本：
 
-- `pnpm dev`：watch 构建
-- `pnpm build`：生产构建
+- `pnpm dev`：watch 构建，开发自动重载（SSE）与内容脚本注入
+- `pnpm build`：生产构建（并打包 `Native-translate.zip`）
 - `pnpm tsc`：TypeScript 类型检查
+- `pnpm lint` / `pnpm lint:fix`：Biome 代码检查
 
 技术栈：
 
@@ -93,6 +104,9 @@ src/
   scripts/
     background.ts
     contentScript.ts
+  offscreen/
+    devReloader.html
+    devReloader.ts
   styles/
     tailwind.css
 ```
@@ -102,6 +116,8 @@ src/
 - 「Translator API 不可用」：请确认 Chrome 版本 ≥ 138，且设备支持本地模型
 - 页面无效果：部分页面禁止脚本注入（如 `chrome://`）；请在普通网页尝试
 - 首次使用缓慢：首次可能下载模型；后续会复用缓存
+- 悬停翻译未触发：请在弹窗中设置修饰键（Alt/Control/Shift），并悬停到较长的文本块
+- 输入三连空格未触发：仅对文本输入/文本域/contenteditable 生效，且在输入法组合（IME）期间不会触发；请在光标末尾连续输入三个空格
 
 ## 路线图
 

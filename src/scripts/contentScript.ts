@@ -216,6 +216,7 @@ function buildCacheKey(text: string, sourceLanguage: string, targetLanguage: str
 interface PopupSettings {
   targetLanguage: LanguageCode;
   hotkeyModifier?: 'alt' | 'control' | 'shift';
+  inputTargetLanguage?: LanguageCode;
 }
 
 async function getPreferredTargetLanguage(): Promise<LanguageCode> {
@@ -225,6 +226,15 @@ async function getPreferredTargetLanguage(): Promise<LanguageCode> {
     if (settings?.targetLanguage) return settings.targetLanguage;
   } catch (_e) { }
   return 'zh-CN';
+}
+
+async function getPreferredInputTargetLanguage(): Promise<LanguageCode> {
+  try {
+    const data = await chrome.storage.local.get(POPUP_SETTINGS_KEY);
+    const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
+    if (settings?.inputTargetLanguage) return settings.inputTargetLanguage;
+  } catch (_e) { }
+  return 'en';
 }
 
 async function getHoverHotkeyModifier(): Promise<'alt' | 'control' | 'shift'> {
@@ -273,6 +283,78 @@ function updateOverlay(overlay: HTMLElement, text: string): void {
 function removeOverlay(): void {
   const el = document.getElementById(OVERLAY_ID);
   if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+// 针对输入框/可编辑区域的行内提示（靠近光标或元素末尾）
+type InlineHint = { update: (text: string) => void; remove: () => void };
+
+function getCaretRectForElement(element: Element): DOMRect | null {
+  // 仅对可编辑区域尝试使用光标矩形
+  const isContentEditableHost = (element as HTMLElement).isContentEditable;
+  if (isContentEditableHost) {
+    try {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+        const range = sel.getRangeAt(0);
+        if (element.contains(range.startContainer)) {
+          const rect = range.getBoundingClientRect();
+          if (rect && (rect.width || rect.height)) return rect;
+          const rects = range.getClientRects();
+          if (rects && rects.length) return rects[rects.length - 1];
+        }
+      }
+    } catch (_e) { }
+  }
+  return null;
+}
+
+function showInlineHintNearElement(element: Element, initialText: string): InlineHint {
+  const container = document.createElement('div');
+  container.className = 'native-translate-inline-hint';
+  container.setAttribute('data-native-translate-inline-hint', '1');
+  container.style.position = 'fixed';
+  container.style.zIndex = '2147483647';
+  container.style.background = 'rgba(0,0,0,0.8)';
+  container.style.color = 'white';
+  container.style.padding = '4px 8px';
+  container.style.borderRadius = '6px';
+  container.style.fontSize = '12px';
+  container.style.lineHeight = '1.3';
+  container.style.pointerEvents = 'none';
+  container.textContent = initialText;
+
+  const reposition = () => {
+    const caretRect = getCaretRectForElement(element);
+    const base = caretRect || element.getBoundingClientRect();
+    const x = Math.min(base.right - 4, window.innerWidth - 4);
+    const y = Math.min(base.bottom - 4, window.innerHeight - 4);
+    container.style.left = `${Math.round(x)}px`;
+    container.style.top = `${Math.round(y)}px`;
+    container.style.transform = 'translate(-100%, -100%)';
+  };
+
+  document.documentElement.appendChild(container);
+  reposition();
+
+  const onScroll = () => reposition();
+  const onResize = () => reposition();
+  const onSelection = () => reposition();
+  window.addEventListener('scroll', onScroll, true);
+  window.addEventListener('resize', onResize);
+  document.addEventListener('selectionchange', onSelection);
+
+  return {
+    update(text: string) {
+      container.textContent = text;
+      reposition();
+    },
+    remove() {
+      try { container.remove(); } catch (_e) { }
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+      document.removeEventListener('selectionchange', onSelection);
+    },
+  };
 }
 
 function clearPreviousTranslationsAndMarks(): void {
@@ -983,3 +1065,228 @@ function initializeHoverAltTranslate(): void {
 }
 
 initializeHoverAltTranslate();
+
+// ========== 在可编辑文本中“三连空格”触发翻译 ==========
+
+function isTextLikeInputElement(element: Element | null): element is HTMLInputElement | HTMLTextAreaElement {
+  if (!element) return false;
+  if (element instanceof HTMLTextAreaElement) return true;
+  if (element instanceof HTMLInputElement) {
+    const type = (element.type || 'text').toLowerCase();
+    // 仅对文本相关类型启用，避免破坏非文本输入
+    const allowed = ['text', 'search', 'url', 'email', 'tel'];
+    return allowed.includes(type);
+  }
+  return false;
+}
+
+function endsWithDoubleSpace(text: string): boolean {
+  if (!text) return false;
+  // 兼容不可断行空格 U+00A0
+  const normalized = text.replace(/\u00A0/g, ' ');
+  return normalized.endsWith('  ');
+}
+
+function getActiveContentEditableHost(): HTMLElement | null {
+  const ae = document.activeElement as HTMLElement | null;
+  if (!ae) return null;
+  if (ae.isContentEditable) return ae;
+  const host = ae.closest('[contenteditable=""], [contenteditable="true"]') as HTMLElement | null;
+  return host || null;
+}
+
+async function translateFreeTextToPreferred(text: string): Promise<{ translated: string; source: LanguageCode; target: LanguageCode } | null> {
+  const clean = text;
+  const targetLanguage = await getPreferredInputTargetLanguage();
+  let sourceLanguage = await detectLanguageForText(clean);
+  if (!sourceLanguage) {
+    const htmlLang = document.documentElement.getAttribute('lang') || '';
+    sourceLanguage = htmlLang || 'en';
+  }
+  if (isSameLanguage(sourceLanguage, targetLanguage)) {
+    return null;
+  }
+  let translator: TranslatorInstance | null = null;
+  try {
+    translator = await getOrCreateTranslator(sourceLanguage, targetLanguage);
+  } catch (_e) {
+    translator = null; // 回退到桥翻译
+  }
+  const translated = await translateTextPreservingNewlines(
+    translator,
+    clean,
+    sourceLanguage,
+    targetLanguage
+  );
+  return { translated, source: sourceLanguage, target: targetLanguage };
+}
+
+const translatingFields = new WeakSet<Element>();
+let isComposingIme = false;
+
+function dispatchInputEvent(target: HTMLElement): void {
+  try {
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+  } catch (_e) {
+    // ignore
+  }
+}
+
+async function handleTripleSpaceForInput(el: HTMLInputElement | HTMLTextAreaElement): Promise<void> {
+  if (translatingFields.has(el)) return;
+  translatingFields.add(el);
+  try {
+    let hintActive = false;
+    let hintRemove: () => void = () => { };
+    let hintUpdate: (text: string) => void = () => { };
+    const hintTimer = window.setTimeout(() => {
+      const h = showInlineHintNearElement(el, tCS('overlay_preparing'));
+      hintActive = true;
+      hintRemove = h.remove;
+      hintUpdate = h.update;
+    }, 400);
+    const text = el.value;
+    const res = await translateFreeTextToPreferred(text);
+    window.clearTimeout(hintTimer);
+    if (!res) {
+      if (hintActive) hintRemove();
+      return;
+    }
+    el.value = res.translated;
+    // 将光标移至末尾
+    try {
+      const end = el.value.length;
+      (el as any).selectionStart = end;
+      (el as any).selectionEnd = end;
+    } catch (_e) { }
+    dispatchInputEvent(el);
+    if (hintActive) {
+      hintUpdate(tCS('overlay_translation_complete'));
+      window.setTimeout(() => hintRemove(), 1000);
+    }
+  } finally {
+    translatingFields.delete(el);
+  }
+}
+
+async function handleTripleSpaceForContentEditable(host: HTMLElement): Promise<void> {
+  if (translatingFields.has(host)) return;
+  translatingFields.add(host);
+  try {
+    let hintActive = false;
+    let hintRemove: () => void = () => { };
+    let hintUpdate: (text: string) => void = () => { };
+    const hintTimer = window.setTimeout(() => {
+      const h = showInlineHintNearElement(host, tCS('overlay_preparing'));
+      hintActive = true;
+      hintRemove = h.remove;
+      hintUpdate = h.update;
+    }, 400);
+    const text = host.innerText || host.textContent || '';
+    const res = await translateFreeTextToPreferred(text);
+    window.clearTimeout(hintTimer);
+    if (!res) {
+      if (hintActive) hintRemove();
+      return;
+    }
+    host.textContent = res.translated;
+    // 光标定位到末尾
+    try {
+      const sel = window.getSelection();
+      if (sel) {
+        const range = document.createRange();
+        range.selectNodeContents(host);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    } catch (_e) { }
+    dispatchInputEvent(host);
+    if (hintActive) {
+      hintUpdate(tCS('overlay_translation_complete'));
+      window.setTimeout(() => hintRemove(), 1000);
+    }
+  } finally {
+    translatingFields.delete(host);
+  }
+}
+
+function initializeTripleSpaceEditingTranslate(): void {
+  if ((window as any).__nativeTripleSpaceInit) return;
+  (window as any).__nativeTripleSpaceInit = true;
+
+  // 跟踪 IME 组合，避免在中文/日文输入法组合期间误触发
+  document.addEventListener(
+    'compositionstart',
+    () => {
+      isComposingIme = true;
+    },
+    { capture: true }
+  );
+  document.addEventListener(
+    'compositionend',
+    () => {
+      isComposingIme = false;
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      if (isComposingIme) return;
+      // 仅在按下空格键时检测
+      const isSpace = e.key === ' ' || e.code === 'Space' || e.key === 'Spacebar';
+      if (!isSpace) return;
+
+      const ae = document.activeElement as HTMLElement | null;
+      if (!ae) return;
+
+      if (isTextLikeInputElement(ae)) {
+        const el = ae as HTMLInputElement | HTMLTextAreaElement;
+        // 仅在光标处于折叠状态且左侧正好有两个空格时触发
+        const start = (el as any).selectionStart as number | null;
+        const end = (el as any).selectionEnd as number | null;
+        if (start === null || end === null || start !== end) return;
+        const pos = start || 0;
+        const left = el.value.slice(0, pos);
+        if (!endsWithDoubleSpace(left)) return;
+        // 阻止第三个空格插入，并移除前两个空格
+        e.preventDefault();
+        e.stopPropagation();
+        el.value = el.value.slice(0, pos - 2) + el.value.slice(pos);
+        try {
+          (el as any).selectionStart = pos - 2;
+          (el as any).selectionEnd = pos - 2;
+        } catch (_e2) { }
+        dispatchInputEvent(el);
+        void handleTripleSpaceForInput(el);
+        return;
+      }
+
+      const host = getActiveContentEditableHost();
+      if (host) {
+        // 对 contenteditable，若光标折叠且前文末尾为两个空格，则触发
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const range = sel.getRangeAt(0);
+        if (!range.collapsed) return;
+        try {
+          const pre = range.cloneRange();
+          pre.setStart(host, 0);
+          const beforeText = pre.toString();
+          if (!endsWithDoubleSpace(beforeText)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          // 替换整体内容，无需额外删除两个空格（会被整体替换）
+          void handleTripleSpaceForContentEditable(host);
+        } catch (_err) {
+          // 忽略异常，不触发
+        }
+      }
+    },
+    { capture: true }
+  );
+}
+
+initializeTripleSpaceEditingTranslate();

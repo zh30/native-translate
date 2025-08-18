@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "اكتملت الترجمة",
     "description": "تراكب"
+  },
+  "input_target_language": {
+    "message": "لغة الهدف للإدخال",
+    "description": "Popup: تسمية لغة الهدف للإدخال"
+  },
+  "input_target_language_desc": {
+    "message": "تُستخدم عند ترجمة النص الذي تكتبه في حقول الإدخال.",
+    "description": "Popup: وصف لغة الهدف للإدخال"
   }
 }

@@ -44,6 +44,9 @@ The extension follows Chrome Extension Manifest v3 architecture with these entry
 5. **Model Caching**: Downloads and caches translation models per language pair
 6. **Internationalization**: Support for 13 languages via `_locales/` directory
 7. **RTL/LTR Support**: Automatic text direction handling for target languages
+8. **Triple-Space Translation**: Type three spaces in input fields to translate content automatically
+9. **Multi-Frame Support**: Content script runs in all frames including about:blank pages
+10. **Input Field Translation**: Supports translation in contentEditable areas and text inputs
 
 ### Technology Stack
 - **Frontend**: React 19 + TypeScript
@@ -63,6 +66,9 @@ The extension follows Chrome Extension Manifest v3 architecture with these entry
 - **Translator API Adapter**: Supports both legacy (`window.Translator`) and modern (`window.translation.createTranslator`) Chrome APIs
 - **Page World Bridge**: Injects bridge script to access Translator API from isolated content script context
 - **Fallback Strategy**: Gracefully falls back to bridge translation when direct API access is unavailable
+- **Input Field Translation**: Triple-space trigger for translating content in input fields and contentEditable areas
+- **IME Awareness**: Handles composition events for Asian languages to prevent false triggers
+- **Smart Element Selection**: Avoids translating code blocks, tables, and navigation elements
 
 #### Settings Management
 - **Storage**: Uses chrome.storage.local for persistence
@@ -112,7 +118,7 @@ scripts/
 
 ### Manifest Configuration
 - **Permissions**: storage, activeTab, scripting, tabs, sidePanel, offscreen
-- **Content Scripts**: Runs on all URLs (`<all_urls>`)
+- **Content Scripts**: Runs on all URLs (`<all_urls>`) with `all_frames: true` and `match_about_blank: true`
 - **Minimum Chrome**: v138+ (required for built-in AI APIs)
 - **Side Panel**: Default path set to `sidePanel.html`
 - **Action**: Popup enabled with full icon set
@@ -136,3 +142,28 @@ scripts/
 - **Bridge Architecture**: Content script injects bridge into page world to access Translator API
 - **API Adapter Pattern**: Handles both legacy and modern Chrome Translator API implementations
 - **Development Injection**: Automatically injects content scripts into existing tabs during development
+
+## Cursor Rules Summary
+
+### Project Structure
+- Entry points must match manifest.json exactly (background.js, contentScript.js, popup.html, sidePanel.html)
+- Use `@/*` path aliases for absolute imports from `src/`
+- Maintain strict naming consistency between build outputs and manifest references
+
+### TypeScript & React 19
+- Strict TypeScript mode enabled with explicit type annotations
+- React 19 with automatic JSX runtime and function components
+- Import order: React → third-party → local (types, components, utils)
+- Component props must be explicitly typed with interfaces
+
+### UI & Styling
+- Use Radix UI components from `src/components/ui/`
+- Tailwind CSS with `cn()` utility for class merging
+- Z-index for overlays: `z-[2147483647]` to avoid being covered by page content
+- Component variants using `class-variance-authority` pattern
+
+### Extension Development
+- Manifest v3 with service worker architecture
+- Chrome 138+ required for built-in AI APIs
+- Development builds include auto-reload functionality via SSE server
+- Production builds automatically create zip distribution package

@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "แปลเสร็จสิ้น",
     "description": "โอเวอร์เลย์"
+  },
+  "input_target_language": {
+    "message": "ภาษาเป้าหมายสำหรับการป้อนข้อมูล",
+    "description": "Popup: ป้ายกำกับภาษาเป้าหมายสำหรับการป้อนข้อมูล"
+  },
+  "input_target_language_desc": {
+    "message": "ใช้เมื่อแปลข้อความที่คุณพิมพ์ในช่องป้อนข้อมูล.",
+    "description": "Popup: คำอธิบายภาษาเป้าหมายสำหรับการป้อนข้อมูล"
   }
 }

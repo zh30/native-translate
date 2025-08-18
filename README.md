@@ -14,14 +14,15 @@ Native Translate is a privacy‑first Chrome extension that uses Chrome’s buil
 
 - Full‑page in‑page translation: append translated text under the original blocks to preserve layout
 - Hover‑to‑translate: hold a modifier (Alt/Control/Shift) and hover a paragraph to translate just that block
+- Inline input translation: in text fields and contenteditable areas, type three spaces in a row to translate what you’ve typed into your selected “Input target language”
 - Automatic source language detection (on device) with download progress overlay
-- Model caching per language pair; auto reuse when available
+- Model caching per language pair and per line; auto‑reuse when available
 - RTL/LTR aware rendering for the target language; UI locale/dir auto‑set
 - Localized UI via Chrome i18n (`_locales/`)
 
 ## Requirements
 
-- Chrome 138+ (Manifest V3, Side Panel APIs, Built-in AI)
+- Chrome 138+ (Manifest V3, Side Panel APIs, Built‑in AI)
 - pnpm 9+
 
 Note: On first use, Chrome may download on‑device models. Availability depends on device capability.
@@ -29,19 +30,22 @@ Note: On first use, Chrome may download on‑device models. Availability depends
 ## Install from source
 
 1. Install dependencies: `pnpm install`
-2. Build the extension: `pnpm build`
+2. Development: `pnpm dev` (builds to `dist/` and enables auto‑reload in development)
 3. Open `chrome://extensions`
 4. Enable “Developer mode”
 5. Click “Load unpacked” and select the `dist` folder
+6. Production build: `pnpm build` (also produces `Native-translate.zip` in the project root)
 
 ## Usage
 
 - Open the popup (toolbar icon)
   - Pick a target language
   - Choose the hover modifier (Alt/Control/Shift)
+  - Optionally set “Input target language” for typing translation
   - Click “Translate current page” for full‑page translation
 - Hover‑translate: hold the selected modifier and hover a paragraph; a translation is appended under the original
-- A small overlay shows model download and translation progress when needed
+- Inline input translation: in an input/textarea/contenteditable, press space three times to translate your typed text to the chosen “Input target language”
+- The overlay shows model download and translation progress when needed
 - Special pages (e.g., `chrome://`, some store pages) do not allow script injection
 - Re‑running full‑page translation clears old inserted translations and re‑inserts with the new target
 
@@ -57,23 +61,30 @@ Permissions used:
 - `activeTab`, `tabs` — interact with the current tab
 - `scripting` — inject content script if not yet loaded
 - `sidePanel` — optional side panel entry
+- `offscreen` — used only in development for the auto‑reload helper
 
 ## Architecture
 
-- `src/scripts/contentScript.ts` — translation engine and UI overlay; auto‑detects language, downloads models with progress, appends translations under blocks, supports hover‑to‑translate, caches per line and per pair
-- `src/popup/popup.tsx` — user settings (target language, hover modifier) and “Translate current page” action; injects content script if needed
-- `src/scripts/background.ts` — toggles the Side Panel on specific origin for demo; configures action click behavior
+- `src/scripts/contentScript.ts` — translation engine and UI overlay; auto‑detects language, downloads models with progress, appends translations under blocks, supports hover‑to‑translate, triple‑space input translation, caches per line and per language pair, and falls back to a page‑world bridge if needed
+- `src/popup/popup.tsx` — user settings (target language, hover modifier, input target language) and “Translate current page” action; injects content script if needed
+- `src/scripts/background.ts` — demo side‑panel toggle on a specific origin; configures action click behavior; dev auto‑reload helper wiring
 - `src/sidePanel/sidePanel.tsx` — minimal side panel scaffold
 - `src/utils/i18n.ts`, `src/utils/rtl.ts` — i18n helper and RTL/LTR utilities
 - `_locales/` — localized strings (English, Simplified Chinese, and more)
+
+Bundling:
+
+- Rspack (SWC) multi‑entry build targeting MV3
+- Fixed entry/output names matching `manifest.json` (`background.js`, `contentScript.js`, `popup.html`, `sidePanel.html`)
 
 ## Development
 
 Scripts:
 
-- `pnpm dev` — watch build
-- `pnpm build` — production build
+- `pnpm dev` — watch build with dev auto‑reload (SSE server) and content‑script reinjection
+- `pnpm build` — production build (also zips output to `Native-translate.zip`)
 - `pnpm tsc` — TypeScript type check
+- `pnpm lint` / `pnpm lint:fix` — Biome linting
 
 Tech stack:
 
@@ -93,6 +104,9 @@ src/
   scripts/
     background.ts
     contentScript.ts
+  offscreen/
+    devReloader.html
+    devReloader.ts
   styles/
     tailwind.css
 ```
@@ -102,6 +116,8 @@ src/
 - “Translator API unavailable”: ensure Chrome 138+ and that your device supports on‑device models
 - No effect on a page: some pages block script injection (e.g., `chrome://`); try another site
 - Slow first run: model download happens once per capability; subsequent usage reuses cached models
+- Hover translate not firing: set the desired modifier in the popup (Alt/Control/Shift) and ensure you’re hovering a sizable text block
+- Triple‑space input translation not firing: only triggers in text inputs/textarea/contenteditable when not composing with an IME; press space three times at the caret end
 
 ## Roadmap
 

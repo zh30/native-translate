@@ -1,4 +1,22 @@
 ---
+description: UI 组件与 Tailwind 使用规范
+globs: "*.tsx,*.ts"
+---
+# UI 组件与 Tailwind 规范
+
+- **组件来源**：优先使用项目内 `src/components/ui/*` 组件：
+  - [src/components/ui/button.tsx](mdc:src/components/ui/button.tsx)
+  - [src/components/ui/select.tsx](mdc:src/components/ui/select.tsx)
+  - [src/components/ui/label.tsx](mdc:src/components/ui/label.tsx)
+- **样式入口**：全局样式在 [src/styles/tailwind.css](mdc:src/styles/tailwind.css)。
+- **Tailwind 用法**：
+  - 直接在 JSX 中组合 utility class，避免过度使用 `@apply`。
+  - 使用 `cn()` 合并 className：[src/utils/cn.ts](mdc:src/utils/cn.ts)。
+  - 响应式前缀：`sm:`、`md:`、`lg:`，尽量保持类名字符串可读。
+  - 仅在必要时使用 JIT 任意值，例如 `w-[300px]`。
+- **无障碍与语义**：优先使用语义标签与可访问属性，表单元素配合 `Label`。
+
+---
 globs: *.tsx
 description: UI 组件与 Tailwind 使用规范
 ---

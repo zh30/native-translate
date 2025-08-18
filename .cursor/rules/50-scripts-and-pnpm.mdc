@@ -1,4 +1,19 @@
 ---
+description: 脚本命令与 pnpm 约定
+globs: "package.json,**/*.md,**/*.mdx"
+---
+# 脚本命令与 pnpm 约定
+
+- **包管理器**：本项目使用 pnpm（见 `packageManager` 字段）。
+- **常用脚本**（来自 [package.json](mdc:package.json) 与 [README.md](mdc:README.md)）：
+  - `pnpm dev` — 监听构建（`rspack build --watch`），并启动开发时热重载服务。
+  - `pnpm build` — 生产构建（`rspack build --mode production`）。
+  - `pnpm tsc` — TypeScript 类型检查。
+  - `pnpm lint` / `pnpm lint:fix` — 使用 Biome 进行检查与修复。
+- **开发产物**：本地开发不应生成 zip 包；发布或生产构建时产物在 `dist/` 目录。
+- **Node/Chrome 要求**：Chrome 138+，pnpm 9+；首次运行可能触发模型下载。
+
+---
 alwaysApply: false
 description: 脚本命令与 pnpm 约定
 ---

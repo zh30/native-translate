@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "अनुवाद पूरा हुआ",
     "description": "ओवरले"
+  },
+  "input_target_language": {
+    "message": "इनपुट का लक्ष्य भाषा",
+    "description": "Popup: इनपुट लक्ष्य भाषा लेबल"
+  },
+  "input_target_language_desc": {
+    "message": "इनपुट फ़ील्ड में आप जो लिखते हैं, उसे इसी भाषा में अनुवादित किया जाएगा।",
+    "description": "Popup: इनपुट लक्ष्य भाषा विवरण"
   }
 }

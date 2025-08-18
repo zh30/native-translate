@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "翻译完成",
     "description": "浮层：完成"
+  },
+  "input_target_language": {
+    "message": "输入框目标语言",
+    "description": "Popup：输入框目标语言标签"
+  },
+  "input_target_language_desc": {
+    "message": "输入内容将翻译为该语言。",
+    "description": "Popup：输入目标语言说明"
   }
 }

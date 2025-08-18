@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "Vertaling voltooid",
     "description": "Overlay"
+  },
+  "input_target_language": {
+    "message": "Doeltaal voor invoer",
+    "description": "Popup: Label doeltaal voor invoer"
+  },
+  "input_target_language_desc": {
+    "message": "Gebruikt bij het vertalen van tekst die je in invoervelden typt.",
+    "description": "Popup: Beschrijving doeltaal voor invoer"
   }
 }

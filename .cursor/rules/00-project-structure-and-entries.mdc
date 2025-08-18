@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+# 项目结构与入口映射
+
+- **核心配置**
+  - [rspack.config.js](mdc:rspack.config.js)
+  - [tsconfig.json](mdc:tsconfig.json)
+  - [biome.json](mdc:biome.json)
+  - [package.json](mdc:package.json)
+
+- **浏览器扩展清单**
+  - [src/manifest.json](mdc:src/manifest.json)
+  - 保持输出文件名与清单一致：
+    - `background.service_worker` → `background.js`
+    - `content_scripts[].js` → `contentScript.js`
+    - `action.default_popup` → `popup.html`
+    - `side_panel.default_path` → `sidePanel.html`
+
+- **入口与产物（保持名称一一对应）**
+  - Popup 页面： [src/popup/popup.tsx](mdc:src/popup/popup.tsx) → [src/popup/popup.html](mdc:src/popup/popup.html)
+  - Side Panel： [src/sidePanel/sidePanel.tsx](mdc:src/sidePanel/sidePanel.tsx) → [src/sidePanel/sidePanel.html](mdc:src/sidePanel/sidePanel.html)
+  - 后台 SW： [src/scripts/background.ts](mdc:src/scripts/background.ts) → `background.js`
+  - 内容脚本： [src/scripts/contentScript.ts](mdc:src/scripts/contentScript.ts) → `contentScript.js`
+
+- **样式与静态资源**
+  - Tailwind 入口： [src/styles/tailwind.css](mdc:src/styles/tailwind.css)
+  - 公共图标示例： [public/icon.png](mdc:public/icon.png)
+  - 多语言示例： [_locales/en/messages.json](mdc:_locales/en/messages.json)
+
+- **UI 与工具**
+  - 公共组件： [src/components/ui/button.tsx](mdc:src/components/ui/button.tsx), [src/components/ui/select.tsx](mdc:src/components/ui/select.tsx), [src/components/ui/label.tsx](mdc:src/components/ui/label.tsx)
+  - 工具函数： [src/utils/cn.ts](mdc:src/utils/cn.ts), [src/utils/i18n.ts](mdc:src/utils/i18n.ts), [src/utils/rtl.ts](mdc:src/utils/rtl.ts)
+
+- **路径别名**
+  - 通过 bundler 与 TS 配置将 `@/*` 指向 `src/*`，优先使用绝对导入：例如 `import { cn } from '@/utils/cn'`。
+

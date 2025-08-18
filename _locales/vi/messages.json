@@ -150,5 +150,13 @@
   "overlay_translation_complete": {
     "message": "Hoàn tất dịch",
     "description": "Overlay"
+  },
+  "input_target_language": {
+    "message": "Ngôn ngữ đích cho nội dung nhập",
+    "description": "Popup: Nhãn ngôn ngữ đích cho nhập liệu"
+  },
+  "input_target_language_desc": {
+    "message": "Dùng khi dịch văn bản bạn gõ trong các ô nhập.",
+    "description": "Popup: Mô tả ngôn ngữ đích cho nhập liệu"
   }
 }

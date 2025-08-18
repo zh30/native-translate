@@ -1,4 +1,16 @@
 ---
+description: 国际化（Chrome i18n）与 RTL 方向设置规范
+globs: "src/**/*"
+---
+# 国际化与 RTL 规范
+
+- **Chrome i18n**：文案应从 `_locales/*/messages.json` 读取，示例：
+  - 英文：[ _locales/en/messages.json ](mdc:_locales/en/messages.json)
+- **工具函数**：使用 [src/utils/i18n.ts](mdc:src/utils/i18n.ts) 获取文案，使用 [src/utils/rtl.ts](mdc:src/utils/rtl.ts) 处理方向。
+- **方向与布局**：根据语言调用 `setDocumentDirection()` 设置 `dir="rtl|ltr"`，确保组件在 RTL 下布局正确。
+- **不要硬编码**：避免在 UI 中写死字符串；新增文案需同时补齐各语言或提供合理回退。
+
+---
 globs: src/**/*.ts,src/**/*.tsx
 description: 国际化（Chrome i18n）与 RTL 方向设置规范
 ---
