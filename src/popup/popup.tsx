@@ -6,6 +6,7 @@ import { getUILocale, isRTLLanguage } from '@/utils/rtl';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AppSelect } from '@/components/ui/select';
+import { Globe2, Keyboard, Languages, PanelRightOpen, Wand2 } from 'lucide-react';
 
 // Removed global availability check types and UI; popup page context cannot reliably query Translator availability
 
@@ -146,12 +147,18 @@ const Popup: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4 text-sm text-gray-900 dark:text-gray-100">
-      <h1 className="text-lg font-semibold">{t('popup_title')}</h1>
+      <h1 className="text-lg font-semibold flex items-center gap-2">
+        <Globe2 className="h-5 w-5" />
+        {t('popup_title')}
+      </h1>
 
       {/* Removed global availability section */}
 
       <div className="space-y-2">
-        <Label className="inline-block">{t('target_language')}</Label>
+        <Label className="inline-flex items-center gap-1">
+          <Languages className="h-4 w-4" />
+          {t('target_language')}
+        </Label>
         <AppSelect
           value={settings.targetLanguage}
           onValueChange={(v) => setSettings((s) => ({ ...s, targetLanguage: v as LanguageCode }))}
@@ -160,7 +167,10 @@ const Popup: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Label className="inline-block">{t('input_target_language')}</Label>
+        <Label className="inline-flex items-center gap-1">
+          <Wand2 className="h-4 w-4" />
+          {t('input_target_language')}
+        </Label>
         <AppSelect
           value={settings.inputTargetLanguage ?? 'en'}
           onValueChange={(v) => setSettings((s) => ({ ...s, inputTargetLanguage: v as LanguageCode }))}
@@ -170,7 +180,10 @@ const Popup: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Label className="inline-block">{t('hover_hotkey')}</Label>
+        <Label className="inline-flex items-center gap-1">
+          <Keyboard className="h-4 w-4" />
+          {t('hover_hotkey')}
+        </Label>
         <AppSelect
           value={settings.hotkeyModifier ?? 'alt'}
           onValueChange={async (v) => {
@@ -213,10 +226,51 @@ const Popup: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <Button onClick={handleTranslatePage} className="w-full">
+        <Button onClick={handleTranslatePage} className="w-full inline-flex items-center gap-2">
+          <Globe2 className="h-4 w-4" />
           {t('translate_full_page')}
         </Button>
         <p className="text-[11px] text-gray-500 dark:text-gray-400">{t('translate_full_page_desc')}</p>
+      </div>
+
+      <div className="space-y-2">
+        <Button
+          onClick={async () => {
+            setError(null);
+            try {
+              const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+              if (!tab?.id) throw new Error(t('active_tab_not_found'));
+
+              // 尝试启用并打开侧边栏
+              try {
+                await chrome.sidePanel.setOptions({
+                  tabId: tab.id,
+                  path: 'sidePanel.html',
+                  enabled: true,
+                });
+              } catch (_e) { }
+
+              try {
+                await chrome.sidePanel.open({ tabId: tab.id } as any);
+              } catch (_e) {
+                // 某些版本需要先设置行为或再次设置 options
+                try {
+                  await chrome.sidePanel.setPanelBehavior?.({ openPanelOnActionClick: false } as any);
+                  await chrome.sidePanel.open({ tabId: tab.id } as any);
+                } catch (e) {
+                  throw e instanceof Error ? e : new Error('Failed to open side panel');
+                }
+              }
+              window.close();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : t('unknown_error'));
+            }
+          }}
+          className="w-full inline-flex items-center gap-2"
+        >
+          <PanelRightOpen className="h-4 w-4" />
+          {t('open_sidepanel')}
+        </Button>
       </div>
 
       {error && (

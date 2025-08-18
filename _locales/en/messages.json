@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "Used when translating text you type into fields.",
     "description": "Popup: Input target language description"
+  },
+  "open_sidepanel": {
+    "message": "Side panel translate",
+    "description": "Popup: open side panel button"
+  },
+  "auto_detect": {
+    "message": "Auto detect",
+    "description": "Side panel: auto detect option"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "Type text to translate here…",
+    "description": "Side panel: input placeholder"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "Translated text will appear here…",
+    "description": "Side panel: output placeholder"
   }
 }

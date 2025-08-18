@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { cn } from '@/utils/cn';
+import { ChevronDown } from 'lucide-react';
 
 export interface Option {
   value: string;
@@ -18,10 +19,11 @@ export function AppSelect({ value, onValueChange, options }: AppSelectProps) {
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       <SelectPrimitive.Trigger
         className={cn(
-          'w-full rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-neutral-900 px-3 py-2 text-left text-sm'
+          'w-full relative pr-8 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-neutral-900 px-3 py-2 text-left text-sm'
         )}
       >
         <SelectPrimitive.Value />
+        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" aria-hidden="true" />
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Content className="z-[2147483647] rounded border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md">
         <SelectPrimitive.Viewport className="p-1">

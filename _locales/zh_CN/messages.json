@@ -158,5 +158,21 @@
   "input_target_language_desc": {
     "message": "输入内容将翻译为该语言。",
     "description": "Popup：输入目标语言说明"
+  },
+  "open_sidepanel": {
+    "message": "侧边栏翻译",
+    "description": "Popup：打开侧边栏按钮"
+  },
+  "auto_detect": {
+    "message": "自动检测",
+    "description": "侧边栏：自动检测选项"
+  },
+  "sidepanel_input_placeholder": {
+    "message": "在这里输入要翻译的文本…",
+    "description": "侧边栏：输入占位"
+  },
+  "sidepanel_output_placeholder": {
+    "message": "翻译结果将显示在这里…",
+    "description": "侧边栏：输出占位"
   }
 }

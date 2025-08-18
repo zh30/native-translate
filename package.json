@@ -1,6 +1,6 @@
 {
   "name": "native-translate",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -40,6 +40,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^0.540.0",
+    "radash": "^12.1.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1"

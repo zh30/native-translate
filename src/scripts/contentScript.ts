@@ -837,6 +837,77 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   return false;
 });
 
+// 轻量心跳：用于 SidePanel/Popup 注入后探测内容脚本是否就绪
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!message || typeof message.type !== 'string') return false;
+  if (message.type === '__PING__') {
+    try {
+      const respond = sendResponse as unknown as (response: unknown) => void;
+      respond({ ok: true });
+    } catch { }
+    return false;
+  }
+  return false;
+});
+
+// 侧边栏请求：翻译任意文本 / 语言检测
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!message || typeof message.type !== 'string') return false;
+  if (message.type === 'NATIVE_TRANSLATE_TRANSLATE_TEXT') {
+    const { text, sourceLanguage, targetLanguage } = (message.payload ?? {}) as {
+      text: string;
+      sourceLanguage: LanguageCode | 'auto';
+      targetLanguage: LanguageCode;
+    };
+    (async () => {
+      try {
+        const respond = sendResponse as unknown as (response: unknown) => void;
+        let source: LanguageCode | null = null;
+        if (sourceLanguage === 'auto') {
+          source = await detectLanguageForText(text);
+          if (!source) source = 'en';
+        } else {
+          source = sourceLanguage;
+        }
+        if (isSameLanguage(source, targetLanguage)) {
+          respond({ ok: true, result: text, detectedSource: source });
+          return;
+        }
+        let translator: TranslatorInstance | null;
+        try {
+          translator = await getOrCreateTranslator(source, targetLanguage);
+        } catch (_e) {
+          translator = null;
+        }
+        const out = translator
+          ? await translator.translate(text)
+          : await bridgeTranslate(text, source, targetLanguage);
+        respond({ ok: true, result: out, detectedSource: source });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'unknown_error';
+        const respond = sendResponse as unknown as (response: unknown) => void;
+        respond({ ok: false, error: msg });
+      }
+    })();
+    return true; // 异步响应
+  }
+  if (message.type === 'NATIVE_TRANSLATE_DETECT_LANGUAGE') {
+    const { text } = (message.payload ?? {}) as { text: string };
+    (async () => {
+      try {
+        const lang = await detectLanguageForText(text);
+        const respond = sendResponse as unknown as (response: unknown) => void;
+        respond({ ok: true, lang });
+      } catch (_e) {
+        const respond = sendResponse as unknown as (response: unknown) => void;
+        respond({ ok: false, error: 'detect_failed' });
+      }
+    })();
+    return true;
+  }
+  return false;
+});
+
 // ========== 悬停 + Alt 翻译当前段落 ==========
 
 function isEditingContext(): boolean {
