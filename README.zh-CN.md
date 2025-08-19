@@ -1,5 +1,6 @@
 # 原生翻译 — 隐私优先的内置 AI 翻译扩展
 
+[![Release on Tag](https://github.com/zh30/native-translate/actions/workflows/release-on-tag.yml/badge.svg)](https://github.com/zh30/native-translate/actions/workflows/release-on-tag.yml)
 [English](./README.md) | 简体中文
 
 原生翻译使用 Chrome 的内置 AI 翻译与语言检测能力，默认不访问云端、不采集遥测。模型在本地下载、运行并缓存，可离线使用。

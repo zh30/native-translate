@@ -1,6 +1,7 @@
 # Native Translate — Private, Built-in AI Translation
 
-English | [简体中文](./README.zh-CN.md)
+[![Release on Tag](https://github.com/zh30/native-translate/actions/workflows/release-on-tag.yml/badge.svg)](https://github.com/zh30/native-translate/actions/workflows/release-on-tag.yml)
+English | [简体中文](./README.zh-CN.md) 
 
 Native Translate is a privacy‑first Chrome extension that uses Chrome’s built‑in AI Translator and Language Detector. No cloud calls, no telemetry — your content never leaves the browser. Models download and run locally (with progress feedback) and are cached for offline use.
 
