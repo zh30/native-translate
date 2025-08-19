@@ -157,4 +157,4 @@ Issues and PRs are welcome. Please follow TypeScript/React/Tailwind best practic
 
 ## License
 
-MIT © zhanghe.dev
+MIT © [zhanghe.dev](https://zhanghe.dev)
