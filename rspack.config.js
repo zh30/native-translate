@@ -61,7 +61,6 @@ module.exports = (env, argv) => {
       sidePanel: './src/sidePanel/sidePanel.tsx',
       background: './src/scripts/background.ts',
       contentScript: './src/scripts/contentScript.ts',
-      offscreen: './src/offscreen/devReloader.ts',
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
@@ -144,12 +143,6 @@ module.exports = (env, argv) => {
         template: './src/sidePanel/sidePanel.html',
         filename: 'sidePanel.html',
         chunks: ['sidePanel'],
-        minify: isProd,
-      }),
-      new rspack.HtmlRspackPlugin({
-        template: './src/offscreen/devReloader.html',
-        filename: 'offscreen.html',
-        chunks: ['offscreen'],
         minify: isProd,
       }),
       new rspack.CopyRspackPlugin({

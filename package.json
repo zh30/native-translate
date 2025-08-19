@@ -1,12 +1,12 @@
 {
   "name": "native-translate",
-  "version": "0.0.15",
+  "version": "2025.08.191506",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "dev": "node scripts/dev-reload-server.mjs & rspack build --watch",
+    "dev": "rspack build --watch",
     "build": "rspack build --mode production",
     "lint": "biome check .",
     "lint:fix": "biome check . --write"

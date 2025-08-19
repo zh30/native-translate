@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extension_name__",
-  "version": "0.0.15",
+  "version": "2025.08.191506",
   "description": "__MSG_extension_description__",
   "minimum_chrome_version": "138",
   "default_locale": "en",
@@ -43,7 +43,6 @@
     "activeTab",
     "scripting",
     "tabs",
-    "sidePanel",
-    "offscreen"
+    "sidePanel"
   ]
 }
