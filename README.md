@@ -22,7 +22,6 @@ Native Translate is a privacy‑first Chrome extension that uses Chrome’s buil
 - Localized UI via Chrome i18n (`_locales/`)
 
 <img width="668" height="1172" alt="wechat_2025-08-19_094654_652" src="https://github.com/user-attachments/assets/10fd7d00-c38d-43ed-b8e8-3b97ebf1e93e" />
-![tra](https://github.com/user-attachments/assets/98c636de-d06e-4a74-996e-b4c59c36ad38)
 
 ## Requirements
 
