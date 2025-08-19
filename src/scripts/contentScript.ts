@@ -26,10 +26,7 @@ interface TranslatorMonitor {
   ) => void;
 }
 
-interface TranslatorInstance {
-  translate: (text: string) => Promise<string>;
-  ready?: Promise<void>;
-}
+import { STREAMING_LENGTH_THRESHOLD, normalizeToAsyncStringIterable, TranslatorInstance } from '@/shared/streaming';
 
 interface TranslatorCreateOptions {
   sourceLanguage: LanguageCode;
@@ -206,6 +203,11 @@ import { POPUP_SETTINGS_KEY } from '@/shared/settings';
 import { MSG_TRANSLATE_PAGE, MSG_UPDATE_HOTKEY, MSG_TRANSLATE_TEXT } from '@/shared/messages';
 let preferredModifier: 'alt' | 'control' | 'shift' = 'alt';
 let tryTranslateRef: (() => void) | null = null;
+
+// 文本长度阈值（可微调）：
+// - 标题等短文本也希望被翻译
+const MIN_LENGTH_GENERIC = 4;
+const MIN_LENGTH_HEADING = 2; // h1-h6 允许 2 个字符
 
 // 简单的内存缓存，避免相同文本重复翻译
 const translationCache = new Map<string, string>();
@@ -394,12 +396,19 @@ function shouldTranslateElement(element: Element): boolean {
   ) {
     return false;
   }
-  // 避免导航/页眉/页脚/侧边栏等区域
-  if (element.closest('nav,header,footer,aside')) return false;
+  // 导航/页眉/页脚/侧边栏默认跳过容器，但允许叶子级文字元素
+  const inNavLike = !!element.closest('nav,header,footer,aside');
+  if (inNavLike) {
+    const t = tag;
+    const allow = t === 'a' || t === 'button' || t === 'span' || t === 'li';
+    if (!allow) return false;
+  }
   // 避免表格相关结构，防止破坏表格布局
   if (element.closest('table,thead,tbody,tfoot,tr')) return false;
   if (element.closest(`.${TRANSLATED_CLASS}`)) return false;
   if ((element as HTMLElement).getAttribute(TRANSLATED_ATTR) === '1') return false;
+  // 若内部已包含翻译或已被标记处理，跳过，避免父子重复翻译
+  if (element.querySelector(`.${TRANSLATED_CLASS}, [${TRANSLATED_ATTR}="1"]`)) return false;
   return true;
 }
 
@@ -453,7 +462,10 @@ function collectTranslatableBlocks(root: ParentNode): Array<{ element: Element; 
     'dt',
     'figcaption',
     'summary',
-    'div'
+    'div',
+    'a',
+    'button',
+    'span'
   ].join(',');
 
   const elements = Array.from(root.querySelectorAll(selector));
@@ -462,17 +474,23 @@ function collectTranslatableBlocks(root: ParentNode): Array<{ element: Element; 
     if (!shouldTranslateElement(el)) continue;
     if (!isElementVisible(el)) continue;
     const text = getElementText(el);
-    if (text.length < 20) continue; // 过滤过短文本
+    const isHeading = /^h[1-6]$/.test(el.tagName.toLowerCase());
+    if (text.length < (isHeading ? MIN_LENGTH_HEADING : MIN_LENGTH_GENERIC)) continue; // 过滤过短文本（放宽）
     // 对容器类元素，若内部还有明显的块级子元素，则跳过，避免破坏布局
     const tagLower = el.tagName.toLowerCase();
-    if ((tagLower === 'div' || tagLower === 'section' || tagLower === 'article') && hasBlockDescendants(el)) {
+    // 将 blockquote 也视为容器：若内部仍有块级子元素，则跳过，避免与其子元素重复
+    if ((tagLower === 'div' || tagLower === 'section' || tagLower === 'article' || tagLower === 'blockquote') && hasBlockDescendants(el)) {
       continue;
     }
     // 对 div 再多一道词数阈值，减少噪声
     if (tagLower === 'div' && text.split(/\s+/g).length < 8) continue;
+    // 对 span 仅接受无子元素的简单文本节点
+    if (tagLower === 'span' && (el as HTMLElement).children.length > 0) continue;
     results.push({ element: el, text });
   }
-  return results;
+  // 去重：仅保留“叶子”块（不包含其他候选元素的容器）
+  const leafOnly = results.filter((item) => !results.some((other) => other !== item && item.element.contains(other.element)));
+  return leafOnly;
 }
 
 function createTranslationSpan(original: Element, translatedText: string, targetLanguage: LanguageCode): Element {
@@ -482,16 +500,132 @@ function createTranslationSpan(original: Element, translatedText: string, target
   span.setAttribute('lang', targetLanguage);
   // 使用块级表现，确保作为同级兄弟显示在原文下方
   if (span instanceof HTMLElement) {
-    span.style.display = 'block';
-    span.style.marginTop = '4px';
-    span.style.whiteSpace = 'pre-wrap';
-    // 根据目标语言方向设置对齐
+    const originalTag = original.tagName.toLowerCase();
+    const isInlineNavText = originalTag === 'span';
+    if (!isInlineNavText) {
+      span.style.display = 'block';
+      span.style.marginTop = '4px';
+      span.style.whiteSpace = 'pre-wrap';
+    }
+    // 仅在 RTL 时显式标记方向与对齐；LTR 使用浏览器默认
     const rtl = /^(ar|he|fa|ur|ps)(-|$)/i.test(targetLanguage);
-    span.dir = rtl ? 'rtl' : 'ltr';
-    span.style.textAlign = rtl ? 'right' : 'left';
+    if (rtl) {
+      span.dir = 'rtl';
+      span.style.textAlign = 'right';
+    }
   }
   span.textContent = translatedText;
   return span;
+}
+
+function insertTranslationAdjacent(target: Element, node: Element): void {
+  const tag = target.tagName.toLowerCase();
+  // 对于内联/可点击小件，放在它后面作为同级以减少布局干扰
+  if (tag === 'span' || tag === 'a' || tag === 'button') {
+    try {
+      target.insertAdjacentElement('afterend', node);
+      return;
+    } catch (_e) { /* fallback below */ }
+  }
+  // 默认：作为子节点插入
+  (target as Element).appendChild(node);
+}
+
+// 流式工具改为从共享模块导入
+
+async function translateLineWithStreamingSupport(
+  translator: TranslatorInstance | null,
+  line: string,
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode,
+  onPartial?: (partial: string) => void,
+): Promise<string> {
+  // 优先使用内容脚本内的本地流式能力
+  if (translator) {
+    const canStream = typeof translator.translateStreaming === 'function' && line.length >= STREAMING_LENGTH_THRESHOLD;
+    if (canStream) {
+      let partial = '';
+      let received = false;
+      try {
+        const streamLike = (translator.translateStreaming as (text: string) => unknown)(line);
+        for await (const chunk of normalizeToAsyncStringIterable(streamLike)) {
+          received = true;
+          partial += chunk;
+          onPartial?.(partial);
+        }
+      } catch {
+        // ignore and fallback
+      }
+      if (received && partial) return partial;
+      try {
+        const out = await translator.translate(line);
+        onPartial?.(out);
+        return out;
+      } catch {
+        // 如果本地失败，回退到桥
+        const out = await bridgeTranslate(line, sourceLanguage, targetLanguage);
+        onPartial?.(out);
+        return out;
+      }
+    }
+    // 无流式或不满足阈值，则直接一次性
+    try {
+      const out = await translator.translate(line);
+      onPartial?.(out);
+      return out;
+    } catch {
+      const out = await bridgeTranslate(line, sourceLanguage, targetLanguage);
+      onPartial?.(out);
+      return out;
+    }
+  }
+  // 没有本地翻译器，使用主世界桥（不支持流式）
+  const bridged = await bridgeTranslate(line, sourceLanguage, targetLanguage);
+  onPartial?.(bridged);
+  return bridged;
+}
+
+async function translateIntoElementPreservingNewlines(
+  original: Element,
+  translator: TranslatorInstance | null,
+  text: string,
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode
+): Promise<void> {
+  const placeholder = createTranslationSpan(original, '', targetLanguage);
+  insertTranslationAdjacent(original, placeholder);
+  (original as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
+  placeholder.textContent = '';
+
+  const lines = text.split(/\r?\n/);
+  const resultLines: string[] = [];
+  for (const line of lines) {
+    if (!line) {
+      resultLines.push('');
+      placeholder.textContent = resultLines.join('\n');
+      continue;
+    }
+    const cacheKey = buildCacheKey(line, sourceLanguage, targetLanguage);
+    const cached = translationCache.get(cacheKey);
+    if (cached) {
+      resultLines.push(cached);
+      placeholder.textContent = resultLines.join('\n');
+      continue;
+    }
+    const finalLine = await translateLineWithStreamingSupport(
+      translator,
+      line,
+      sourceLanguage,
+      targetLanguage,
+      (partial) => {
+        // 增量更新当前行
+        placeholder.textContent = resultLines.concat(partial).join('\n');
+      }
+    );
+    translationCache.set(cacheKey, finalLine);
+    resultLines.push(finalLine);
+    placeholder.textContent = resultLines.join('\n');
+  }
 }
 
 async function translateTextPreservingNewlines(
@@ -549,6 +683,21 @@ async function translateBlocksSequentially(
       if (!translated) {
         // 翻译可能抛错，保持健壮性
         try {
+          // 对特别长的段落，使用流式增量插入以提升体验
+          if (text.length >= STREAMING_LENGTH_THRESHOLD) {
+            await translateIntoElementPreservingNewlines(
+              element,
+              translator,
+              text,
+              sourceLanguage,
+              targetLanguage
+            );
+            // 占位节点已写入译文，这里跳过统一 insert，直接标记与进度
+            done += 1;
+            onProgress(done, total);
+            continue;
+          }
+          // 普通长度：一次性按行翻译后再统一插入
           translated = await translateTextPreservingNewlines(
             translator,
             text,
@@ -575,9 +724,9 @@ async function translateBlocksSequentially(
       onProgress(done, total);
     }
 
-    // 统一插入，尽量降低重排次数
+    // 统一插入：尽量靠近文字元素（如 a/button/span 后）
     for (const ins of inserts) {
-      (ins.element as Element).appendChild(ins.node);
+      insertTranslationAdjacent(ins.element as Element, ins.node);
     }
 
     // 让出事件循环，避免长任务阻塞
@@ -880,9 +1029,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         } catch (_e) {
           translator = null;
         }
-        const out = translator
-          ? await translator.translate(text)
-          : await bridgeTranslate(text, source, targetLanguage);
+        // 保留原始段落与换行：按行翻译后再拼接
+        const out = await translateTextPreservingNewlines(
+          translator,
+          text,
+          source,
+          targetLanguage
+        );
         respond({ ok: true, result: out, detectedSource: source });
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'unknown_error';
@@ -947,7 +1100,8 @@ function pickTranslatableBlockFromTarget(start: Element | null): Element | null 
     if (isAllowedBlockTag(tagLower)) {
       if (shouldTranslateElement(node) && isElementVisible(node)) {
         const text = getElementText(node);
-        if (text.length >= 20) {
+        const isHeading = /^h[1-6]$/.test(node.tagName?.toLowerCase?.() || '');
+        if (text.length >= (isHeading ? MIN_LENGTH_HEADING : MIN_LENGTH_GENERIC)) {
           if ((tagLower === 'div' || tagLower === 'section' || tagLower === 'article')) {
             if (hasBlockDescendants(node)) {
               // 继续向内找更具体的块级元素
@@ -984,7 +1138,8 @@ async function translateElementOnDemand(element: Element): Promise<void> {
   if (element.querySelector(`.${TRANSLATED_CLASS}`)) return;
   if (processingElements.has(element)) return;
   const text = getElementText(element);
-  if (!text || text.length < 20) return;
+  const isHeading = /^h[1-6]$/.test(element.tagName.toLowerCase());
+  if (!text || text.length < (isHeading ? MIN_LENGTH_HEADING : MIN_LENGTH_GENERIC)) return;
   processingElements.add(element);
   try {
     const targetLanguage = await getPreferredTargetLanguage();
@@ -1029,25 +1184,36 @@ async function translateElementOnDemand(element: Element): Promise<void> {
       removeOverlay();
       overlay = null;
     }
-    const cacheKey = buildCacheKey(text, sourceLanguage, targetLanguage);
-    let translated = translationCache.get(cacheKey);
-    if (!translated) {
-      try {
-        translated = await translateTextPreservingNewlines(
-          translator,
-          text,
-          sourceLanguage,
-          targetLanguage
-        );
-        translationCache.set(cacheKey, translated);
-      } catch (_e) {
-        translated = '';
+    // 对长段落采用流式逐行写入；否则一次性按行翻译
+    if (text.length >= STREAMING_LENGTH_THRESHOLD) {
+      await translateIntoElementPreservingNewlines(
+        element,
+        translator,
+        text,
+        sourceLanguage,
+        targetLanguage
+      );
+    } else {
+      const cacheKey = buildCacheKey(text, sourceLanguage, targetLanguage);
+      let translated = translationCache.get(cacheKey);
+      if (!translated) {
+        try {
+          translated = await translateTextPreservingNewlines(
+            translator,
+            text,
+            sourceLanguage,
+            targetLanguage
+          );
+          translationCache.set(cacheKey, translated);
+        } catch (_e) {
+          translated = '';
+        }
       }
-    }
-    if (translated) {
-      const clone = createTranslationSpan(element, translated, targetLanguage);
-      (element as Element).appendChild(clone);
-      (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
+      if (translated) {
+        const clone = createTranslationSpan(element, translated, targetLanguage);
+        (element as Element).appendChild(clone);
+        (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
+      }
     }
   } finally {
     processingElements.delete(element);

@@ -10,16 +10,14 @@ import { debounce } from 'radash';
 import { ArrowLeftRight, Languages, Type, Sparkles } from 'lucide-react';
 import { LanguageCode, SUPPORTED_LANGUAGES, DEFAULT_TARGET_LANGUAGE } from '@/shared/languages';
 import { MSG_TRANSLATE_TEXT, MSG_EASTER_CONFETTI } from '@/shared/messages';
+import { STREAMING_LENGTH_THRESHOLD, normalizeToAsyncStringIterable, TranslatorInstance } from '@/shared/streaming';
 
 
 type LanguageOption = LanguageCode | 'auto';
 
 
 // ============ Local built-in AI APIs (optional, best-effort) ============
-interface TranslatorInstance {
-  ready?: Promise<void>;
-  translate: (text: string) => Promise<string>;
-}
+// 使用共享的 TranslatorInstance 类型
 
 interface TranslatorStaticLegacy {
   create: (opts: { sourceLanguage: LanguageCode; targetLanguage: LanguageCode; monitor?: (m: unknown) => void }) => Promise<TranslatorInstance> | TranslatorInstance;
@@ -93,6 +91,8 @@ async function detectLanguageLocal(text: string): Promise<LanguageCode | null> {
     return null;
   }
 }
+
+// 流式工具已移至共享模块
 
 // ============ Confetti (no-deps, lightweight) ============
 interface ConfettiParticle {
@@ -262,6 +262,9 @@ const SidePanel: React.FC = () => {
   const [isTranslating, setIsTranslating] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
   const activeTabIdRef = React.useRef<number | null>(null);
+  // 流式任务管理
+  const streamReaderRef = React.useRef<ReadableStreamDefaultReader<unknown> | null>(null);
+  const jobCounterRef = React.useRef<number>(0);
 
   React.useEffect(() => {
     const ui = getUILocale();
@@ -326,6 +329,17 @@ const SidePanel: React.FC = () => {
     };
   }, []);
 
+  // 卸载清理：取消可能存在的流式读取
+  React.useEffect(() => {
+    return () => {
+      const reader = streamReaderRef.current;
+      if (reader) {
+        try { reader.cancel(); } catch { /* noop */ }
+        streamReaderRef.current = null;
+      }
+    };
+  }, []);
+
   const pingOnce = React.useCallback(async (tabId: number): Promise<boolean> => {
     try {
       const res = await chrome.tabs.sendMessage(tabId, { type: '__PING__' });
@@ -362,6 +376,15 @@ const SidePanel: React.FC = () => {
     setError(null);
     setIsTranslating(true);
     try {
+      // 取消上一次进行中的流
+      if (streamReaderRef.current) {
+        try { await streamReaderRef.current.cancel(); } catch { /* noop */ }
+        streamReaderRef.current = null;
+      }
+      // 新任务 id，避免竞态覆盖
+      jobCounterRef.current = (jobCounterRef.current || 0) + 1;
+      const jobId = jobCounterRef.current;
+
       // 1) 尝试本地直译（若内置 API 在侧边栏可用）
       let localSucceeded = false;
       try {
@@ -370,10 +393,61 @@ const SidePanel: React.FC = () => {
           : (sourceLanguage as LanguageCode);
         if (src && targetLanguage && src !== targetLanguage) {
           const translator = await getOrCreateLocalTranslator(src, targetLanguage);
-          const out = await translator.translate(inputText);
-          setOutputText(out);
+
+          // 按行翻译，严格保持换行结构
+          setOutputText('');
           setDetectedSource(sourceLanguage === 'auto' ? src : null);
-          localSucceeded = true;
+          const lines = inputText.split(/\r?\n/);
+          const resultLines: string[] = [];
+          for (const line of lines) {
+            if (jobCounterRef.current !== jobId) {
+              // 被新任务打断，直接退出，交由新任务处理
+              return;
+            }
+            if (!line) {
+              resultLines.push('');
+              setOutputText(resultLines.join('\n'));
+              continue;
+            }
+            const canStreamLine = typeof translator.translateStreaming === 'function' && line.length >= STREAMING_LENGTH_THRESHOLD;
+            if (canStreamLine) {
+              let receivedAny = false;
+              let partial = '';
+              try {
+                const streamLike = (translator.translateStreaming as (text: string) => unknown)(line);
+                for await (const chunk of normalizeToAsyncStringIterable(streamLike, (reader) => {
+                  streamReaderRef.current = reader;
+                })) {
+                  if (jobCounterRef.current !== jobId) return;
+                  receivedAny = true;
+                  partial += chunk;
+                  setOutputText(resultLines.concat(partial).join('\n'));
+                }
+              } catch (_e) {
+                // 忽略流式错误，回退到非流式
+              } finally {
+                streamReaderRef.current = null;
+              }
+              if (jobCounterRef.current !== jobId) return;
+              if (receivedAny) {
+                resultLines.push(partial);
+                setOutputText(resultLines.join('\n'));
+              } else {
+                const out = await translator.translate(line);
+                if (jobCounterRef.current !== jobId) return;
+                resultLines.push(out);
+                setOutputText(resultLines.join('\n'));
+              }
+            } else {
+              const out = await translator.translate(line);
+              if (jobCounterRef.current !== jobId) return;
+              resultLines.push(out);
+              setOutputText(resultLines.join('\n'));
+            }
+          }
+          if (jobCounterRef.current === jobId) {
+            localSucceeded = true;
+          }
         } else {
           // 同语种，无需翻译
           setOutputText(inputText);
