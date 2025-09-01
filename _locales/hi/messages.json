@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "अनुवादित पाठ यहाँ दिखाई देगा…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "पाठ अनुवाद",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "फ़ाइल अनुवाद",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "EPUB फ़ाइल यहाँ खींचें या चुनने के लिए क्लिक करें",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "समर्थित प्रारूप: EPUB ई‑बुक",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "फ़ाइल पार्स की जा रही है…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "अनुवाद जारी है… कृपया साइड पैनल बंद न करें",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "$2 में से $1 खंड अनुवादित",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "अनुवाद पूरा हुआ!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "अनुवादित फ़ाइल डाउनलोड करें",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "अगली बार स्वतः डाउनलोड करें",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "फ़ाइल पार्स करने में विफल। कृपया फ़ाइल प्रारूप जाँचें।",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "असमर्थित फ़ाइल प्रारूप। केवल EPUB फ़ाइलें समर्थित हैं।",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "फ़ाइल बहुत बड़ी है। कृपया छोटी फ़ाइल चुनें।",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "कृपया पहले एक फ़ाइल चुनें।",
+    "description": "No file selected error message"
   }
 }

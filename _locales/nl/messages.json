@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "De vertaalde tekst verschijnt hier…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "Tekstvertaling",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "Bestandsvertaling",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "Sleep een EPUB‑bestand hierheen of klik om te selecteren",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "Ondersteund formaat: EPUB‑e‑books",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "Bestand wordt geanalyseerd…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "Bezig met vertalen… Sluit het zijpaneel niet",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "$1 van $2 segmenten vertaald",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "Vertaling voltooid!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "Vertaald bestand downloaden",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "Volgende keer automatisch downloaden",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "Bestand kan niet worden geanalyseerd. Controleer het bestandsformaat.",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "Bestandsformaat niet ondersteund. Alleen EPUB‑bestanden worden ondersteund.",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "Bestand is te groot. Kies een kleiner bestand.",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "Selecteer eerst een bestand.",
+    "description": "No file selected error message"
   }
 }

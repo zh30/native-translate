@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "Çevrilen metin burada görünecek…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "Metin Çevirisi",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "Dosya Çevirisi",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "EPUB dosyasını buraya sürükleyin veya seçmek için tıklayın",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "Desteklenen biçim: EPUB e‑kitaplar",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "Dosya ayrıştırılıyor…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "Çevriliyor… Lütfen yan paneli kapatmayın",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "$2 bölümün $1 bölümü çevrildi",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "Çeviri tamamlandı!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "Çevrilen Dosyayı İndir",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "Sonraki sefer otomatik indir",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "Dosya ayrıştırılamadı. Lütfen dosya biçimini kontrol edin.",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "Desteklenmeyen dosya biçimi. Yalnızca EPUB dosyaları desteklenir.",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "Dosya çok büyük. Lütfen daha küçük bir dosya seçin.",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "Lütfen önce bir dosya seçin.",
+    "description": "No file selected error message"
   }
 }

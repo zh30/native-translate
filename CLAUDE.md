@@ -17,9 +17,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Package Manager**: Uses `pnpm@9.15.1+` (specified in packageManager field)
 
 ### Development Auto-Reload
-- **Dev Server**: SSE server watches `dist/` directory and triggers extension reload
-- **Offscreen Document**: Maintains SSE connection for reliable dev reloading
-- **Auto-Inject**: Development mode automatically injects content scripts into existing tabs
+- **Watch Mode**: `pnpm dev` runs Rspack in watch mode, rebuilding on file changes
+- **Extension Reload**: Manual reload required in chrome://extensions during development
 - **Environment**: Uses `__DEV__` flag to conditionally enable dev features
 
 ### Testing
@@ -30,11 +29,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Browser Extension Structure
 The extension follows Chrome Extension Manifest v3 architecture with these entry points:
 
-- **Background Script** (`src/scripts/background.ts`) - Service worker handling tab events, side panel management, and dev auto-reload functionality
+- **Background Script** (`src/scripts/background.ts`) - Service worker handling tab events and side panel management
 - **Content Script** (`src/scripts/contentScript.ts`) - Main translation engine with hover-to-translate functionality and page world bridge
 - **Side Panel** (`src/sidePanel/sidePanel.tsx`) - React component for the extension's side panel UI
 - **Popup** (`src/popup/popup.tsx`) - React component for extension popup with settings and translation controls
-- **Offscreen Document** (`src/offscreen/devReloader.ts`) - Maintains SSE connection for development auto-reload
 
 ### Key Features
 1. **On-Device Translation**: Uses Chrome's built-in AI Translator API (Chrome 138+)
@@ -82,8 +80,7 @@ The extension follows Chrome Extension Manifest v3 architecture with these entry
 - **Storage API**: For settings and model readiness caching
 - **Scripting API**: For content script injection when needed
 - **Tabs API**: For tab management and communication
-- **Offscreen API**: For maintaining SSE connections in development mode
-- **Runtime API**: For extension reloading during development
+- **Runtime API**: For extension messaging and lifecycle management
 
 ### File Structure Patterns
 ```
@@ -92,12 +89,10 @@ src/
 ├── popup/                 # Popup UI (HTML + React)
 ├── sidePanel/            # Side panel UI (HTML + React) 
 ├── scripts/              # Background and content scripts
-├── offscreen/            # Offscreen document for dev auto-reload
+├── shared/               # Cross-context types and utilities
 ├── styles/               # Tailwind CSS configuration
 ├── components/ui/        # Reusable UI components (Radix-based)
-└── utils/                # Utility functions (i18n, RTL)
-scripts/
-└── dev-reload-server.mjs # SSE server for development auto-reload
+└── utils/                # Utility functions (i18n, RTL, EPUB parsing)
 ```
 
 ### Development Patterns
@@ -114,15 +109,13 @@ scripts/
 - **Output**: Clean builds to `dist/` directory with manifest and assets copying
 - **Zip Plugin**: Custom ZipAfterBuildPlugin creates distribution zip file (production only)
 - **Asset Handling**: Icons and fonts copied to appropriate locations
-- **Development Build**: Includes offscreen document for dev auto-reload functionality
 
 ### Manifest Configuration
-- **Permissions**: storage, activeTab, scripting, tabs, sidePanel, offscreen
+- **Permissions**: storage, activeTab, scripting, tabs, sidePanel
 - **Content Scripts**: Runs on all URLs (`<all_urls>`) with `all_frames: true` and `match_about_blank: true`
 - **Minimum Chrome**: v138+ (required for built-in AI APIs)
 - **Side Panel**: Default path set to `sidePanel.html`
 - **Action**: Popup enabled with full icon set
-- **Offscreen Document**: Used for maintaining SSE connections in development mode
 
 ### Code Quality Tools
 - **Biome**: Linting and formatting (2-space indentation, 100-character line width)
@@ -137,11 +130,10 @@ scripts/
 - **Fallback Strategy**: Returns key if translation not found
 
 ### Development Architecture
-- **Auto-Reload System**: SSE server watches `dist/` changes and triggers extension reload
-- **Offscreen Document**: Maintains persistent SSE connection for reliable dev reloading
 - **Bridge Architecture**: Content script injects bridge into page world to access Translator API
 - **API Adapter Pattern**: Handles both legacy and modern Chrome Translator API implementations
-- **Development Injection**: Automatically injects content scripts into existing tabs during development
+- **Streaming Translation**: Progressive translation with visual feedback for long texts
+- **Memory Management**: WeakSet tracking and translation caching for performance
 
 ## Cursor Rules Summary
 
@@ -172,7 +164,7 @@ scripts/
 ### Extension Development
 - **Manifest v3** with service worker architecture
 - **Chrome 138+ required** for built-in AI APIs
-- **Development builds** include auto-reload functionality via SSE server
+- **Development builds** use watch mode with manual extension reload
 - **Production builds** automatically create zip distribution package
 - **Multi-frame support**: Content scripts run in all frames including about:blank
 - **Path mapping**: Use `@/*` aliases consistently across TypeScript and build config

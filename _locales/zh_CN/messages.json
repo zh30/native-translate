@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "翻译结果将显示在这里…",
     "description": "侧边栏：输出占位"
+  },
+  "text_translation_tab": {
+    "message": "文本翻译",
+    "description": "文本翻译标签页标题"
+  },
+  "file_translation_tab": {
+    "message": "文件翻译",
+    "description": "文件翻译标签页标题"
+  },
+  "file_upload_area": {
+    "message": "拖拽 EPUB 文件到此处或点击选择文件",
+    "description": "文件上传区域提示文字"
+  },
+  "file_supported_formats": {
+    "message": "支持格式：EPUB 电子书",
+    "description": "支持的文件格式说明"
+  },
+  "file_parsing": {
+    "message": "正在解析文件…",
+    "description": "文件解析状态文字"
+  },
+  "file_translating_progress": {
+    "message": "正在翻译…请不要关闭侧边栏",
+    "description": "翻译进度警告文字"
+  },
+  "translation_progress_detail": {
+    "message": "已翻译 $1 段，共 $2 段",
+    "description": "详细进度信息，$1 为已完成数量，$2 为总数量"
+  },
+  "translation_completed": {
+    "message": "翻译完成！",
+    "description": "翻译完成状态"
+  },
+  "download_translated_file": {
+    "message": "下载翻译后的文件",
+    "description": "下载按钮文字"
+  },
+  "auto_download": {
+    "message": "下次完成后自动下载",
+    "description": "自动下载开关文字"
+  },
+  "file_parse_error": {
+    "message": "文件解析失败，请检查文件格式。",
+    "description": "文件解析错误提示"
+  },
+  "unsupported_file_format": {
+    "message": "不支持的文件格式，仅支持 EPUB 文件。",
+    "description": "文件格式错误提示"
+  },
+  "file_too_large": {
+    "message": "文件过大，请选择较小的文件。",
+    "description": "文件大小错误提示"
+  },
+  "select_file_first": {
+    "message": "请先选择一个文件。",
+    "description": "未选择文件错误提示"
   }
 }

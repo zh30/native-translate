@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "Teks hasil terjemahan akan muncul di sini…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "Terjemahan Teks",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "Terjemahan Berkas",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "Seret berkas EPUB ke sini atau klik untuk memilih",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "Format yang didukung: e‑book EPUB",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "Menganalisis berkas…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "Menerjemahkan… Jangan tutup panel samping",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "Diterjemahkan $1 dari $2 segmen",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "Terjemahan selesai!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "Unduh Berkas Terjemahan",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "Unduh otomatis lain kali",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "Gagal menganalisis berkas. Periksa format berkas.",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "Format berkas tidak didukung. Hanya berkas EPUB yang didukung.",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "Berkas terlalu besar. Harap pilih berkas yang lebih kecil.",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "Silakan pilih berkas terlebih dahulu.",
+    "description": "No file selected error message"
   }
 }

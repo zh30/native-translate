@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "سيظهر النص المترجم هنا…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "ترجمة النص",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "ترجمة الملفات",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "اسحب ملف EPUB هنا أو انقر للاختيار",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "الصيغة المدعومة: كتب إلكترونية EPUB",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "جارٍ تحليل الملف…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "جارٍ الترجمة… الرجاء عدم إغلاق اللوحة الجانبية",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "تمت ترجمة $1 من أصل $2 مقطع",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "اكتملت الترجمة!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "تنزيل الملف المترجم",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "نزّل تلقائيًا في المرة القادمة",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "فشل تحليل الملف. يرجى التحقق من تنسيق الملف.",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "تنسيق ملف غير مدعوم. يتم دعم ملفات EPUB فقط.",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "الملف كبير جدًا. يرجى اختيار ملف أصغر.",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "يرجى اختيار ملف أولاً.",
+    "description": "No file selected error message"
   }
 }

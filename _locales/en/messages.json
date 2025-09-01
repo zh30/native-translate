@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "Translated text will appear here…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "Text Translation",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "File Translation",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "Drag EPUB file here or click to select",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "Supported format: EPUB e-books",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "Parsing file…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "Translating… Please do not close the side panel",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "Translated $1 of $2 segments",
+    "description": "Detailed progress information, $1 for completed count, $2 for total count"
+  },
+  "translation_completed": {
+    "message": "Translation completed!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "Download Translated File",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "Auto-download next time",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "Failed to parse file. Please check the file format.",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "Unsupported file format. Only EPUB files are supported.",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "File is too large. Please select a smaller file.",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "Please select a file first.",
+    "description": "No file selected error message"
   }
 }

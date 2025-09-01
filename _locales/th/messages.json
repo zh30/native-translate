@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "ข้อความที่แปลแล้วจะแสดงที่นี่…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "การแปลข้อความ",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "การแปลไฟล์",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "ลากไฟล์ EPUB มาที่นี่หรือคลิกเพื่อเลือก",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "รูปแบบที่รองรับ: หนังสืออิเล็กทรอนิกส์ EPUB",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "กำลังแยกวิเคราะห์ไฟล์…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "กำลังแปล… กรุณาอย่าปิดแผงด้านข้าง",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "แปลแล้ว $1 จาก $2 ส่วน",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "การแปลเสร็จสมบูรณ์!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "ดาวน์โหลดไฟล์ที่แปลแล้ว",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "ดาวน์โหลดอัตโนมัติในครั้งถัดไป",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "ไม่สามารถแยกวิเคราะห์ไฟล์ได้ โปรดตรวจสอบรูปแบบไฟล์",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "รูปแบบไฟล์ไม่รองรับ รองรับเฉพาะไฟล์ EPUB เท่านั้น",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "ไฟล์มีขนาดใหญ่เกินไป โปรดเลือกไฟล์ที่มีขนาดเล็กกว่า",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "กรุณาเลือกไฟล์ก่อน",
+    "description": "No file selected error message"
   }
 }

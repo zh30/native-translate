@@ -174,5 +174,61 @@
   "sidepanel_output_placeholder": {
     "message": "Văn bản đã dịch sẽ xuất hiện ở đây…",
     "description": "Side panel: output placeholder"
+  },
+  "text_translation_tab": {
+    "message": "Dịch Văn Bản",
+    "description": "Tab title for text translation"
+  },
+  "file_translation_tab": {
+    "message": "Dịch Tệp",
+    "description": "Tab title for file translation"
+  },
+  "file_upload_area": {
+    "message": "Kéo tệp EPUB vào đây hoặc nhấp để chọn",
+    "description": "File upload area prompt text"
+  },
+  "file_supported_formats": {
+    "message": "Định dạng hỗ trợ: Sách điện tử EPUB",
+    "description": "Supported file formats description"
+  },
+  "file_parsing": {
+    "message": "Đang phân tích tệp…",
+    "description": "File parsing status text"
+  },
+  "file_translating_progress": {
+    "message": "Đang dịch… Vui lòng không đóng bảng bên",
+    "description": "Translation progress warning text"
+  },
+  "translation_progress_detail": {
+    "message": "Đã dịch $1 trên $2 đoạn",
+    "description": "Detailed progress information"
+  },
+  "translation_completed": {
+    "message": "Hoàn tất dịch!",
+    "description": "Translation completed status"
+  },
+  "download_translated_file": {
+    "message": "Tải Xuống Tệp Đã Dịch",
+    "description": "Download button text"
+  },
+  "auto_download": {
+    "message": "Tự động tải xuống lần sau",
+    "description": "Auto-download switch text"
+  },
+  "file_parse_error": {
+    "message": "Không thể phân tích tệp. Vui lòng kiểm tra định dạng tệp.",
+    "description": "File parsing error message"
+  },
+  "unsupported_file_format": {
+    "message": "Định dạng tệp không được hỗ trợ. Chỉ hỗ trợ tệp EPUB.",
+    "description": "File format error message"
+  },
+  "file_too_large": {
+    "message": "Tệp quá lớn. Vui lòng chọn tệp nhỏ hơn.",
+    "description": "File size error message"
+  },
+  "select_file_first": {
+    "message": "Vui lòng chọn tệp trước.",
+    "description": "No file selected error message"
   }
 }
