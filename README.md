@@ -13,20 +13,31 @@ Native Translate is a privacy‑first Chrome extension that uses Chrome’s buil
 
 ## Features
 
+### Core Translation Features
 - **Full‑page translation**: Preserves original layout by appending translated text under original blocks
 - **Hover‑to‑translate**: Hold a modifier key (Alt/Control/Shift) and hover over paragraphs for instant translation
 - **Triple‑space input translation**: In text fields and contenteditable areas, type three spaces to translate typed content
 - **Side Panel translation**: Free‑text translation with auto‑detect; prefers local APIs, falls back gracefully
+- **EPUB file translation**: Upload and translate EPUB files with progress tracking and automatic download
+
+### Advanced Translation Capabilities
 - **Streaming translation**: Real‑time progressive translation for longer texts with visual feedback
 - **Smart element selection**: Intelligently avoids code blocks, tables, and navigation elements
 - **Multi‑frame support**: Works in all frames including about:blank pages
 - **IME awareness**: Handles Asian language composition events correctly
 - **Automatic language detection**: On‑device detection with download progress overlay
+
+### Technical Features
 - **Advanced caching**: Per‑line and per‑language‑pair caching with model readiness tracking
 - **RTL/LTR support**: Automatic text direction and alignment for target languages
 - **Bridge architecture**: Falls back to page‑world bridge when content script APIs are unavailable
 - **Development auto‑reload**: SSE‑based auto‑reload system for development
-- **Internationalized UI**: Support for 13+ languages via Chrome i18n
+- **Internationalized UI**: Support for 25+ languages via Chrome i18n
+
+### Supported Languages
+- **Source languages**: English, Chinese (Simplified/Traditional), Japanese, Korean, French, German, Spanish, Italian, Portuguese, Russian, Arabic, Hindi, Bengali, Indonesian, Turkish, Vietnamese, Thai, Dutch, Polish, Persian, Urdu, Ukrainian, Swedish, Filipino
+- **Target languages**: All supported source languages plus auto-detection
+- **Language pairs**: 25+ languages with intelligent model caching per pair
 
 <img width="668" height="1172" alt="wechat_2025-08-19_094654_652" src="https://github.com/user-attachments/assets/10fd7d00-c38d-43ed-b8e8-3b97ebf1e93e" />
 
@@ -48,21 +59,28 @@ Note: On first use, Chrome may download on‑device models. Availability depends
 
 ## Usage
 
-- Open the popup (toolbar icon)
+### Web Page Translation
+- **Open the popup** (toolbar icon)
   - Pick a target language
   - Choose the hover modifier (Alt/Control/Shift)
-  - Optionally set “Input target language” for typing translation
-  - Click “Translate current page” for full‑page translation
-- Hover‑translate: hold the selected modifier and hover a paragraph; a translation is appended under the original
-- Inline input translation: in an input/textarea/contenteditable, press space three times to translate your typed text to the chosen “Input target language”
-- The overlay shows model download and translation progress when needed
-- Special pages (e.g., `chrome://`, some store pages) do not allow script injection
-- Re‑running full‑page translation clears old inserted translations and re‑inserts with the new target
+  - Optionally set "Input target language" for typing translation
+  - Click "Translate current page" for full‑page translation
+- **Hover‑translate**: hold the selected modifier and hover a paragraph; a translation is appended under the original
+- **Inline input translation**: in an input/textarea/contenteditable, press space three times to translate your typed text to the chosen "Input target language"
+- **Progress overlay**: shows model download and translation progress when needed
+- **Special pages**: `chrome://`, some store pages do not allow script injection
+- **Re‑running translation**: clears old inserted translations and re‑inserts with the new target
 
-- Side Panel
-  - From the popup, click “Open Side Panel”
-  - Type text on the left; choose Source = Auto (default) or a fixed language, and choose target on the right
-  - Translation runs as you type; the panel first tries local built‑in APIs, then falls back to the content script if not available
+### Side Panel Translation
+- **Access**: From the popup, click "Open Side Panel"
+- **Free text translation**: Type text on the left; choose Source = Auto (default) or a fixed language, and choose target on the right
+- **Real‑time translation**: runs as you type; the panel first tries local built‑in APIs, then falls back to the content script if not available
+- **EPUB file translation**:
+  - Click the "Upload EPUB" tab
+  - Select an EPUB file from your device
+  - Choose source and target languages
+  - Translation processes chapter by chapter with progress tracking
+  - Automatically downloads the translated EPUB file when complete
 
 ## Privacy & Security
 
@@ -83,11 +101,11 @@ Permissions used:
 ### Core Components
 - **Content Script** (`src/scripts/contentScript.ts`) — Main translation engine with intelligent block collection, streaming translation support, hover‑to‑translate, triple‑space input translation, memory caching, progress overlays, and page‑world bridge fallback
 - **Popup Interface** (`src/popup/popup.tsx`) — Settings UI for target language, hover modifiers, input target language, and full‑page translation trigger with automatic content script injection
-- **Side Panel** (`src/sidePanel/sidePanel.tsx`) — Real‑time translation interface with streaming support, auto‑detection, local API preference, and confetti easter eggs
+- **Side Panel** (`src/sidePanel/sidePanel.tsx`) — Real‑time translation interface with streaming support, auto‑detection, local API preference, EPUB file translation, and confetti easter eggs
 - **Background Service** (`src/scripts/background.ts`) — Tab management, side panel behavior, and zhanghe.dev integration
 - **Shared Modules** (`src/shared/*`) — Cross‑context types, constants, and streaming utilities
 - **UI Components** (`src/components/ui/*`) — Radix‑based reusable components with Tailwind styling
-- **Utilities** (`src/utils/*`) — i18n helpers, RTL/LTR detection, and class name utilities
+- **Utilities** (`src/utils/*`) — i18n helpers, RTL/LTR detection, EPUB parsing, and class name utilities
 
 ### Key Features Implementation
 - **Translation Engine**: Supports both legacy (`window.Translator`) and modern (`window.translation.createTranslator`) Chrome APIs
@@ -96,6 +114,8 @@ Permissions used:
 - **Bridge Architecture**: Injects page‑world bridge script when content script API access fails
 - **Memory Management**: WeakSet tracking, translation caching, and model readiness persistence
 - **IME Support**: Composition event handling to prevent false triggers during Asian language input
+- **EPUB Processing**: Full EPUB parsing with chapter extraction, text segmentation, and translated file generation
+- **File Translation**: Batch processing of EPUB content with progress tracking and concurrent translation
 
 ### Build System
 - **Rspack + SWC**: Multi‑entry build with TypeScript, React 19, and Tailwind CSS v4
@@ -129,6 +149,9 @@ src/
       textarea.tsx
       progress.tsx
       badge.tsx
+      card.tsx
+      tabs.tsx
+      switch.tsx
   popup/
     popup.html
     popup.tsx
@@ -142,10 +165,12 @@ src/
     languages.ts
     messages.ts
     settings.ts
+    streaming.ts
   utils/
     cn.ts
     i18n.ts
     rtl.ts
+    epubParser.ts
   offscreen/
     devReloader.html
     devReloader.ts
@@ -182,11 +207,24 @@ src/
 
 ## Roadmap
 
+### Planned Features
 - **Context menu integration**: Right‑click translation with keyboard shortcuts
 - **Enhanced side panel**: Translation history, favorites, and batch operations
 - **Advanced streaming**: Sentence‑by‑sentence streaming for better UX
 - **Cross‑browser support**: Adaptation for other Chromium‑based browsers where feasible
 - **Performance optimization**: Further memory usage reduction and faster model loading
+
+### File Translation Enhancements
+- **Multiple file formats**: Support for PDF, DOCX, and TXT files
+- **Batch processing**: Queue multiple files for translation
+- **Translation memory**: Reuse previous translations for similar content
+- **Custom dictionaries**: User‑defined terminology and style preferences
+
+### Advanced Features
+- **Offline translation**: Complete offline capability with pre‑downloaded models
+- **Custom model training**: Fine‑tuning for specific domains or styles
+- **Collaboration features**: Shared translation projects and review workflows
+- **API integration**: REST API for integration with other applications
 
 ## Contributing
 

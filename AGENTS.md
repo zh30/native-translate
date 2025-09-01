@@ -19,10 +19,13 @@
 - **Architecture**: Follow existing patterns, use chrome.storage.local, maintain MV3 structure
 
 ## Cursor Rules
-- Entry points must match manifest.json exactly
-- Use `@/*` path aliases consistently
-- Component props must be explicitly typed
-- Prioritize Radix UI components and Tailwind utilities
+- Entry points must match manifest.json exactly (popup.html, sidePanel.html, background.js, contentScript.js)
+- Use `@/*` path aliases consistently for `src/*` imports
+- Component props must be explicitly typed with interfaces
+- Prioritize Radix UI components and Tailwind utilities over custom CSS
 - Follow Biome formatting and TypeScript strict mode
-- Use meaningful variable/function names
+- Use meaningful variable/function names (no 1-2 letter vars)
 - Import global styles in each entry point
+- Use Chrome i18n for all user-facing text with `_locales/*/messages.json`
+- Set document direction (`dir="rtl|ltr"`) based on UI language
+- Maintain MV3 extension structure and chrome.storage.local usage
