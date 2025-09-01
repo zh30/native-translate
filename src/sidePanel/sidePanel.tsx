@@ -365,6 +365,7 @@ const SidePanel: React.FC = () => {
   const streamReaderRef = React.useRef<ReadableStreamDefaultReader<unknown> | null>(null);
   const jobCounterRef = React.useRef<number>(0);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [pendingFiles, setPendingFiles] = React.useState<File[]>([]);
 
   React.useEffect(() => {
     const ui = getUILocale();
@@ -500,15 +501,44 @@ const SidePanel: React.FC = () => {
     }));
   }, []);
 
+  const startNextFile = React.useCallback(() => {
+    setPendingFiles((prev) => {
+      // 若已有文件在处理（或未完成），则保持队列不动
+      if (fileState.isProcessing || (fileState.file && fileState.status !== 'completed')) {
+        return prev;
+      }
+      const next = prev[0];
+      if (!next) return prev;
+      handleFileSelect(next);
+      return prev.slice(1);
+    });
+  }, [fileState.isProcessing, fileState.file, fileState.status, handleFileSelect]);
+
+  const handleFilesSelect = React.useCallback((files: File[]) => {
+    const valid: File[] = [];
+    for (const f of files) {
+      if (!f.name.toLowerCase().endsWith('.epub')) continue;
+      if (f.size > 50 * 1024 * 1024) continue;
+      valid.push(f);
+    }
+    if (valid.length === 0) {
+      setFileState(prev => ({ ...prev, error: t('unsupported_file_format'), status: 'error' }));
+      return;
+    }
+    setPendingFiles(prev => prev.concat(valid));
+    // 若当前空闲，则立即启动下一个
+    startNextFile();
+  }, [startNextFile]);
+
   const handleFileDrop = React.useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const files = Array.from(e.dataTransfer.files);
+    const files = Array.from(e.dataTransfer.files || []);
     if (files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFilesSelect(files);
     }
-  }, [handleFileSelect]);
+  }, [handleFilesSelect]);
 
   const handleDragOver = React.useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -538,7 +568,9 @@ const SidePanel: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }, [fileState.translatedContent, fileState.book]);
+    // 手动下载后，若仍有待处理文件，则继续下一个
+    startNextFile();
+  }, [fileState.translatedContent, fileState.book, startNextFile]);
 
   // (mapper moved to top-level)
 
@@ -872,6 +904,13 @@ const SidePanel: React.FC = () => {
     }
   }, [fileState.file, fileState.status, fileState.isProcessing, translateFile]);
 
+  // 单个文件完成后，若队列中仍有文件，继续处理下一个
+  React.useEffect(() => {
+    if (!fileState.isProcessing && fileState.status === 'completed' && fileState.autoDownload) {
+      startNextFile();
+    }
+  }, [fileState.isProcessing, fileState.status, fileState.autoDownload, startNextFile]);
+
   return (
     <div className="p-4 h-screen box-border text-sm text-gray-900 dark:text-gray-100">
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'text' | 'file')}>
@@ -1092,9 +1131,10 @@ const SidePanel: React.FC = () => {
               ref={fileInputRef}
               type="file"
               accept=".epub"
+              multiple
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileSelect(file);
+                const files = Array.from(e.target.files ?? []);
+                if (files.length > 0) handleFilesSelect(files);
               }}
               style={{ display: 'none' }}
             />
