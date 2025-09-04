@@ -1,241 +1,153 @@
-# Native Translate — Private, Built-in AI Translation
+# Native Translate
 
 [![Release on Tag](https://github.com/zh30/native-translate/actions/workflows/release-on-tag.yml/badge.svg)](https://github.com/zh30/native-translate/actions/workflows/release-on-tag.yml)
-English | [简体中文](./README.zh-CN.md) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-v2.1.1-brightgreen)](https://chrome.google.com/webstore/detail/native-translate/)
 
-Native Translate is a privacy‑first Chrome extension that uses Chrome’s built‑in AI Translator and Language Detector. No cloud calls, no telemetry — your content never leaves the browser. Models download and run locally (with progress feedback) and are cached for offline use.
+English | [简体中文](./README.zh-CN.md)
 
-- Open‑source (MIT)
-- Local‑first: translation and detection run on device
-- Privacy by design: zero external translation requests by default
-- Fast and robust: progress overlay, streaming translation, caching, RTL/LTR aware
-- Minimal permissions, lightweight UI
+**Native Translate** is a privacy-focused Chrome extension that uses Chrome's built-in AI Translator and Language Detector APIs. All translation happens locally on your device - no external API calls, no telemetry, complete privacy.
 
 ## Features
 
-### Core Translation Features
-- **Full‑page translation**: Preserves original layout by appending translated text under original blocks
-- **Hover‑to‑translate**: Hold a modifier key (Alt/Control/Shift) and hover over paragraphs for instant translation
-- **Triple‑space input translation**: In text fields and contenteditable areas, type three spaces to translate typed content
-- **Side Panel translation**: Free‑text translation with auto‑detect; prefers local APIs, falls back gracefully
-- **EPUB file translation**: Upload and translate EPUB files with progress tracking and automatic download
+### 🌐 Translation Modes
+- **Full-page translation**: Translates entire web pages while preserving original layout
+- **Hover-to-translate**: Hold modifier key (Alt/Control/Shift) and hover over text for instant translation
+- **Input field translation**: Type three spaces in any input field to translate your content
+- **Side panel translator**: Free-form text translation with real-time results
+- **EPUB file translation**: Upload and translate EPUB books with progress tracking
 
-### Advanced Translation Capabilities
-- **Streaming translation**: Real‑time progressive translation for longer texts with visual feedback
-- **Smart element selection**: Intelligently avoids code blocks, tables, and navigation elements
-- **Multi‑frame support**: Works in all frames including about:blank pages
-- **IME awareness**: Handles Asian language composition events correctly
-- **Automatic language detection**: On‑device detection with download progress overlay
+### 🚀 Advanced Capabilities
+- **On-device processing**: Uses Chrome's built-in AI models (Chrome 138+)
+- **Streaming translation**: Real-time progressive translation for longer texts
+- **Smart content detection**: Intelligently skips code blocks, tables, and navigation
+- **Multi-frame support**: Works across all frames including about:blank pages
+- **IME support**: Proper handling of Asian language input methods
+- **Offline capability**: Works offline after models are downloaded
 
-### Technical Features
-- **Advanced caching**: Per‑line and per‑language‑pair caching with model readiness tracking
-- **RTL/LTR support**: Automatic text direction and alignment for target languages
-- **Bridge architecture**: Falls back to page‑world bridge when content script APIs are unavailable
-- **Development auto‑reload**: SSE‑based auto‑reload system for development
-- **Internationalized UI**: Support for 25+ languages via Chrome i18n
-
-### Supported Languages
-- **Source languages**: English, Chinese (Simplified/Traditional), Japanese, Korean, French, German, Spanish, Italian, Portuguese, Russian, Arabic, Hindi, Bengali, Indonesian, Turkish, Vietnamese, Thai, Dutch, Polish, Persian, Urdu, Ukrainian, Swedish, Filipino
-- **Target languages**: All supported source languages plus auto-detection
-- **Language pairs**: 25+ languages with intelligent model caching per pair
-
-<img width="668" height="1172" alt="wechat_2025-08-19_094654_652" src="https://github.com/user-attachments/assets/10fd7d00-c38d-43ed-b8e8-3b97ebf1e93e" />
+### 🛡️ Privacy & Security
+- **Zero data collection**: No analytics, no tracking, no cloud requests
+- **Local processing**: All translation happens on your device
+- **Minimal permissions**: Only essential Chrome extension permissions
+- **Open source**: MIT licensed, fully transparent codebase
 
 ## Requirements
 
-- Chrome 138+ (Manifest V3, Side Panel APIs, Built‑in AI)
-- pnpm 9.15.1+ (specified in packageManager)
+- **Chrome 138+** (for built-in AI APIs)
+- **pnpm 9.15.1+** (package manager)
 
-Note: On first use, Chrome may download on‑device models. Availability depends on device capability and Chrome's AI feature rollout.
+## Installation
 
-## Install from source
+### From Chrome Web Store
+[Install from Chrome Web Store](https://chromewebstore.google.com/detail/native-translate-%E2%80%94-privat/npnbioleceelkeepkobjfagfchljkphb/)
 
-1. Install dependencies: `pnpm install`
-2. Development: `pnpm dev` (builds to `dist/` and enables auto‑reload in development)
-3. Open `chrome://extensions`
-4. Enable “Developer mode”
-5. Click “Load unpacked” and select the `dist` folder
-6. Production build: `pnpm build` (also produces `Native-translate.zip` in the project root)
+### From Source
+
+```bash
+# Clone repository
+git clone https://github.com/zh30/native-translate.git
+cd native-translate
+
+# Install dependencies
+pnpm install
+
+# Development build with auto-reload
+pnpm dev
+
+# Load extension in Chrome
+# 1. Open chrome://extensions
+# 2. Enable "Developer mode"
+# 3. Click "Load unpacked"
+# 4. Select the `dist` folder
+```
 
 ## Usage
 
-### Web Page Translation
-- **Open the popup** (toolbar icon)
-  - Pick a target language
-  - Choose the hover modifier (Alt/Control/Shift)
-  - Optionally set "Input target language" for typing translation
-  - Click "Translate current page" for full‑page translation
-- **Hover‑translate**: hold the selected modifier and hover a paragraph; a translation is appended under the original
-- **Inline input translation**: in an input/textarea/contenteditable, press space three times to translate your typed text to the chosen "Input target language"
-- **Progress overlay**: shows model download and translation progress when needed
-- **Special pages**: `chrome://`, some store pages do not allow script injection
-- **Re‑running translation**: clears old inserted translations and re‑inserts with the new target
+### Basic Translation
+1. **Open the extension popup** from the Chrome toolbar
+2. **Select your target language**
+3. **Choose a hover modifier key** (Alt/Control/Shift)
+4. **Click "Translate current page"** for full-page translation
 
-### Side Panel Translation
-- **Access**: From the popup, click "Open Side Panel"
-- **Free text translation**: Type text on the left; choose Source = Auto (default) or a fixed language, and choose target on the right
-- **Real‑time translation**: runs as you type; the panel first tries local built‑in APIs, then falls back to the content script if not available
-- **EPUB file translation**:
-  - Click the "Upload EPUB" tab
-  - Select an EPUB file from your device
-  - Choose source and target languages
-  - Translation processes chapter by chapter with progress tracking
-  - Automatically downloads the translated EPUB file when complete
+### Translation Methods
+- **Hover translation**: Hold modifier key and hover over any text
+- **Input translation**: Type three spaces in any text field
+- **Side panel**: Open for free-form text translation
+- **EPUB files**: Upload and translate entire books
 
-## Privacy & Security
+## Supported Languages
 
-- No analytics, no tracking, no cloud translation by default
-- All logic runs inside the browser (service worker, content script, side panel)
-- Works offline after models are downloaded and cached
-
-Permissions used:
-
-- `storage` — persist settings and readiness metadata
-- `activeTab`, `tabs` — interact with the current tab
-- `scripting` — inject content script if not yet loaded
-- `sidePanel` — optional side panel entry
-- `offscreen` — used only in development for the auto‑reload helper
-
-## Architecture
-
-### Core Components
-- **Content Script** (`src/scripts/contentScript.ts`) — Main translation engine with intelligent block collection, streaming translation support, hover‑to‑translate, triple‑space input translation, memory caching, progress overlays, and page‑world bridge fallback
-- **Popup Interface** (`src/popup/popup.tsx`) — Settings UI for target language, hover modifiers, input target language, and full‑page translation trigger with automatic content script injection
-- **Side Panel** (`src/sidePanel/sidePanel.tsx`) — Real‑time translation interface with streaming support, auto‑detection, local API preference, EPUB file translation, and confetti easter eggs
-- **Background Service** (`src/scripts/background.ts`) — Tab management, side panel behavior, and zhanghe.dev integration
-- **Shared Modules** (`src/shared/*`) — Cross‑context types, constants, and streaming utilities
-- **UI Components** (`src/components/ui/*`) — Radix‑based reusable components with Tailwind styling
-- **Utilities** (`src/utils/*`) — i18n helpers, RTL/LTR detection, EPUB parsing, and class name utilities
-
-### Key Features Implementation
-- **Translation Engine**: Supports both legacy (`window.Translator`) and modern (`window.translation.createTranslator`) Chrome APIs
-- **Streaming Translation**: Progressive translation with visual feedback for texts over 800 characters
-- **Smart Block Detection**: Collects translatable content while avoiding navigation, code, and table elements
-- **Bridge Architecture**: Injects page‑world bridge script when content script API access fails
-- **Memory Management**: WeakSet tracking, translation caching, and model readiness persistence
-- **IME Support**: Composition event handling to prevent false triggers during Asian language input
-- **EPUB Processing**: Full EPUB parsing with chapter extraction, text segmentation, and translated file generation
-- **File Translation**: Batch processing of EPUB content with progress tracking and concurrent translation
-
-### Build System
-- **Rspack + SWC**: Multi‑entry build with TypeScript, React 19, and Tailwind CSS v4
-- **Entry Points**: Fixed names matching manifest.json (background.js, contentScript.js, popup.html, sidePanel.html)
-- **Development**: Auto‑reload system with SSE server and offscreen document
-- **Production**: Automatic zip packaging with asset optimization
+25+ languages including:
+- English, Chinese (Simplified/Traditional), Japanese, Korean
+- French, German, Spanish, Italian, Portuguese
+- Russian, Arabic, Hindi, Bengali, Indonesian
+- Turkish, Vietnamese, Thai, Dutch, Polish
+- Persian, Urdu, Ukrainian, Swedish, Filipino
 
 ## Development
 
-Scripts:
+```bash
+# Development
+pnpm dev          # Build with watch mode and auto-reload
+pnpm build        # Production build with zip packaging
+pnpm tsc          # Type checking
+pnpm lint         # Code linting
+pnpm lint:fix     # Fix linting issues
+```
 
-- `pnpm dev` — watch build with dev auto‑reload (SSE server) and content‑script reinjection
-- `pnpm build` — production build (also zips output to `Native-translate.zip`)
-- `pnpm tsc` — TypeScript type check
-- `pnpm lint` / `pnpm lint:fix` — Biome linting
+### Tech Stack
+- **Frontend**: React 19 + TypeScript + Tailwind CSS v4
+- **Build**: Rspack + SWC
+- **UI Components**: Radix UI primitives
+- **Extension APIs**: Chrome Manifest V3
 
-Tech stack:
+## Architecture
 
-- React 19, TypeScript, Tailwind CSS v4, Radix UI primitives
-- Rspack (SWC) multi‑entry build for MV3
-
-Project layout:
 ```
 src/
-  manifest.json
-  components/
-    ui/
-      button.tsx
-      select.tsx
-      label.tsx
-      textarea.tsx
-      progress.tsx
-      badge.tsx
-      card.tsx
-      tabs.tsx
-      switch.tsx
-  popup/
-    popup.html
-    popup.tsx
-  sidePanel/
-    sidePanel.html
-    sidePanel.tsx
-  scripts/
-    background.ts
-    contentScript.ts
-  shared/
-    languages.ts
-    messages.ts
-    settings.ts
-    streaming.ts
-  utils/
-    cn.ts
-    i18n.ts
-    rtl.ts
-    epubParser.ts
-  offscreen/
-    devReloader.html
-    devReloader.ts
-  styles/
-    tailwind.css
+├── scripts/
+│   ├── background.ts      # Service worker
+│   └── contentScript.ts  # Main translation engine
+├── popup/                # Extension popup UI
+├── sidePanel/            # Side panel interface
+├── components/ui/        # Reusable UI components
+├── shared/               # Shared types and utilities
+└── utils/                # Helper functions
 ```
 
 ## Troubleshooting
 
-### API Issues
-- **"Translator API unavailable"**: Ensure Chrome 138+ and device supports on‑device AI models
-- **Side panel API unavailable**: Panel automatically falls back to content script bridge; ensure active tab allows script injection
+### Common Issues
+- **"Translator API unavailable"**: Ensure Chrome 138+ and device supports AI models
+- **Translation not working**: Check if page allows script injection (avoid chrome:// pages)
+- **Hover translation not triggering**: Verify modifier key settings in popup
+- **Slow first translation**: Initial model download occurs once per language pair
 
-### Translation Issues
-- **No effect on pages**: Some pages block script injection (`chrome://`, extension stores); try regular websites
-- **Slow first translation**: Initial model download occurs once per language pair; subsequent uses are cached
-- **Incomplete translations**: Extension intelligently skips code blocks, tables, and navigation elements by design
-
-### Interaction Issues
-- **Hover translation not working**: 
-  - Set correct modifier key in popup (Alt/Control/Shift)
-  - Hover over substantial text blocks (headings, paragraphs, list items)
-  - Avoid hovering during text editing/input focus
-- **Triple‑space not triggering**:
-  - Only works in text inputs, textareas, and contenteditable elements
-  - Requires exactly two existing spaces followed by third space
-  - Disabled during IME composition for Asian languages
-  - Must be at cursor position, not middle of text
-
-### Performance Issues
-- **Memory usage**: Extension uses WeakSet tracking and clears cached readers on navigation
-- **Streaming interruption**: New translation requests cancel previous streaming operations
-- **Model re‑download**: Cached model readiness persists across sessions in chrome.storage
-
-## Roadmap
-
-### Planned Features
-- **Context menu integration**: Right‑click translation with keyboard shortcuts
-- **Enhanced side panel**: Translation history, favorites, and batch operations
-- **Advanced streaming**: Sentence‑by‑sentence streaming for better UX
-- **Cross‑browser support**: Adaptation for other Chromium‑based browsers where feasible
-- **Performance optimization**: Further memory usage reduction and faster model loading
-
-### File Translation Enhancements
-- **Multiple file formats**: Support for PDF, DOCX, and TXT files
-- **Batch processing**: Queue multiple files for translation
-- **Translation memory**: Reuse previous translations for similar content
-- **Custom dictionaries**: User‑defined terminology and style preferences
-
-### Advanced Features
-- **Offline translation**: Complete offline capability with pre‑downloaded models
-- **Custom model training**: Fine‑tuning for specific domains or styles
-- **Collaboration features**: Shared translation projects and review workflows
-- **API integration**: REST API for integration with other applications
+### Performance
+- Models are cached after first use per language pair
+- Translation results are cached for faster subsequent access
+- Memory usage is optimized with WeakSet tracking
 
 ## Contributing
 
-Issues and PRs are welcome. Please follow the project's established patterns:
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-- **TypeScript**: Strict mode enabled, explicit type annotations for public APIs
-- **React 19**: Functional components with hooks, automatic JSX runtime
-- **Tailwind CSS v4**: Utility classes with `cn()` helper for class merging
-- **Code Quality**: Biome linting with 2‑space indentation, 100‑character line width
-- **Architecture**: Follow existing patterns for content scripts, bridge architecture, and streaming support
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+### Development Standards
+- **TypeScript**: Strict mode with explicit type annotations
+- **React 19**: Functional components with hooks
+- **Code Style**: Biome linting with 2-space indentation
+- **Testing**: Ensure all tests pass before submitting
 
 ## License
 
 MIT © [zhanghe.dev](https://zhanghe.dev)
+
+---
+
+**Privacy Notice**: This extension processes all data locally on your device. No content is sent to external servers.
