@@ -13,24 +13,30 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { debounce } from 'radash';
+import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage';
 import {
   ArrowLeftRight,
   Languages,
   Type,
-  Sparkles,
   Upload,
   Download,
   FileText,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { type LanguageCode, SUPPORTED_LANGUAGES, DEFAULT_TARGET_LANGUAGE } from '@/shared/languages';
-import { MSG_TRANSLATE_TEXT, MSG_EASTER_CONFETTI } from '@/shared/messages';
+import { MSG_TRANSLATE_TEXT, MSG_EASTER_CONFETTI, MSG_WARM_TRANSLATOR } from '@/shared/messages';
 import { STREAMING_LENGTH_THRESHOLD, normalizeToAsyncStringIterable, type TranslatorInstance } from '@/shared/streaming';
 import { parseEpubFile, generateTranslatedEpub, type EpubBook, type TextSegment } from '@/utils/epubParser';
 
 
 type LanguageOption = LanguageCode | 'auto';
+
+const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
+  value: lang.code,
+  label: lang.label,
+}));
 
 // Limited-concurrency async mapper (top-level function to avoid hook deps)
 async function mapWithConcurrency<T, R>(
@@ -73,7 +79,6 @@ interface FileTranslationState {
   currentSegment: number;
   totalSegments: number;
   translatedContent: Blob | null;
-  autoDownload: boolean;
   status: 'idle' | 'parsing' | 'translating' | 'completed' | 'error';
   error: string | null;
   book: EpubBook | null;
@@ -345,7 +350,6 @@ const SidePanel: React.FC = () => {
     currentSegment: 0,
     totalSegments: 0,
     translatedContent: null,
-    autoDownload: false,
     status: 'idle',
     error: null,
     book: null,
@@ -366,6 +370,10 @@ const SidePanel: React.FC = () => {
   const jobCounterRef = React.useRef<number>(0);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [pendingFiles, setPendingFiles] = React.useState<File[]>([]);
+  const [autoDownload, setAutoDownload, autoDownloadReady] = useChromeLocalStorage<boolean>(
+    'fileTranslation:autoDownload',
+    false
+  );
 
   React.useEffect(() => {
     const ui = getUILocale();
@@ -381,23 +389,6 @@ const SidePanel: React.FC = () => {
         activeTabIdRef.current = tab?.id ?? null;
       } catch (_e) {
         activeTabIdRef.current = null;
-      }
-    })();
-  }, []);
-
-  // Load auto-download setting from storage
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const result = await chrome.storage.local.get('fileTranslation:autoDownload');
-        if (result['fileTranslation:autoDownload'] !== undefined) {
-          setFileState(prev => ({
-            ...prev,
-            autoDownload: Boolean(result['fileTranslation:autoDownload'])
-          }));
-        }
-      } catch (_e) {
-        // ignore
       }
     })();
   }, []);
@@ -549,14 +540,6 @@ const SidePanel: React.FC = () => {
     fileInputRef.current?.click();
   }, []);
 
-  const saveAutoDownloadSetting = React.useCallback(async (value: boolean) => {
-    try {
-      await chrome.storage.local.set({ 'fileTranslation:autoDownload': value });
-    } catch (_e) {
-      // ignore
-    }
-  }, []);
-
   const downloadTranslatedFile = React.useCallback(() => {
     if (!fileState.translatedContent || !fileState.book) return;
 
@@ -588,6 +571,50 @@ const SidePanel: React.FC = () => {
       await pingOnce(tabId);
     } catch (_err) { }
   }, [pingOnce]);
+
+  const warmTranslatorForActiveTab = React.useCallback(
+    async (warmTarget: LanguageCode) => {
+      const tabId = activeTabIdRef.current;
+      if (!tabId) return;
+      await ensureContentScript();
+      const sendWarm = async () => {
+        await chrome.tabs.sendMessage(tabId, {
+          type: MSG_WARM_TRANSLATOR,
+          payload: {
+            targetLanguage: warmTarget,
+            sourceLanguage: sourceLanguage,
+          },
+        });
+      };
+      try {
+        await sendWarm();
+      } catch (error) {
+        const tab = await chrome.tabs.get(tabId);
+        const url = tab.url ?? '';
+        if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              files: ['contentScript.js'],
+            });
+            await sendWarm();
+          } catch (_e) {
+            // ignore warming failure
+          }
+        }
+      }
+    },
+    [ensureContentScript, sourceLanguage]
+  );
+
+  React.useEffect(() => {
+    void warmTranslatorForActiveTab(targetLanguage);
+  }, [targetLanguage, warmTranslatorForActiveTab]);
+
+  React.useEffect(() => {
+    if (sourceLanguage === 'auto') return;
+    void warmTranslatorForActiveTab(targetLanguage);
+  }, [sourceLanguage, targetLanguage, warmTranslatorForActiveTab]);
 
   const translateFile = React.useCallback(async () => {
     if (!fileState.file) {
@@ -720,7 +747,7 @@ const SidePanel: React.FC = () => {
       }));
 
       // Auto-download if enabled
-      if (fileState.autoDownload) {
+      if (autoDownload) {
         const url = URL.createObjectURL(translatedBlob);
         const link = document.createElement('a');
         link.href = url;
@@ -740,7 +767,7 @@ const SidePanel: React.FC = () => {
         isProcessing: false
       }));
     }
-  }, [fileState.file, fileState.autoDownload, targetLanguage, ensureContentScript, concurrency]);
+  }, [fileState.file, autoDownload, targetLanguage, ensureContentScript, concurrency]);
 
   const translate = React.useCallback(async () => {
     const tabId = activeTabIdRef.current;
@@ -906,10 +933,10 @@ const SidePanel: React.FC = () => {
 
   // 单个文件完成后，若队列中仍有文件，继续处理下一个
   React.useEffect(() => {
-    if (!fileState.isProcessing && fileState.status === 'completed' && fileState.autoDownload) {
+    if (!fileState.isProcessing && fileState.status === 'completed' && autoDownload) {
       startNextFile();
     }
-  }, [fileState.isProcessing, fileState.status, fileState.autoDownload, startNextFile]);
+  }, [fileState.isProcessing, fileState.status, autoDownload, startNextFile]);
 
   return (
     <div className="p-4 h-screen box-border text-sm text-gray-900 dark:text-gray-100">
@@ -935,7 +962,7 @@ const SidePanel: React.FC = () => {
               <AppSelect
                 value={sourceLanguage}
                 onValueChange={(v) => setSourceLanguage((v as LanguageOption) || 'auto')}
-                options={[{ value: 'auto', label: t('auto_detect') }, ...SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))]}
+                options={[{ value: 'auto', label: t('auto_detect') }, ...LANGUAGE_OPTIONS]}
               />
               <Textarea
                 className="flex-1 min-h-44 resize-none"
@@ -952,14 +979,21 @@ const SidePanel: React.FC = () => {
               <AppSelect
                 value={targetLanguage}
                 onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
-                options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+                options={LANGUAGE_OPTIONS}
               />
               <Textarea
                 className="flex-1 min-h-44 resize-none"
                 placeholder={t('sidepanel_output_placeholder')}
                 value={outputText}
                 readOnly
+                aria-busy={isTranslating}
               />
+              {isTranslating && !outputText && (
+                <div
+                  className="h-20 w-full animate-pulse rounded-md border border-dashed border-gray-200 bg-gray-100/60 dark:border-neutral-700 dark:bg-neutral-800/60"
+                  aria-hidden="true"
+                />
+              )}
               {detectedSource && sourceLanguage === 'auto' && (
                 <div className="text-[11px] text-gray-500 dark:text-gray-400 inline-flex items-center gap-1">
                   <Type className="size-3.5" />
@@ -967,8 +1001,12 @@ const SidePanel: React.FC = () => {
                 </div>
               )}
               {isTranslating && (
-                <div className="text-[11px] text-gray-500 dark:text-gray-400 inline-flex items-center gap-1">
-                  <Sparkles className="size-3.5" />
+                <div
+                  className="text-[11px] text-blue-600 dark:text-blue-400 inline-flex items-center gap-2"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2 className="size-3.5 animate-spin" />
                   {t('preparing_translator')}
                 </div>
               )}
@@ -990,7 +1028,7 @@ const SidePanel: React.FC = () => {
               <AppSelect
                 value={targetLanguage}
                 onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
-                options={SUPPORTED_LANGUAGES.map((l) => ({ value: l.code, label: l.label }))}
+                options={LANGUAGE_OPTIONS}
               />
             </div>
 
@@ -1116,10 +1154,10 @@ const SidePanel: React.FC = () => {
                   </Label>
                   <Switch
                     id="auto-download"
-                    checked={fileState.autoDownload}
+                    checked={autoDownload}
+                    disabled={!autoDownloadReady}
                     onCheckedChange={(checked) => {
-                      setFileState(prev => ({ ...prev, autoDownload: checked }));
-                      saveAutoDownloadSetting(checked);
+                      setAutoDownload(checked);
                     }}
                   />
                 </div>

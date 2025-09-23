@@ -12,15 +12,18 @@ export interface AppSelectProps {
   value: string;
   onValueChange: (value: string) => void;
   options: Option[];
+  disabled?: boolean;
 }
 
-export function AppSelect({ value, onValueChange, options }: AppSelectProps) {
+export function AppSelect({ value, onValueChange, options, disabled = false }: AppSelectProps) {
   return (
-    <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
+    <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectPrimitive.Trigger
         className={cn(
-          'w-full relative pr-8 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#282828] px-3 py-2 text-left text-sm'
+          'w-full relative pr-8 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#282828] px-3 py-2 text-left text-sm',
+          disabled && 'cursor-not-allowed opacity-60'
         )}
+        disabled={disabled}
       >
         <SelectPrimitive.Value />
         <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" aria-hidden="true" />
@@ -57,5 +60,4 @@ export function AppSelect({ value, onValueChange, options }: AppSelectProps) {
     </SelectPrimitive.Root>
   );
 }
-
 

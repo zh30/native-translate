@@ -21,6 +21,7 @@ English | [简体中文](./README.zh-CN.md)
 - **On-device processing**: Uses Chrome's built-in AI models (Chrome 138+)
 - **Streaming translation**: Real-time progressive translation for longer texts
 - **Smart content detection**: Intelligently skips code blocks, tables, and navigation
+- **Predictive warm-up**: Pre-fetches language models when you switch targets to cut first-translation waits
 - **Multi-frame support**: Works across all frames including about:blank pages
 - **IME support**: Proper handling of Asian language input methods
 - **Offline capability**: Works offline after models are downloaded
@@ -126,6 +127,7 @@ src/
 ### Performance
 - Models are cached after first use per language pair
 - Translation results are cached for faster subsequent access
+- Popup and side panel proactively warm the next language pair to avoid cold-start stalls
 - Memory usage is optimized with WeakSet tracking
 
 ## Contributing

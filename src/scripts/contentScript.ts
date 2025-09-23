@@ -1,4 +1,20 @@
-export { };
+import {
+  DEFAULT_INPUT_TARGET_LANGUAGE,
+  DEFAULT_TARGET_LANGUAGE,
+} from '@/shared/languages';
+import {
+  STREAMING_LENGTH_THRESHOLD,
+  normalizeToAsyncStringIterable,
+  TranslatorInstance,
+} from '@/shared/streaming';
+import { POPUP_SETTINGS_KEY } from '@/shared/settings';
+import {
+  MSG_TRANSLATE_PAGE,
+  MSG_UPDATE_HOTKEY,
+  MSG_TRANSLATE_TEXT,
+  MSG_WARM_TRANSLATOR,
+} from '@/shared/messages';
+
 function tCS(key: string, substitutions?: Array<string | number>): string {
   try {
     const value = chrome?.i18n?.getMessage?.(
@@ -11,9 +27,323 @@ function tCS(key: string, substitutions?: Array<string | number>): string {
   }
 }
 
-
 // 语言代码：使用通用 BCP-47 字符串，兼容检测结果与翻译器要求
 type LanguageCode = string;
+
+type OverlayElement = HTMLElement & {
+  __nativeTranslateOverlayDesc?: HTMLElement;
+  __nativeTranslateOverlayTitle?: HTMLElement;
+  __nativeTranslateOverlayIcon?: HTMLElement;
+  __nativeTranslateOverlayProgress?: HTMLElement;
+};
+
+type InlineHintElement = HTMLElement & {
+  __nativeTranslateHintText?: HTMLElement;
+  __nativeTranslateHintIcon?: HTMLElement;
+};
+
+type SurfaceState = 'info' | 'progress' | 'success' | 'warning';
+
+const DESIGN_STYLE_ID = 'native-translate-design-system';
+const DESIGN_SYSTEM_STYLES = `
+:root {
+  --nt-font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --nt-overlay-bg: rgba(255, 255, 255, 0.86);
+  --nt-overlay-border: rgba(148, 163, 184, 0.28);
+  --nt-overlay-fg: #0f172a;
+  --nt-overlay-subtle: rgba(15, 23, 42, 0.55);
+  --nt-overlay-accent: #2563eb;
+  --nt-overlay-accent-strong: #4f46e5;
+  --nt-overlay-success: #22c55e;
+  --nt-overlay-warning: #f97316;
+  --nt-overlay-error: #ef4444;
+  --nt-progress-value: 0;
+  --nt-progress-opacity: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --nt-overlay-bg: rgba(15, 23, 42, 0.82);
+    --nt-overlay-border: rgba(148, 163, 184, 0.28);
+    --nt-overlay-fg: #e2e8f0;
+    --nt-overlay-subtle: rgba(226, 232, 240, 0.65);
+  }
+}
+
+.native-translate-overlay {
+  position: fixed;
+  top: 16px;
+  inset-inline-end: 16px;
+  z-index: 2147483647;
+  pointer-events: none;
+  font-family: var(--nt-font-family);
+  animation: nt-fade-in 160ms ease-out;
+  max-width: min(360px, calc(100vw - 32px));
+}
+
+.native-translate-overlay[data-dir='rtl'] {
+  inset-inline-end: auto;
+  inset-inline-start: 16px;
+}
+
+.native-translate-overlay__surface {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--nt-overlay-border);
+  background: var(--nt-overlay-bg);
+  color: var(--nt-overlay-fg);
+  box-shadow: 0 18px 58px rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.native-translate-overlay__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.native-translate-overlay[data-dir='rtl'] .native-translate-overlay__surface {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.native-translate-overlay[data-dir='rtl'] .native-translate-overlay__copy {
+  text-align: right;
+}
+
+.native-translate-overlay__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--nt-overlay-accent), var(--nt-overlay-accent-strong));
+  color: #ffffff;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  animation: none;
+}
+
+.native-translate-overlay__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.native-translate-overlay__desc {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--nt-overlay-subtle);
+  white-space: pre-wrap;
+}
+
+.native-translate-overlay__progress {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--nt-overlay-accent), var(--nt-overlay-accent-strong));
+  transform-origin: left;
+  transform: scaleX(var(--nt-progress-value));
+  opacity: var(--nt-progress-opacity);
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.native-translate-overlay[data-dir='rtl'] .native-translate-overlay__progress {
+  transform-origin: right;
+}
+
+.native-translate-overlay[data-state='success'] .native-translate-overlay__icon {
+  background: linear-gradient(135deg, var(--nt-overlay-success), #15803d);
+}
+
+.native-translate-overlay[data-state='warning'] .native-translate-overlay__icon {
+  background: linear-gradient(135deg, var(--nt-overlay-warning), #ea580c);
+}
+
+.native-translate-overlay[data-state='progress'] .native-translate-overlay__icon {
+  background: linear-gradient(135deg, var(--nt-overlay-accent-strong), var(--nt-overlay-accent));
+  animation: nt-spin 1s linear infinite;
+}
+
+.native-translate-overlay--exit {
+  animation: nt-fade-out 140ms ease-in forwards;
+}
+
+.native-translate-inline-hint {
+  position: fixed;
+  z-index: 2147483647;
+  pointer-events: none;
+  animation: nt-fade-opacity 140ms ease-out;
+}
+
+.native-translate-inline-hint__surface {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: var(--nt-overlay-bg);
+  color: var(--nt-overlay-fg);
+  font-family: var(--nt-font-family);
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.native-translate-inline-hint[data-dir='rtl'] .native-translate-inline-hint__surface {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.native-translate-inline-hint__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.16);
+  color: var(--nt-overlay-accent);
+  font-size: 12px;
+  flex-shrink: 0;
+  animation: none;
+}
+
+.native-translate-inline-hint[data-state='success'] .native-translate-inline-hint__icon {
+  background: rgba(34, 197, 94, 0.18);
+  color: var(--nt-overlay-success);
+}
+
+.native-translate-inline-hint[data-state='warning'] .native-translate-inline-hint__icon {
+  background: rgba(249, 115, 22, 0.18);
+  color: var(--nt-overlay-warning);
+}
+
+.native-translate-inline-hint[data-state='progress'] .native-translate-inline-hint__icon {
+  background: rgba(79, 70, 229, 0.18);
+  color: var(--nt-overlay-accent-strong);
+  animation: nt-spin 1s linear infinite;
+}
+
+.native-translate-inline-hint--exit {
+  animation: nt-fade-out 140ms ease-in forwards;
+}
+
+@keyframes nt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nt-fade-opacity {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nt-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes nt-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+`;
+
+function ensureDesignSystemStyles(): void {
+  if (document.getElementById(DESIGN_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = DESIGN_STYLE_ID;
+  style.textContent = DESIGN_SYSTEM_STYLES;
+  (document.head || document.documentElement).appendChild(style);
+}
+
+function classifyMessage(message: string): SurfaceState {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes('error') ||
+    lower.includes('fail') ||
+    message.includes('失败') ||
+    message.includes('错误')
+  ) {
+    return 'warning';
+  }
+  if (
+    lower.includes('complete') ||
+    lower.includes('done') ||
+    message.includes('完成') ||
+    message.includes('已完成')
+  ) {
+    return 'success';
+  }
+  if (
+    lower.includes('download') ||
+    lower.includes('%') ||
+    lower.includes('prepare') ||
+    lower.includes('translat') ||
+    message.includes('下载') ||
+    message.includes('准备') ||
+    message.includes('翻译')
+  ) {
+    return 'progress';
+  }
+  return 'info';
+}
+
+function stateIcon(state: SurfaceState): string {
+  switch (state) {
+    case 'success':
+      return '✓';
+    case 'warning':
+      return '!';
+    case 'progress':
+      return '⟳';
+    default:
+      return '🌐';
+  }
+}
+
+function extractProgressFraction(message: string): number | null {
+  const match = message.match(/(\d{1,3})%/);
+  if (!match) return null;
+  const value = Number(match[1]);
+  if (Number.isNaN(value)) return null;
+  const clamped = Math.min(100, Math.max(0, value));
+  return clamped / 100;
+}
 
 interface TranslatorDownloadProgressEvent extends Event {
   loaded?: number; // 0..1
@@ -25,8 +355,6 @@ interface TranslatorMonitor {
     listener: (e: TranslatorDownloadProgressEvent) => void
   ) => void;
 }
-
-import { STREAMING_LENGTH_THRESHOLD, normalizeToAsyncStringIterable, TranslatorInstance } from '@/shared/streaming';
 
 interface TranslatorCreateOptions {
   sourceLanguage: LanguageCode;
@@ -54,14 +382,18 @@ function directResolveTranslatorAdapter(): TranslatorStaticAdapter | null {
   if (legacy && typeof legacy.create === 'function') {
     return { create: legacy.create.bind(legacy) };
   }
-  const modern = w?.translation as { createTranslator?: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance> } | undefined;
+  const modern = w?.translation as
+    | { createTranslator?: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance> }
+    | undefined;
   if (modern && typeof modern.createTranslator === 'function') {
     return { create: modern.createTranslator.bind(modern) };
   }
   return null;
 }
 
-async function resolveTranslatorAdapterWithRetry(maxWaitMs = 1200): Promise<TranslatorStaticAdapter | null> {
+async function resolveTranslatorAdapterWithRetry(
+  maxWaitMs = 1200,
+): Promise<TranslatorStaticAdapter | null> {
   const cacheKey = '__nativeTranslateAdapter';
   const cached = (window as any)[cacheKey] as TranslatorStaticAdapter | undefined;
   if (cached) return cached;
@@ -188,7 +520,9 @@ interface LanguageDetectorInstance {
 
 interface LanguageDetectorStatic {
   availability: () => Promise<AvailabilityState>;
-  create: (opts?: { monitor?: (m: LanguageDetectorMonitor) => void }) => Promise<LanguageDetectorInstance>;
+  create: (
+    opts?: { monitor?: (m: LanguageDetectorMonitor) => void }
+  ) => Promise<LanguageDetectorInstance>;
 }
 
 // 避免与其他文件的全局 Window 扩展冲突，这里不增强 Window 类型，使用 any 访问
@@ -199,9 +533,6 @@ const TRANSLATED_CLASS = 'native-translate-translation';
 const OVERLAY_ID = 'native-translate-overlay';
 const READY_PAIRS_KEY = 'nativeTranslate:readyPairs';
 const DETECTOR_READY_KEY = 'nativeTranslate:detectorReady';
-import { POPUP_SETTINGS_KEY } from '@/shared/settings';
-import { MSG_TRANSLATE_PAGE, MSG_UPDATE_HOTKEY, MSG_TRANSLATE_TEXT } from '@/shared/messages';
-let preferredModifier: 'alt' | 'control' | 'shift' = 'alt';
 let tryTranslateRef: (() => void) | null = null;
 
 // 文本长度阈值（可微调）：
@@ -222,70 +553,247 @@ interface PopupSettings {
   inputTargetLanguage?: LanguageCode;
 }
 
-async function getPreferredTargetLanguage(): Promise<LanguageCode> {
+const DEFAULT_POPUP_SETTINGS: PopupSettings = {
+  targetLanguage: DEFAULT_TARGET_LANGUAGE,
+  hotkeyModifier: 'alt',
+  inputTargetLanguage: DEFAULT_INPUT_TARGET_LANGUAGE,
+};
+
+let cachedPopupSettings: PopupSettings = { ...DEFAULT_POPUP_SETTINGS };
+let popupSettingsHydrated = false;
+let popupSettingsInitPromise: Promise<void> | null = null;
+const popupSettingsObservers = new Set<(settings: PopupSettings) => void>();
+let preferredModifier: 'alt' | 'control' | 'shift' = DEFAULT_POPUP_SETTINGS.hotkeyModifier ?? 'alt';
+
+function applyPopupSettings(settings: PopupSettings | undefined): void {
+  const next = { ...DEFAULT_POPUP_SETTINGS, ...(settings ?? {}) };
+  cachedPopupSettings = next;
+  preferredModifier = next.hotkeyModifier ?? 'alt';
+  for (const observer of popupSettingsObservers) {
+    try {
+      observer(next);
+    } catch (error) {
+      console.warn('popup settings observer failed', error);
+    }
+  }
+}
+
+function addPopupSettingsObserver(observer: (settings: PopupSettings) => void): () => void {
+  popupSettingsObservers.add(observer);
+  return () => popupSettingsObservers.delete(observer);
+}
+
+async function ensurePopupSettings(): Promise<PopupSettings> {
+  if (popupSettingsHydrated) return cachedPopupSettings;
+  if (!popupSettingsInitPromise) {
+    popupSettingsInitPromise = chrome.storage.local
+      .get(POPUP_SETTINGS_KEY)
+      .then((data) => {
+        const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
+        applyPopupSettings(settings);
+        popupSettingsHydrated = true;
+      })
+      .catch((error) => {
+        console.warn('Failed to load popup settings', error);
+        applyPopupSettings(undefined);
+        popupSettingsHydrated = true;
+      })
+      .finally(() => {
+        popupSettingsInitPromise = null;
+      });
+  }
+  await popupSettingsInitPromise;
+  return cachedPopupSettings;
+}
+
+if (!(window as any).__nativeTranslatePopupSettingsSubscribed) {
+  (window as any).__nativeTranslatePopupSettingsSubscribed = true;
   try {
-    const data = await chrome.storage.local.get(POPUP_SETTINGS_KEY);
-    const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
-    if (settings?.targetLanguage) return settings.targetLanguage;
-  } catch (_e) { }
-  return 'zh-CN';
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local') return;
+      const entry = changes?.[POPUP_SETTINGS_KEY];
+      if (!entry) return;
+      applyPopupSettings(entry.newValue as PopupSettings | undefined);
+      popupSettingsHydrated = true;
+    });
+  } catch (error) {
+    console.warn('Failed to subscribe to popup settings changes', error);
+  }
+}
+
+void ensurePopupSettings();
+
+async function getPreferredTargetLanguage(): Promise<LanguageCode> {
+  const settings = await ensurePopupSettings();
+  return settings.targetLanguage;
 }
 
 async function getPreferredInputTargetLanguage(): Promise<LanguageCode> {
-  try {
-    const data = await chrome.storage.local.get(POPUP_SETTINGS_KEY);
-    const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
-    if (settings?.inputTargetLanguage) return settings.inputTargetLanguage;
-  } catch (_e) { }
-  return 'en';
+  const settings = await ensurePopupSettings();
+  return settings.inputTargetLanguage ?? DEFAULT_INPUT_TARGET_LANGUAGE;
 }
 
 async function getHoverHotkeyModifier(): Promise<'alt' | 'control' | 'shift'> {
-  try {
-    const data = await chrome.storage.local.get(POPUP_SETTINGS_KEY);
-    const settings = (data?.[POPUP_SETTINGS_KEY] as PopupSettings | undefined);
-    const value = settings?.hotkeyModifier || 'alt';
-    if (value === 'alt' || value === 'control' || value === 'shift') return value;
-  } catch (_e) { }
-  return 'alt';
+  const settings = await ensurePopupSettings();
+  const value = settings.hotkeyModifier ?? 'alt';
+  return value === 'control' || value === 'shift' ? value : 'alt';
 }
 
 function createOverlay(): HTMLElement {
   let overlay = document.getElementById(OVERLAY_ID);
   if (overlay) return overlay;
+  ensureDesignSystemStyles();
   overlay = document.createElement('div');
   overlay.id = OVERLAY_ID;
-  overlay.style.position = 'fixed';
-  overlay.style.top = '12px';
-  overlay.style.zIndex = '2147483647';
-  overlay.style.background = 'rgba(0,0,0,0.8)';
-  overlay.style.color = 'white';
-  overlay.style.padding = '8px 12px';
-  overlay.style.borderRadius = '8px';
-  overlay.style.fontSize = '12px';
-  overlay.style.lineHeight = '1.4';
-  overlay.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)';
-  overlay.textContent = tCS('overlay_preparing');
+  overlay.className = 'native-translate-overlay';
+  overlay.style.setProperty('--nt-progress-value', '0');
+  overlay.style.setProperty('--nt-progress-opacity', '0');
+  overlay.setAttribute('role', 'status');
+  overlay.setAttribute('aria-live', 'polite');
+  const surface = document.createElement('div');
+  surface.className = 'native-translate-overlay__surface';
+
+  const iconEl = document.createElement('span');
+  iconEl.className = 'native-translate-overlay__icon';
+
+  const copyWrap = document.createElement('div');
+  copyWrap.className = 'native-translate-overlay__copy';
+
+  const titleEl = document.createElement('p');
+  titleEl.className = 'native-translate-overlay__title';
+  titleEl.textContent = tCS('popup_title');
+
+  const descEl = document.createElement('p');
+  descEl.className = 'native-translate-overlay__desc';
+  descEl.textContent = tCS('overlay_preparing');
+
+  const progressEl = document.createElement('div');
+  progressEl.className = 'native-translate-overlay__progress';
+
+  copyWrap.append(titleEl, descEl);
+  surface.append(iconEl, copyWrap, progressEl);
+  overlay.append(surface);
+
+  const overlayEl = overlay as OverlayElement;
+  overlayEl.__nativeTranslateOverlayDesc = descEl;
+  overlayEl.__nativeTranslateOverlayTitle = titleEl;
+  overlayEl.__nativeTranslateOverlayIcon = iconEl;
+  overlayEl.__nativeTranslateOverlayProgress = progressEl;
+
+  const initialState = classifyMessage(descEl.textContent ?? '');
+  overlay.dataset.state = initialState;
+  iconEl.textContent = stateIcon(initialState);
+
   // 默认根据文档方向决定对齐位置
   const dir = document.documentElement.getAttribute('dir') || 'ltr';
-  if (dir === 'rtl') {
-    overlay.style.left = '12px';
-    overlay.style.textAlign = 'left';
-  } else {
-    overlay.style.right = '12px';
-    overlay.style.textAlign = 'right';
-  }
-  document.documentElement.appendChild(overlay);
+  overlay.dataset.dir = dir;
+  (document.body || document.documentElement).appendChild(overlay);
   return overlay;
 }
 
 function updateOverlay(overlay: HTMLElement, text: string): void {
-  overlay.textContent = text;
+  const overlayEl = overlay as OverlayElement;
+  const desc = overlayEl.__nativeTranslateOverlayDesc;
+  if (desc) {
+    if (desc.textContent !== text) {
+      desc.textContent = text;
+    }
+  } else if (overlay.textContent !== text) {
+    overlay.textContent = text;
+  }
+  const state = classifyMessage(text);
+  overlay.dataset.state = state;
+  const icon = overlayEl.__nativeTranslateOverlayIcon;
+  if (icon) {
+    icon.textContent = stateIcon(state);
+  }
+  const fraction = extractProgressFraction(text);
+  overlay.style.setProperty(
+    '--nt-progress-value',
+    fraction != null ? fraction.toFixed(3) : '0'
+  );
+  overlay.style.setProperty(
+    '--nt-progress-opacity',
+    fraction != null ? '1' : '0'
+  );
 }
 
 function removeOverlay(): void {
   const el = document.getElementById(OVERLAY_ID);
-  if (el && el.parentNode) el.parentNode.removeChild(el);
+  if (!el) return;
+  el.classList.add('native-translate-overlay--exit');
+  window.setTimeout(() => {
+    el.remove();
+  }, 160);
+}
+
+type IdleDeadline = { didTimeout: boolean; timeRemaining: () => number };
+
+function runIdle(task: () => void, timeout = 1200): void {
+  const idle = (window as any).requestIdleCallback as
+    | ((callback: (deadline: IdleDeadline) => void, opts?: { timeout: number }) => number)
+    | undefined;
+  if (idle) {
+    idle(() => {
+      try {
+        task();
+      } catch (error) {
+        console.warn('idle task failed', error);
+      }
+    }, { timeout });
+    return;
+  }
+  window.setTimeout(() => {
+    try {
+      task();
+    } catch (error) {
+      console.warn('timeout task failed', error);
+    }
+  }, Math.min(timeout, 500));
+}
+
+const warmingPairs = new Set<string>();
+
+async function scheduleWarmTranslatorPair(
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode,
+): Promise<void> {
+  if (isSameLanguage(sourceLanguage, targetLanguage)) return;
+  const key = getPairKey(sourceLanguage, targetLanguage);
+  if (warmingPairs.has(key)) return;
+  warmingPairs.add(key);
+
+  const execute = async () => {
+    try {
+      const ready = await wasPairReady(sourceLanguage, targetLanguage);
+      if (ready) return;
+      await getOrCreateTranslator(sourceLanguage, targetLanguage);
+    } catch (error) {
+      console.warn('warm translator failed', error);
+    } finally {
+      warmingPairs.delete(key);
+    }
+  };
+
+  runIdle(() => {
+    void execute();
+  });
+}
+
+function inferDocumentLanguage(): LanguageCode {
+  const htmlLang = document.documentElement.getAttribute('lang')?.trim();
+  if (htmlLang) {
+    const normalized = primarySubtag(htmlLang);
+    if (normalized) return normalized as LanguageCode;
+    return htmlLang as LanguageCode;
+  }
+  const nav = navigator.language?.toLowerCase();
+  if (nav) {
+    const normalized = primarySubtag(nav);
+    if (normalized) return normalized as LanguageCode;
+    return nav as LanguageCode;
+  }
+  return DEFAULT_INPUT_TARGET_LANGUAGE;
 }
 
 // 针对输入框/可编辑区域的行内提示（靠近光标或元素末尾）
@@ -312,31 +820,61 @@ function getCaretRectForElement(element: Element): DOMRect | null {
 }
 
 function showInlineHintNearElement(element: Element, initialText: string): InlineHint {
+  ensureDesignSystemStyles();
   const container = document.createElement('div');
   container.className = 'native-translate-inline-hint';
-  container.setAttribute('data-native-translate-inline-hint', '1');
   container.style.position = 'fixed';
   container.style.zIndex = '2147483647';
-  container.style.background = 'rgba(0,0,0,0.8)';
-  container.style.color = 'white';
-  container.style.padding = '4px 8px';
-  container.style.borderRadius = '6px';
-  container.style.fontSize = '12px';
-  container.style.lineHeight = '1.3';
   container.style.pointerEvents = 'none';
-  container.textContent = initialText;
+
+  const surface = document.createElement('div');
+  surface.className = 'native-translate-inline-hint__surface';
+
+  const iconEl = document.createElement('span');
+  iconEl.className = 'native-translate-inline-hint__icon';
+
+  const textEl = document.createElement('span');
+  textEl.className = 'native-translate-inline-hint__text';
+  textEl.textContent = initialText;
+
+  surface.append(iconEl, textEl);
+  container.append(surface);
+
+  const hintEl = container as InlineHintElement;
+  hintEl.__nativeTranslateHintText = textEl;
+  hintEl.__nativeTranslateHintIcon = iconEl;
+
+  const dir = document.documentElement.getAttribute('dir') || 'ltr';
+  container.dataset.dir = dir;
+
+  const applyState = (message: string) => {
+    const state = classifyMessage(message);
+    container.dataset.state = state;
+    if (iconEl) {
+      iconEl.textContent = stateIcon(state);
+    }
+  };
+
+  applyState(initialText);
 
   const reposition = () => {
     const caretRect = getCaretRectForElement(element);
     const base = caretRect || element.getBoundingClientRect();
-    const x = Math.min(base.right - 4, window.innerWidth - 4);
-    const y = Math.min(base.bottom - 4, window.innerHeight - 4);
-    container.style.left = `${Math.round(x)}px`;
-    container.style.top = `${Math.round(y)}px`;
-    container.style.transform = 'translate(-100%, -100%)';
+    const clampedX = Math.min(
+      window.innerWidth - 8,
+      Math.max(8, dir === 'rtl' ? base.left : base.right)
+    );
+    const clampedY = Math.min(window.innerHeight - 8, Math.max(8, base.top));
+    container.style.left = `${Math.round(clampedX)}px`;
+    container.style.top = `${Math.round(clampedY)}px`;
+    const transform = dir === 'rtl'
+      ? 'translate(6px, -110%)'
+      : 'translate(-100%, -110%)';
+    container.style.transform = transform;
+    container.style.transformOrigin = dir === 'rtl' ? 'top left' : 'top right';
   };
 
-  document.documentElement.appendChild(container);
+  (document.body || document.documentElement).appendChild(container);
   reposition();
 
   const onScroll = () => reposition();
@@ -348,14 +886,24 @@ function showInlineHintNearElement(element: Element, initialText: string): Inlin
 
   return {
     update(text: string) {
-      container.textContent = text;
+      const hint = container as InlineHintElement;
+      if (hint.__nativeTranslateHintText) {
+        hint.__nativeTranslateHintText.textContent = text;
+      } else {
+        container.textContent = text;
+      }
+      applyState(text);
       reposition();
     },
     remove() {
-      try { container.remove(); } catch (_e) { }
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', onResize);
       document.removeEventListener('selectionchange', onSelection);
+      if (!container.isConnected) return;
+      container.classList.add('native-translate-inline-hint--exit');
+      window.setTimeout(() => {
+        container.remove();
+      }, 160);
     },
   };
 }
@@ -374,7 +922,13 @@ function clearPreviousTranslationsAndMarks(): void {
 function isElementVisible(element: Element): boolean {
   if (!(element instanceof HTMLElement)) return false;
   const style = window.getComputedStyle(element);
-  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+  if (
+    style.display === 'none' ||
+    style.visibility === 'hidden' ||
+    style.opacity === '0'
+  ) {
+    return false;
+  }
   const rect = element.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return false;
   return true;
@@ -479,7 +1033,13 @@ function collectTranslatableBlocks(root: ParentNode): Array<{ element: Element; 
     // 对容器类元素，若内部还有明显的块级子元素，则跳过，避免破坏布局
     const tagLower = el.tagName.toLowerCase();
     // 将 blockquote 也视为容器：若内部仍有块级子元素，则跳过，避免与其子元素重复
-    if ((tagLower === 'div' || tagLower === 'section' || tagLower === 'article' || tagLower === 'blockquote') && hasBlockDescendants(el)) {
+    if (
+      (tagLower === 'div' ||
+        tagLower === 'section' ||
+        tagLower === 'article' ||
+        tagLower === 'blockquote') &&
+      hasBlockDescendants(el)
+    ) {
       continue;
     }
     // 对 div 再多一道词数阈值，减少噪声
@@ -489,11 +1049,18 @@ function collectTranslatableBlocks(root: ParentNode): Array<{ element: Element; 
     results.push({ element: el, text });
   }
   // 去重：仅保留“叶子”块（不包含其他候选元素的容器）
-  const leafOnly = results.filter((item) => !results.some((other) => other !== item && item.element.contains(other.element)));
+  const leafOnly = results.filter(
+    (item) =>
+      !results.some((other) => other !== item && item.element.contains(other.element))
+  );
   return leafOnly;
 }
 
-function createTranslationSpan(original: Element, translatedText: string, targetLanguage: LanguageCode): Element {
+function createTranslationSpan(
+  original: Element,
+  translatedText: string,
+  targetLanguage: LanguageCode,
+): Element {
   const span = document.createElement('span');
   span.classList.add(TRANSLATED_CLASS);
   span.setAttribute(TRANSLATED_ATTR, '1');
@@ -542,7 +1109,9 @@ async function translateLineWithStreamingSupport(
 ): Promise<string> {
   // 优先使用内容脚本内的本地流式能力
   if (translator) {
-    const canStream = typeof translator.translateStreaming === 'function' && line.length >= STREAMING_LENGTH_THRESHOLD;
+    const canStream =
+      typeof translator.translateStreaming === 'function' &&
+      line.length >= STREAMING_LENGTH_THRESHOLD;
     if (canStream) {
       let partial = '';
       let received = false;
@@ -674,7 +1243,7 @@ async function translateBlocksSequentially(
 
   for (let i = 0; i < items.length; i += BATCH_SIZE) {
     const batch = items.slice(i, i + BATCH_SIZE);
-    const inserts: Array<{ node: Element; element: Node; }> = [];
+    const inserts: Array<{ node: Element; element: Node }> = [];
 
     // 顺序翻译，遵循 API 的串行特性
     for (const { element, text } of batch) {
@@ -738,10 +1307,14 @@ function getPairKey(sourceLanguage: LanguageCode, targetLanguage: LanguageCode):
   return `${sourceLanguage}->${targetLanguage}`;
 }
 
-async function markPairReady(sourceLanguage: LanguageCode, targetLanguage: LanguageCode): Promise<void> {
+async function markPairReady(
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode,
+): Promise<void> {
   const key = getPairKey(sourceLanguage, targetLanguage);
   try {
-    const storageNs: 'session' | 'local' = (chrome.storage as any).session ? 'session' : 'local';
+    const storageNs: 'session' | 'local' =
+      (chrome.storage as any).session ? 'session' : 'local';
     const data = await chrome.storage[storageNs].get(READY_PAIRS_KEY);
     const map = (data?.[READY_PAIRS_KEY] as Record<string, number> | undefined) ?? {};
     map[key] = Date.now();
@@ -751,10 +1324,14 @@ async function markPairReady(sourceLanguage: LanguageCode, targetLanguage: Langu
   }
 }
 
-async function wasPairReady(sourceLanguage: LanguageCode, targetLanguage: LanguageCode): Promise<boolean> {
+async function wasPairReady(
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode,
+): Promise<boolean> {
   const key = getPairKey(sourceLanguage, targetLanguage);
   try {
-    const storageNs: 'session' | 'local' = (chrome.storage as any).session ? 'session' : 'local';
+    const storageNs: 'session' | 'local' =
+      (chrome.storage as any).session ? 'session' : 'local';
     const data = await chrome.storage[storageNs].get(READY_PAIRS_KEY);
     const map = (data?.[READY_PAIRS_KEY] as Record<string, number> | undefined) ?? {};
     return Boolean(map[key]);
@@ -817,13 +1394,15 @@ function buildDetectionSample(maxChars = 4000): string {
   for (const item of blocks) {
     if (!item.text) continue;
     if (sample.length + item.text.length > maxChars) break;
-    sample += (sample ? '\n' : '') + item.text;
+    sample += sample ? `\n${item.text}` : item.text;
     if (sample.length >= maxChars) break;
   }
   return sample.slice(0, maxChars);
 }
 
-async function getOrCreateLanguageDetector(onProgress?: (pct: number) => void): Promise<LanguageDetectorInstance> {
+async function getOrCreateLanguageDetector(
+  onProgress?: (pct: number) => void,
+): Promise<LanguageDetectorInstance> {
   const api = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
   if (!api) throw new Error('Language Detector API unavailable');
   const cacheKey = '__nativeLanguageDetector';
@@ -845,13 +1424,19 @@ async function getOrCreateLanguageDetector(onProgress?: (pct: number) => void): 
   });
   (window as any)[cacheKey] = detector;
   try {
-    const storageNs: 'session' | 'local' = (chrome.storage as any).session ? 'session' : 'local';
+    const storageNs: 'session' | 'local' =
+      (chrome.storage as any).session ? 'session' : 'local';
     await chrome.storage[storageNs].set({ [DETECTOR_READY_KEY]: Date.now() });
   } catch (_e) { }
   return detector;
 }
 
-async function detectSourceLanguageForPage(onProgress?: (pct: number) => void): Promise<{ lang: LanguageCode; confidence: number } | null> {
+async function detectSourceLanguageForPage(
+  onProgress?: (pct: number) => void,
+): Promise<{
+  lang: LanguageCode;
+  confidence: number;
+} | null> {
   const api = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
   if (!api) return null;
   try {
@@ -916,7 +1501,10 @@ async function translateFullPage(
       const now = Date.now();
       if (now - lastTick > 100) {
         const pct = Math.round((done / total) * 100);
-        updateOverlay(overlay, tCS('overlay_translating', [String(pct), String(done), String(total)]));
+        updateOverlay(
+          overlay,
+          tCS('overlay_translating', [String(pct), String(done), String(total)])
+        );
         lastTick = now;
       }
     }
@@ -982,6 +1570,28 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       preferredModifier = hotkeyModifier;
       if (typeof tryTranslateRef === 'function') tryTranslateRef();
     }
+    return false;
+  }
+  if (message.type === MSG_WARM_TRANSLATOR) {
+    void (async () => {
+      try {
+        const settings = await ensurePopupSettings();
+        const payload = (message.payload ?? {}) as {
+          sourceLanguage?: LanguageCode | 'auto';
+          targetLanguage?: LanguageCode;
+        };
+        const target = (payload.targetLanguage ?? settings.targetLanguage) as LanguageCode;
+        if (!target) return;
+        let source = payload.sourceLanguage;
+        if (!source || source === 'auto') {
+          const detection = await detectSourceLanguageForPage();
+          source = (detection?.lang ?? inferDocumentLanguage()) as LanguageCode;
+        }
+        await scheduleWarmTranslatorPair(source as LanguageCode, target);
+      } catch (error) {
+        console.warn('warm translator request failed', error);
+      }
+    })();
     return false;
   }
   return false;
@@ -1211,7 +1821,7 @@ async function translateElementOnDemand(element: Element): Promise<void> {
       }
       if (translated) {
         const clone = createTranslationSpan(element, translated, targetLanguage);
-        (element as Element).appendChild(clone);
+        insertTranslationAdjacent(element, clone);
         (element as HTMLElement).setAttribute(TRANSLATED_ATTR, '1');
       }
     }
@@ -1234,20 +1844,10 @@ function initializeHoverAltTranslate(): void {
     preferredModifier = await getHoverHotkeyModifier();
   })();
 
-  // 动态响应 Popup 设置变更
-  try {
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName !== 'local') return;
-      const entry = changes?.[POPUP_SETTINGS_KEY];
-      if (!entry) return;
-      const next = (entry.newValue as PopupSettings | undefined)?.hotkeyModifier;
-      if (next === 'alt' || next === 'control' || next === 'shift') {
-        preferredModifier = next;
-        lastTriggered = null;
-        if (tryTranslateRef) tryTranslateRef();
-      }
-    });
-  } catch (_e) { }
+  addPopupSettingsObserver(() => {
+    lastTriggered = null;
+    tryTranslate();
+  });
 
   const tryTranslate = () => {
     const shouldTrigger =
@@ -1306,7 +1906,9 @@ initializeHoverAltTranslate();
 
 // ========== 在可编辑文本中“三连空格”触发翻译 ==========
 
-function isTextLikeInputElement(element: Element | null): element is HTMLInputElement | HTMLTextAreaElement {
+function isTextLikeInputElement(
+  element: Element | null,
+): element is HTMLInputElement | HTMLTextAreaElement {
   if (!element) return false;
   if (element instanceof HTMLTextAreaElement) return true;
   if (element instanceof HTMLInputElement) {
@@ -1333,7 +1935,13 @@ function getActiveContentEditableHost(): HTMLElement | null {
   return host || null;
 }
 
-async function translateFreeTextToPreferred(text: string): Promise<{ translated: string; source: LanguageCode; target: LanguageCode } | null> {
+async function translateFreeTextToPreferred(
+  text: string,
+): Promise<{
+  translated: string;
+  source: LanguageCode;
+  target: LanguageCode;
+} | null> {
   const clean = text;
   const targetLanguage = await getPreferredInputTargetLanguage();
   let sourceLanguage = await detectLanguageForText(clean);
@@ -1370,7 +1978,9 @@ function dispatchInputEvent(target: HTMLElement): void {
   }
 }
 
-async function handleTripleSpaceForInput(el: HTMLInputElement | HTMLTextAreaElement): Promise<void> {
+async function handleTripleSpaceForInput(
+  el: HTMLInputElement | HTMLTextAreaElement,
+): Promise<void> {
   if (translatingFields.has(el)) return;
   translatingFields.add(el);
   try {

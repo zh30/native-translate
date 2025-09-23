@@ -1,28 +1,63 @@
-# Native Translate — 隐私优先的本地 AI 翻译扩展
+# Native Translate – Developer Notes
 
-一个开源、隐私优先的 Chrome 浏览器翻译扩展：默认不访问云端，也不收集遥测数据。你的内容仅在本地浏览器中处理。
+This document captures the day-to-day workflow for working on the extension. Use it alongside `AGENTS.md` for conventions and the README for product messaging.
 
-- 开源（MIT）
-- 数据安全：默认零外部请求，内容不出浏览器
-- 本地 AI：设计为完全在本地设备上运行（可用时利用 WebGPU）
-- 速度快：避免网络延迟，结合 GPU 加速与智能缓存
-- 轻量：权限最小化、体积小
+## Prerequisites
+- Chrome 138+ (required for the built-in Translator/Language Detector APIs).
+- `pnpm` ≥ 9.15.1.
+- Optional: enable the `chrome://flags/#enable-desktop-pwas-link-capturing` flag when testing side panel behaviour in PWAs.
 
-## 项目技术栈
+## Local Setup
+```bash
+pnpm install            # install dependencies
+pnpm dev                # rspack watch; outputs to dist/ with live rebuild
+pnpm build              # production build + zip package
+pnpm tsc --noEmit       # strict type checking
+pnpm lint               # biome lint (see note below about existing formatting noise)
+```
 
-本仓库提供一个 Chrome MV3 扩展基础：
-- 使用 Chrome 内置 AI APIs
-- 使用 React 19 + TypeScript + Tailwind CSS v4 + Rspack
-- 入口包括：后台 Service Worker、内容脚本、侧边栏、可选弹窗
-- 内置多语言：英文与简体中文（`_locales/`）
+> Biome currently reports formatting diffs in several config and locale files. Until that backlog is cleared, `pnpm tsc` acts as the primary gate for CI-quality validation.
 
-## 项目功能列表
+## Manual QA Checklist
+1. **Popup**
+   - Switch target/input languages and confirm the spinner + disabled state display correctly.
+   - Trigger “Translate current page”; verify warm-up has already happened (overlay should skip long downloads after the first run).
+2. **Hover Translate**
+   - Hold the configured modifier (Alt/Control/Shift) and hover paragraphs, headings, and inline text.
+   - Confirm translated text is inserted as a sibling node without breaking layout.
+3. **Side Panel**
+   - Open via popup button and via the Chrome side panel icon.
+   - Test free-form translation; observe placeholder skeleton while streaming.
+   - Upload several EPUB files (valid + invalid) and ensure progress + error states render.
+4. **Input Triple-Space**
+   - Use both `<input>` and `contenteditable` targets. Confirm IME composition does not trigger translation mid-flow.
+5. **Background Rules**
+   - Navigate to `https://zhanghe.dev/` to ensure the side panel auto-enables and confetti flag fires once.
 
-- [ ] Popup 页面
-  - [ ] 项目设置页面 
-  - [ ] 选择源语言和目标语言，然后触发下载、加载翻译模型 
-  - [ ] 翻译当前网页全文
-- [ ] contentScript
-  - [ ] 翻译后的文案插入到原语言 dom 下方，使用相同 dom
-  - [ ] 鼠标悬停 + option 键，触发翻译当前段落
-  - [ ] 鼠标悬停 + option 键，触发翻译当前段落
+## Messaging & Warm-up
+The extension communicates across contexts using messages defined in `src/shared/messages.ts`:
+
+- `MSG_TRANSLATE_PAGE`: popup → content script full-page translation.
+- `MSG_TRANSLATE_TEXT`: side panel → content script text translation.
+- `MSG_UPDATE_HOTKEY`: popup → content script modifier updates.
+- `MSG_WARM_TRANSLATOR`: popup/side panel → content script predictive warm-up. This is fired when a user changes target or input languages so the content script can pre-create the translator pair via `requestIdleCallback`.
+
+Warm-up state is tracked in `contentScript.ts` (`warmingPairs` + `READY_PAIRS_KEY`). When adding new features, prefer sending `MSG_WARM_TRANSLATOR` instead of forcing an immediate translation to keep the UI responsive.
+
+## Caching & Performance Notes
+- `useChromeLocalStorage` (in `src/utils/`) hydrates once per key and debounces writes, keeping chrome.storage churn minimal.
+- Translation caching is keyed by language pairs. Use `buildCacheKey` helpers when adding new translation paths.
+- Overlays now set `aria-live="polite"` and avoid pointer events, so additional status banners should follow the same pattern.
+- Any heavy DOM mutations should be batched; see `translateBlocksSequentially` for an example using document fragments and idle yields.
+
+## Release Process
+- Create a tag `vX.Y.Z` to trigger the `release-on-tag` GitHub Action (see badge in README).
+- The action runs `pnpm build`, attaches the packaged zip, and updates the Chrome Web Store listing if credentials are present.
+- Double-check `_locales/` before tagging—Chrome requires every string to have translations for all supported locales.
+
+## Observability & Debugging
+- Enable “All levels” logging in DevTools for the extension background service worker to catch `console.info` messages from `background.ts`.
+- For content-script tracing, use the DevTools “Sources” panel on the target page and search for `native-translate` in the DOM tree to inspect inserted nodes.
+- To simulate cold start, clear `chrome.storage.local` and reload the extension; the warm-up hooks should restore ready pairs after the first interaction.
+
+Happy translating!
