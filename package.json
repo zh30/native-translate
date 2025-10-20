@@ -1,6 +1,6 @@
 {
   "name": "native-translate",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,22 +18,22 @@
   ],
   "author": "zhanghe.dev",
   "license": "MIT",
-  "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
+  "packageManager": "pnpm@10.18.3",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@rspack/cli": "^1.5.6",
-    "@rspack/core": "^1.5.6",
-    "@tailwindcss/postcss": "^4.1.13",
+    "@rspack/cli": "^1.5.8",
+    "@rspack/core": "^1.5.8",
+    "@tailwindcss/postcss": "^4.1.14",
     "@types/jszip": "^3.4.1",
-    "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
-    "chrome-types": "^0.1.377",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "chrome-types": "^0.1.383",
     "css-loader": "^7.1.2",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
-    "tailwindcss": "^4.1.13",
+    "tailwindcss": "^4.1.14",
     "ts-loader": "^9.5.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
@@ -46,8 +46,8 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.540.0",
     "radash": "^12.1.1",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "tailwind-merge": "^3.3.1"
   }
 }

@@ -3,17 +3,17 @@ import {
   DEFAULT_TARGET_LANGUAGE,
 } from '@/shared/languages';
 import {
-  STREAMING_LENGTH_THRESHOLD,
-  normalizeToAsyncStringIterable,
-  TranslatorInstance,
-} from '@/shared/streaming';
-import { POPUP_SETTINGS_KEY } from '@/shared/settings';
-import {
   MSG_TRANSLATE_PAGE,
-  MSG_UPDATE_HOTKEY,
   MSG_TRANSLATE_TEXT,
+  MSG_UPDATE_HOTKEY,
   MSG_WARM_TRANSLATOR,
 } from '@/shared/messages';
+import { POPUP_SETTINGS_KEY } from '@/shared/settings';
+import {
+  STREAMING_LENGTH_THRESHOLD,
+  type TranslatorInstance,
+  normalizeToAsyncStringIterable,
+} from '@/shared/streaming';
 
 function tCS(key: string, substitutions?: Array<string | number>): string {
   try {
@@ -47,65 +47,74 @@ type SurfaceState = 'info' | 'progress' | 'success' | 'warning';
 const DESIGN_STYLE_ID = 'native-translate-design-system';
 const DESIGN_SYSTEM_STYLES = `
 :root {
-  --nt-font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', sans-serif;
-  --nt-overlay-bg: rgba(255, 255, 255, 0.86);
-  --nt-overlay-border: rgba(148, 163, 184, 0.28);
-  --nt-overlay-fg: #0f172a;
-  --nt-overlay-subtle: rgba(15, 23, 42, 0.55);
-  --nt-overlay-accent: #2563eb;
-  --nt-overlay-accent-strong: #4f46e5;
-  --nt-overlay-success: #22c55e;
-  --nt-overlay-warning: #f97316;
-  --nt-overlay-error: #ef4444;
+  --nt-font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  --nt-color-surface: rgba(255, 255, 255, 0.78);
+  --nt-color-surface-strong: rgba(255, 255, 255, 0.92);
+  --nt-color-outline: rgba(60, 60, 67, 0.18);
+  --nt-color-text: #1c1c1e;
+  --nt-color-subtle: rgba(28, 28, 30, 0.55);
+  --nt-color-accent: #0a84ff;
+  --nt-color-accent-strong: #0060df;
+  --nt-color-success: #30d158;
+  --nt-color-warning: #ff9f0a;
+  --nt-color-error: #ff453a;
+  --nt-shadow-elevated: 0 18px 44px rgba(28, 28, 30, 0.18);
+  --nt-space-xs: 4px;
+  --nt-space-sm: 8px;
+  --nt-space-md: 12px;
+  --nt-space-lg: 16px;
+  --nt-radius-lg: 18px;
+  --nt-radius-pill: 999px;
   --nt-progress-value: 0;
   --nt-progress-opacity: 0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --nt-overlay-bg: rgba(15, 23, 42, 0.82);
-    --nt-overlay-border: rgba(148, 163, 184, 0.28);
-    --nt-overlay-fg: #e2e8f0;
-    --nt-overlay-subtle: rgba(226, 232, 240, 0.65);
+    --nt-color-surface: rgba(36, 36, 38, 0.85);
+    --nt-color-surface-strong: rgba(28, 28, 30, 0.9);
+    --nt-color-outline: rgba(118, 118, 128, 0.32);
+    --nt-color-text: #f5f5f7;
+    --nt-color-subtle: rgba(245, 245, 247, 0.65);
+    --nt-shadow-elevated: 0 18px 36px rgba(0, 0, 0, 0.42);
   }
 }
 
 .native-translate-overlay {
   position: fixed;
-  top: 16px;
-  inset-inline-end: 16px;
+  top: calc(var(--nt-space-lg) + var(--nt-space-xs));
+  inset-inline-end: calc(var(--nt-space-lg) + var(--nt-space-xs));
   z-index: 2147483647;
   pointer-events: none;
   font-family: var(--nt-font-family);
-  animation: nt-fade-in 160ms ease-out;
-  max-width: min(360px, calc(100vw - 32px));
+  animation: nt-fade-in 180ms ease-out;
+  max-width: min(360px, calc(100vw - 2 * (var(--nt-space-lg) + var(--nt-space-xs))));
 }
 
 .native-translate-overlay[data-dir='rtl'] {
   inset-inline-end: auto;
-  inset-inline-start: 16px;
+  inset-inline-start: calc(var(--nt-space-lg) + var(--nt-space-xs));
 }
 
 .native-translate-overlay__surface {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  border: 1px solid var(--nt-overlay-border);
-  background: var(--nt-overlay-bg);
-  color: var(--nt-overlay-fg);
-  box-shadow: 0 18px 58px rgba(15, 23, 42, 0.32);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  gap: var(--nt-space-md);
+  padding: calc(var(--nt-space-md) + 2px) var(--nt-space-lg);
+  border-radius: var(--nt-radius-lg);
+  border: 1px solid var(--nt-color-outline);
+  background: var(--nt-color-surface);
+  color: var(--nt-color-text);
+  box-shadow: var(--nt-shadow-elevated);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
 .native-translate-overlay__copy {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--nt-space-xs);
 }
 
 .native-translate-overlay[data-dir='rtl'] .native-translate-overlay__surface {
@@ -121,14 +130,14 @@ const DESIGN_SYSTEM_STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--nt-overlay-accent), var(--nt-overlay-accent-strong));
+  width: 34px;
+  height: 34px;
+  border-radius: var(--nt-radius-pill);
+  background: linear-gradient(135deg, var(--nt-color-accent), var(--nt-color-accent-strong));
   color: #ffffff;
   font-size: 16px;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35);
   animation: none;
 }
 
@@ -140,24 +149,24 @@ const DESIGN_SYSTEM_STYLES = `
 }
 
 .native-translate-overlay__desc {
-  margin: 4px 0 0;
+  margin: var(--nt-space-xs) 0 0;
   font-size: 12px;
-  line-height: 1.45;
-  color: var(--nt-overlay-subtle);
+  line-height: 1.5;
+  color: var(--nt-color-subtle);
   white-space: pre-wrap;
 }
 
 .native-translate-overlay__progress {
   position: absolute;
-  inset-inline: 12px;
-  bottom: 6px;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--nt-overlay-accent), var(--nt-overlay-accent-strong));
+  inset-inline: calc(var(--nt-space-lg) - var(--nt-space-sm));
+  bottom: calc(var(--nt-space-sm) - 2px);
+  height: 4px;
+  border-radius: var(--nt-radius-pill);
+  background: linear-gradient(90deg, var(--nt-color-accent), var(--nt-color-accent-strong));
   transform-origin: left;
   transform: scaleX(var(--nt-progress-value));
   opacity: var(--nt-progress-opacity);
-  transition: transform 160ms ease, opacity 160ms ease;
+  transition: transform 200ms ease, opacity 180ms ease;
 }
 
 .native-translate-overlay[data-dir='rtl'] .native-translate-overlay__progress {
@@ -165,44 +174,52 @@ const DESIGN_SYSTEM_STYLES = `
 }
 
 .native-translate-overlay[data-state='success'] .native-translate-overlay__icon {
-  background: linear-gradient(135deg, var(--nt-overlay-success), #15803d);
+  background: linear-gradient(135deg, var(--nt-color-success), #27c052);
 }
 
 .native-translate-overlay[data-state='warning'] .native-translate-overlay__icon {
-  background: linear-gradient(135deg, var(--nt-overlay-warning), #ea580c);
+  background: linear-gradient(135deg, var(--nt-color-warning), #ff8c00);
 }
 
 .native-translate-overlay[data-state='progress'] .native-translate-overlay__icon {
-  background: linear-gradient(135deg, var(--nt-overlay-accent-strong), var(--nt-overlay-accent));
-  animation: nt-spin 1s linear infinite;
+  background: linear-gradient(135deg, var(--nt-color-accent-strong), var(--nt-color-accent));
+  animation: nt-spin 1.1s linear infinite;
+}
+
+.native-translate-overlay[data-state='warning'] .native-translate-overlay__surface {
+  border-color: rgba(255, 159, 10, 0.28);
+}
+
+.native-translate-overlay[data-state='success'] .native-translate-overlay__surface {
+  border-color: rgba(48, 209, 88, 0.24);
 }
 
 .native-translate-overlay--exit {
-  animation: nt-fade-out 140ms ease-in forwards;
+  animation: nt-fade-out 160ms ease-in forwards;
 }
 
 .native-translate-inline-hint {
   position: fixed;
   z-index: 2147483647;
   pointer-events: none;
-  animation: nt-fade-opacity 140ms ease-out;
+  animation: nt-fade-opacity 160ms ease-out;
 }
 
 .native-translate-inline-hint__surface {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: var(--nt-overlay-bg);
-  color: var(--nt-overlay-fg);
+  gap: var(--nt-space-sm);
+  padding: var(--nt-space-sm) calc(var(--nt-space-sm) + 4px);
+  border-radius: var(--nt-radius-pill);
+  border: 1px solid var(--nt-color-outline);
+  background: var(--nt-color-surface-strong);
+  color: var(--nt-color-text);
   font-family: var(--nt-font-family);
   font-size: 11px;
   line-height: 1.4;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.28);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 12px 34px rgba(28, 28, 30, 0.22);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .native-translate-inline-hint[data-dir='rtl'] .native-translate-inline-hint__surface {
@@ -216,38 +233,38 @@ const DESIGN_SYSTEM_STYLES = `
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.16);
-  color: var(--nt-overlay-accent);
+  border-radius: var(--nt-radius-pill);
+  background: rgba(10, 132, 255, 0.18);
+  color: var(--nt-color-accent);
   font-size: 12px;
   flex-shrink: 0;
   animation: none;
 }
 
 .native-translate-inline-hint[data-state='success'] .native-translate-inline-hint__icon {
-  background: rgba(34, 197, 94, 0.18);
-  color: var(--nt-overlay-success);
+  background: rgba(48, 209, 88, 0.18);
+  color: var(--nt-color-success);
 }
 
 .native-translate-inline-hint[data-state='warning'] .native-translate-inline-hint__icon {
-  background: rgba(249, 115, 22, 0.18);
-  color: var(--nt-overlay-warning);
+  background: rgba(255, 204, 0, 0.18);
+  color: var(--nt-color-warning);
 }
 
 .native-translate-inline-hint[data-state='progress'] .native-translate-inline-hint__icon {
-  background: rgba(79, 70, 229, 0.18);
-  color: var(--nt-overlay-accent-strong);
-  animation: nt-spin 1s linear infinite;
+  background: rgba(0, 96, 223, 0.18);
+  color: var(--nt-color-accent-strong);
+  animation: nt-spin 1.1s linear infinite;
 }
 
 .native-translate-inline-hint--exit {
-  animation: nt-fade-out 140ms ease-in forwards;
+  animation: nt-fade-out 160ms ease-in forwards;
 }
 
 @keyframes nt-fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -258,9 +275,11 @@ const DESIGN_SYSTEM_STYLES = `
 @keyframes nt-fade-opacity {
   from {
     opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -376,15 +395,16 @@ type TranslatorStaticAdapter = {
   create: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance>;
 };
 
+type WindowTranslationAPI = {
+  createTranslator?: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance>;
+};
+
 function directResolveTranslatorAdapter(): TranslatorStaticAdapter | null {
-  const w = window as any;
-  const legacy = w?.Translator as TranslatorStatic | undefined;
+  const legacy = window.Translator;
   if (legacy && typeof legacy.create === 'function') {
     return { create: legacy.create.bind(legacy) };
   }
-  const modern = w?.translation as
-    | { createTranslator?: (opts: TranslatorCreateOptions) => Promise<TranslatorInstance> }
-    | undefined;
+  const modern = window.translation;
   if (modern && typeof modern.createTranslator === 'function') {
     return { create: modern.createTranslator.bind(modern) };
   }
@@ -394,12 +414,11 @@ function directResolveTranslatorAdapter(): TranslatorStaticAdapter | null {
 async function resolveTranslatorAdapterWithRetry(
   maxWaitMs = 1200,
 ): Promise<TranslatorStaticAdapter | null> {
-  const cacheKey = '__nativeTranslateAdapter';
-  const cached = (window as any)[cacheKey] as TranslatorStaticAdapter | undefined;
+  const cached = window.__nativeTranslateAdapter;
   if (cached) return cached;
   let adapter = directResolveTranslatorAdapter();
   if (adapter) {
-    (window as any)[cacheKey] = adapter;
+    window.__nativeTranslateAdapter = adapter;
     return adapter;
   }
   const deadline = Date.now() + maxWaitMs;
@@ -407,7 +426,7 @@ async function resolveTranslatorAdapterWithRetry(
     await new Promise<void>((r) => setTimeout(r, 150));
     adapter = directResolveTranslatorAdapter();
     if (adapter) {
-      (window as any)[cacheKey] = adapter;
+      window.__nativeTranslateAdapter = adapter;
       return adapter;
     }
   }
@@ -452,7 +471,7 @@ function initBridgeMessageChannel(): void {
   bridgeInitialized = true;
   window.addEventListener('message', (event: MessageEvent) => {
     const data = event?.data as BridgeResponse | undefined;
-    if (!data || (data as any).type !== BRIDGE_RES_TYPE) return;
+    if (!data || data.type !== BRIDGE_RES_TYPE) return;
     const handler = pendingBridgeResponses.get(data.id);
     if (handler) {
       pendingBridgeResponses.delete(data.id);
@@ -606,8 +625,8 @@ async function ensurePopupSettings(): Promise<PopupSettings> {
   return cachedPopupSettings;
 }
 
-if (!(window as any).__nativeTranslatePopupSettingsSubscribed) {
-  (window as any).__nativeTranslatePopupSettingsSubscribed = true;
+if (!window.__nativeTranslatePopupSettingsSubscribed) {
+  window.__nativeTranslatePopupSettingsSubscribed = true;
   try {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName !== 'local') return;
@@ -730,10 +749,8 @@ function removeOverlay(): void {
 type IdleDeadline = { didTimeout: boolean; timeRemaining: () => number };
 
 function runIdle(task: () => void, timeout = 1200): void {
-  const idle = (window as any).requestIdleCallback as
-    | ((callback: (deadline: IdleDeadline) => void, opts?: { timeout: number }) => number)
-    | undefined;
-  if (idle) {
+  const idle = window.requestIdleCallback;
+  if (typeof idle === 'function') {
     idle(() => {
       try {
         task();
@@ -753,6 +770,24 @@ function runIdle(task: () => void, timeout = 1200): void {
 }
 
 const warmingPairs = new Set<string>();
+
+declare global {
+  interface Window {
+    Translator?: TranslatorStatic;
+    translation?: WindowTranslationAPI;
+    LanguageDetector?: LanguageDetectorStatic;
+    __nativeTranslateAdapter?: TranslatorStaticAdapter;
+    __nativeLanguageDetector?: LanguageDetectorInstance;
+    __nativeTranslatePool?: Map<string, TranslatorInstance>;
+    __nativeTranslatePopupSettingsSubscribed?: boolean;
+    __nativeTranslateHoverAltInit?: boolean;
+    __nativeTripleSpaceInit?: boolean;
+    requestIdleCallback?: (
+      callback: (deadline: IdleDeadline) => void,
+      options?: { timeout: number }
+    ) => number;
+  }
+}
 
 async function scheduleWarmTranslatorPair(
   sourceLanguage: LanguageCode,
@@ -811,7 +846,7 @@ function getCaretRectForElement(element: Element): DOMRect | null {
           const rect = range.getBoundingClientRect();
           if (rect && (rect.width || rect.height)) return rect;
           const rects = range.getClientRects();
-          if (rects && rects.length) return rects[rects.length - 1];
+          if (rects.length > 0) return rects[rects.length - 1];
         }
       }
     } catch (_e) { }
@@ -946,7 +981,14 @@ function shouldTranslateElement(element: Element): boolean {
     tag === 'canvas' ||
     tag === 'svg' ||
     tag === 'input' ||
-    tag === 'textarea'
+    tag === 'textarea' ||
+    tag === 'table' ||
+    tag === 'thead' ||
+    tag === 'tbody' ||
+    tag === 'tfoot' ||
+    tag === 'tr' ||
+    tag === 'td' ||
+    tag === 'th'
   ) {
     return false;
   }
@@ -957,8 +999,6 @@ function shouldTranslateElement(element: Element): boolean {
     const allow = t === 'a' || t === 'button' || t === 'span' || t === 'li';
     if (!allow) return false;
   }
-  // 避免表格相关结构，防止破坏表格布局
-  if (element.closest('table,thead,tbody,tfoot,tr')) return false;
   if (element.closest(`.${TRANSLATED_CLASS}`)) return false;
   if ((element as HTMLElement).getAttribute(TRANSLATED_ATTR) === '1') return false;
   // 若内部已包含翻译或已被标记处理，跳过，避免父子重复翻译
@@ -1313,8 +1353,7 @@ async function markPairReady(
 ): Promise<void> {
   const key = getPairKey(sourceLanguage, targetLanguage);
   try {
-    const storageNs: 'session' | 'local' =
-      (chrome.storage as any).session ? 'session' : 'local';
+    const storageNs: 'session' | 'local' = 'session' in chrome.storage ? 'session' : 'local';
     const data = await chrome.storage[storageNs].get(READY_PAIRS_KEY);
     const map = (data?.[READY_PAIRS_KEY] as Record<string, number> | undefined) ?? {};
     map[key] = Date.now();
@@ -1330,8 +1369,7 @@ async function wasPairReady(
 ): Promise<boolean> {
   const key = getPairKey(sourceLanguage, targetLanguage);
   try {
-    const storageNs: 'session' | 'local' =
-      (chrome.storage as any).session ? 'session' : 'local';
+    const storageNs: 'session' | 'local' = 'session' in chrome.storage ? 'session' : 'local';
     const data = await chrome.storage[storageNs].get(READY_PAIRS_KEY);
     const map = (data?.[READY_PAIRS_KEY] as Record<string, number> | undefined) ?? {};
     return Boolean(map[key]);
@@ -1348,7 +1386,10 @@ async function getOrCreateTranslator(
   const adapter = await resolveTranslatorAdapterWithRetry(1000);
   if (!adapter) throw new Error('Translator API unavailable');
 
-  const pool = ((window as any).__nativeTranslatePool ||= new Map<string, TranslatorInstance>());
+  if (!window.__nativeTranslatePool) {
+    window.__nativeTranslatePool = new Map<string, TranslatorInstance>();
+  }
+  const pool = window.__nativeTranslatePool;
   const pairKey = getPairKey(sourceLanguage, targetLanguage);
   const existing = pool.get(pairKey);
   if (existing) return existing;
@@ -1403,10 +1444,9 @@ function buildDetectionSample(maxChars = 4000): string {
 async function getOrCreateLanguageDetector(
   onProgress?: (pct: number) => void,
 ): Promise<LanguageDetectorInstance> {
-  const api = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
+  const api = window.LanguageDetector;
   if (!api) throw new Error('Language Detector API unavailable');
-  const cacheKey = '__nativeLanguageDetector';
-  const cached = (window as any)[cacheKey] as LanguageDetectorInstance | undefined;
+  const cached = window.__nativeLanguageDetector;
   if (cached) return cached;
   let lastPct = -1;
   const detector = await api.create({
@@ -1422,10 +1462,9 @@ async function getOrCreateLanguageDetector(
       });
     },
   });
-  (window as any)[cacheKey] = detector;
+  window.__nativeLanguageDetector = detector;
   try {
-    const storageNs: 'session' | 'local' =
-      (chrome.storage as any).session ? 'session' : 'local';
+    const storageNs: 'session' | 'local' = 'session' in chrome.storage ? 'session' : 'local';
     await chrome.storage[storageNs].set({ [DETECTOR_READY_KEY]: Date.now() });
   } catch (_e) { }
   return detector;
@@ -1437,7 +1476,7 @@ async function detectSourceLanguageForPage(
   lang: LanguageCode;
   confidence: number;
 } | null> {
-  const api = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
+  const api = window.LanguageDetector;
   if (!api) return null;
   try {
     const state = await api.availability();
@@ -1516,8 +1555,8 @@ async function translateFullPage(
 
 async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promise<void> {
   const overlay = createOverlay();
-  const translatorApi = (window as any).Translator as TranslatorStatic | undefined;
-  const detectorApi = (window as any).LanguageDetector as LanguageDetectorStatic | undefined;
+  const translatorApi = window.Translator;
+  const detectorApi = window.LanguageDetector;
   if (!translatorApi) {
     updateOverlay(overlay, tCS('overlay_api_unavailable'));
     setTimeout(removeOverlay, 3000);
@@ -1733,7 +1772,7 @@ async function detectLanguageForText(text: string): Promise<LanguageCode | null>
   try {
     const detector = await getOrCreateLanguageDetector();
     const results = await detector.detect(text.slice(0, 2000));
-    if (results && results[0]?.detectedLanguage) {
+    if (results?.[0]?.detectedLanguage) {
       return results[0].detectedLanguage;
     }
   } catch (_e) { }
@@ -1763,24 +1802,25 @@ async function translateElementOnDemand(element: Element): Promise<void> {
       return;
     }
     // 若模型未准备，显示与全文翻译一致的下载提示
-    let overlay: HTMLElement | null = null;
+    let overlayInstance: HTMLElement | null = null;
     let lastPct = -1;
     const knownReady = await wasPairReady(sourceLanguage, targetLanguage);
     if (!knownReady) {
-      overlay = createOverlay();
-      updateOverlay(overlay, tCS('overlay_preparing'));
+      overlayInstance = createOverlay();
+      updateOverlay(overlayInstance, tCS('overlay_preparing'));
     }
 
     let translator: TranslatorInstance | null;
     try {
+      const progressOverlay = overlayInstance;
       translator = await getOrCreateTranslator(
         sourceLanguage,
         targetLanguage,
-        overlay
+        progressOverlay
           ? (pct) => {
             if (pct !== lastPct) {
               lastPct = pct;
-              updateOverlay(overlay!, tCS('overlay_downloading', [String(pct)]));
+              updateOverlay(progressOverlay, tCS('overlay_downloading', [String(pct)]));
             }
           }
           : undefined
@@ -1790,9 +1830,9 @@ async function translateElementOnDemand(element: Element): Promise<void> {
       translator = null;
     }
     // 无论是否回退到桥翻译，都移除下载提示层（后续不再有下载进度）
-    if (overlay) {
+    if (overlayInstance) {
       removeOverlay();
-      overlay = null;
+      overlayInstance = null;
     }
     // 对长段落采用流式逐行写入；否则一次性按行翻译
     if (text.length >= STREAMING_LENGTH_THRESHOLD) {
@@ -1831,8 +1871,8 @@ async function translateElementOnDemand(element: Element): Promise<void> {
 }
 
 function initializeHoverAltTranslate(): void {
-  if ((window as any).__nativeTranslateHoverAltInit) return;
-  (window as any).__nativeTranslateHoverAltInit = true;
+  if (window.__nativeTranslateHoverAltInit) return;
+  window.__nativeTranslateHoverAltInit = true;
 
   let hoveredCandidate: Element | null = null;
   let altPressed = false;
@@ -2004,8 +2044,8 @@ async function handleTripleSpaceForInput(
     // 将光标移至末尾
     try {
       const end = el.value.length;
-      (el as any).selectionStart = end;
-      (el as any).selectionEnd = end;
+      el.selectionStart = end;
+      el.selectionEnd = end;
     } catch (_e) { }
     dispatchInputEvent(el);
     if (hintActive) {
@@ -2060,8 +2100,8 @@ async function handleTripleSpaceForContentEditable(host: HTMLElement): Promise<v
 }
 
 function initializeTripleSpaceEditingTranslate(): void {
-  if ((window as any).__nativeTripleSpaceInit) return;
-  (window as any).__nativeTripleSpaceInit = true;
+  if (window.__nativeTripleSpaceInit) return;
+  window.__nativeTripleSpaceInit = true;
 
   // 跟踪 IME 组合，避免在中文/日文输入法组合期间误触发
   document.addEventListener(
@@ -2091,10 +2131,10 @@ function initializeTripleSpaceEditingTranslate(): void {
       if (!ae) return;
 
       if (isTextLikeInputElement(ae)) {
-        const el = ae as HTMLInputElement | HTMLTextAreaElement;
+        const el = ae;
         // 仅在光标处于折叠状态且左侧正好有两个空格时触发
-        const start = (el as any).selectionStart as number | null;
-        const end = (el as any).selectionEnd as number | null;
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
         if (start === null || end === null || start !== end) return;
         const pos = start || 0;
         const left = el.value.slice(0, pos);
@@ -2104,8 +2144,8 @@ function initializeTripleSpaceEditingTranslate(): void {
         e.stopPropagation();
         el.value = el.value.slice(0, pos - 2) + el.value.slice(pos);
         try {
-          (el as any).selectionStart = pos - 2;
-          (el as any).selectionEnd = pos - 2;
+          el.selectionStart = pos - 2;
+          el.selectionEnd = pos - 2;
         } catch (_e2) { }
         dispatchInputEvent(el);
         void handleTripleSpaceForInput(el);
