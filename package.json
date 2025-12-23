@@ -1,6 +1,6 @@
 {
   "name": "native-translate",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,18 +23,18 @@
   "packageManager": "pnpm@10.18.3",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@rspack/cli": "^1.6.7",
-    "@rspack/core": "^1.6.7",
+    "@rspack/cli": "^1.6.8",
+    "@rspack/core": "^1.6.8",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/jszip": "^3.4.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "chrome-types": "^0.1.396",
+    "chrome-types": "^0.1.401",
     "css-loader": "^7.1.2",
     "jsdom": "^27.3.0",
     "postcss": "^8.5.6",
@@ -42,7 +42,7 @@
     "tailwindcss": "^4.1.18",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.16"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",

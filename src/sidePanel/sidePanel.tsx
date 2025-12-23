@@ -939,246 +939,225 @@ const SidePanel: React.FC = () => {
   }, [fileState.isProcessing, fileState.status, autoDownload, startNextFile]);
 
   return (
-    <div className="p-4 h-screen box-border text-sm text-gray-900 dark:text-gray-100">
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'text' | 'file')}>
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="text" className="flex items-center gap-2 cursor-pointer">
-            <Type className="size-4" />
+    <div className="p-5 h-screen overflow-hidden flex flex-col box-border font-sans selection:bg-blue-100 dark:selection:bg-blue-900 bg-gray-50/50 dark:bg-[#1c1c1e]">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'text' | 'file')} className="flex-1 flex flex-col min-h-0">
+        <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-200/50 dark:bg-neutral-800/50 rounded-xl mb-6">
+          <TabsTrigger value="text" className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700">
+            <Type className="size-3.5" />
             {t('text_translation_tab')}
           </TabsTrigger>
-          <TabsTrigger value="file" className="flex items-center gap-2 cursor-pointer">
-            <FileText className="size-4" />
+          <TabsTrigger value="file" className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700">
+            <FileText className="size-3.5" />
             {t('file_translation_tab')}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="text" className="h-full mt-0">
-          <div className="grid h-full gap-4 grid-rows-[1fr_1fr] min-[520px]:grid-rows-1 min-[520px]:grid-cols-2">
-            <div className="flex h-full min-h-0 flex-col gap-2">
-              <Label className="inline-flex items-center gap-1">
-                <Languages className="size-4" />
-                {t('source_language')}
-              </Label>
-              <AppSelect
-                value={sourceLanguage}
-                onValueChange={(v) => setSourceLanguage((v as LanguageOption) || 'auto')}
-                options={[{ value: 'auto', label: t('auto_detect') }, ...LANGUAGE_OPTIONS]}
-              />
+        <TabsContent value="text" className="flex-1 flex flex-col min-h-0 relative m-0 focus-visible:outline-none">
+          <div className="flex-1 flex flex-col gap-5 min-h-0">
+            {/* Input Section */}
+            <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-800/40 border-b border-gray-100 dark:border-neutral-700/50">
+                <div className="flex items-center gap-2">
+                  <Languages className="size-4 text-blue-500" />
+                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">{t('source_language')}</span>
+                </div>
+                <div className="min-w-[120px]">
+                  <AppSelect
+                    value={sourceLanguage}
+                    onValueChange={(v) => setSourceLanguage((v as LanguageOption) || 'auto')}
+                    options={[{ value: 'auto', label: t('auto_detect') }, ...LANGUAGE_OPTIONS]}
+                  />
+                </div>
+              </div>
               <Textarea
-                className="flex-1 min-h-44 resize-none"
+                className="flex-1 w-full p-4 resize-none bg-transparent border-none focus-visible:ring-0 text-[15px] leading-relaxed placeholder:text-gray-300 dark:placeholder:text-neutral-600"
                 placeholder={t('sidepanel_input_placeholder')}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
               />
             </div>
-            <div className="flex h-full min-h-0 flex-col gap-2">
-              <Label className="inline-flex items-center gap-1">
-                <ArrowLeftRight className="size-4" />
-                {t('target_language')}
-              </Label>
-              <AppSelect
-                value={targetLanguage}
-                onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
-                options={LANGUAGE_OPTIONS}
-              />
-              <Textarea
-                className="flex-1 min-h-44 resize-none"
-                placeholder={t('sidepanel_output_placeholder')}
-                value={outputText}
-                readOnly
-                aria-busy={isTranslating}
-              />
-              {isTranslating && !outputText && (
-                <div
-                  className="h-20 w-full animate-pulse rounded-md border border-dashed border-gray-200 bg-gray-100/60 dark:border-neutral-700 dark:bg-neutral-800/60"
-                  aria-hidden="true"
+
+            {/* Middle Indicator */}
+            <div className="flex items-center justify-center -my-2.5 relative z-10">
+              <div className="bg-white dark:bg-neutral-800 p-1.5 rounded-full shadow-md border border-gray-100 dark:border-neutral-700">
+                <ArrowLeftRight className="size-4 text-gray-400" />
+              </div>
+            </div>
+
+            {/* Output Section */}
+            <div className={`flex-1 flex flex-col min-h-0 rounded-2xl border transition-all duration-300 ${isTranslating ? 'border-blue-200 dark:border-blue-900/50 shadow-blue-500/5' : 'border-gray-200/50 dark:border-neutral-700/50'} bg-white dark:bg-neutral-800/40 shadow-sm overflow-hidden`}>
+              <div className="px-4 py-3 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-800/40 border-b border-gray-100 dark:border-neutral-700/50">
+                <div className="flex items-center gap-2">
+                  <ArrowLeftRight className="size-4 text-blue-500" />
+                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">{t('target_language')}</span>
+                </div>
+                <div className="min-w-[120px]">
+                  <AppSelect
+                    value={targetLanguage}
+                    onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
+                    options={LANGUAGE_OPTIONS}
+                  />
+                </div>
+              </div>
+              <div className="flex-1 relative">
+                <Textarea
+                  className="w-full h-full p-4 resize-none bg-transparent border-none focus-visible:ring-0 text-[15px] cursor-default leading-relaxed text-blue-600 dark:text-blue-400 placeholder:text-gray-200 dark:placeholder:text-neutral-700"
+                  placeholder={t('sidepanel_output_placeholder')}
+                  value={outputText}
+                  readOnly
                 />
-              )}
-              {detectedSource && sourceLanguage === 'auto' && (
-                <div className="text-[11px] text-gray-500 dark:text-gray-400 inline-flex items-center gap-1">
-                  <Type className="size-3.5" />
-                  {t('source_language')}: {detectedSource}
+                {isTranslating && !outputText && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-[2px]">
+                    <Loader2 className="size-6 text-blue-500 animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <div className="px-4 py-2 flex items-center justify-between border-t border-gray-50 dark:border-neutral-700/30 text-[10px] text-gray-400 dark:text-gray-600">
+                <div className="flex items-center gap-1.5">
+                  {detectedSource && sourceLanguage === 'auto' && (
+                    <>
+                      <Type className="size-3" />
+                      <span>{t('auto_detect')}: <span className="text-gray-600 dark:text-gray-400 font-medium">{detectedSource}</span></span>
+                    </>
+                  )}
                 </div>
-              )}
-              {isTranslating && (
-                <div
-                  className="text-[11px] text-blue-600 dark:text-blue-400 inline-flex items-center gap-2"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <Loader2 className="size-3.5 animate-spin" />
-                  {t('preparing_translator')}
-                </div>
-              )}
-              {error && (
-                <div className="text-[11px] text-red-600 dark:text-red-400">{error}</div>
-              )}
+                {isTranslating && (
+                  <div className="flex items-center gap-1.5 text-blue-500 font-medium animate-pulse">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                    </span>
+                    {t('preparing_translator')}
+                  </div>
+                )}
+                {error && <span className="text-red-500 font-medium">{error}</span>}
+              </div>
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="file" className="h-full mt-0">
-          <div className="flex h-full flex-col gap-4">
+        <TabsContent value="file" className="flex-1 flex flex-col min-h-0 m-0 focus-visible:outline-none">
+          <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
             {/* Target Language Selection */}
-            <div className="flex items-center gap-4">
-              <Label className="inline-flex items-center gap-1">
-                <ArrowLeftRight className="size-4" />
-                {t('target_language')}
-              </Label>
-              <AppSelect
-                value={targetLanguage}
-                onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
-                options={LANGUAGE_OPTIONS}
-              />
+            <div className="p-4 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ArrowLeftRight className="size-4 text-blue-500" />
+                <span className="text-xs font-semibold text-gray-600 dark:text-neutral-400">{t('target_language')}</span>
+              </div>
+              <div className="min-w-[140px]">
+                <AppSelect
+                  value={targetLanguage}
+                  onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
+                  options={LANGUAGE_OPTIONS}
+                />
+              </div>
             </div>
 
-            {/* Performance Settings hidden from UI; auto-tuned by hardware */}
-
-            {/* File Upload Area (also show after completion for next file) */}
+            {/* File Upload Area */}
             {(!fileState.file || fileState.status === 'completed') && (
-              <Card
-                className="border-2 border-dashed border-gray-300 dark:border-neutral-700 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+              <div
+                className="group relative h-56 rounded-3xl border-2 border-dashed border-gray-200 dark:border-neutral-800 flex flex-col items-center justify-center gap-4 transition-all hover:bg-white dark:hover:bg-neutral-800/50 hover:border-blue-400/50 dark:hover:border-blue-500/50 cursor-pointer overflow-hidden"
                 onDrop={handleFileDrop}
                 onDragOver={handleDragOver}
                 onClick={triggerFileSelect}
               >
-                <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-                  <Upload className="size-12 text-gray-400 dark:text-gray-500 mb-4" />
-                  <p className="text-lg font-medium mb-2">
-                    {t('file_upload_area')}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t('file_supported_formats')}
-                  </p>
-                </CardContent>
-              </Card>
+                <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-neutral-800 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Upload className="size-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-300">{t('file_upload_area')}</p>
+                  <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-1 uppercase tracking-wider">{t('file_supported_formats')}</p>
+                </div>
+              </div>
             )}
 
-            {/* File Info */}
+            {/* File Info Card */}
             {fileState.file && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="size-8 text-blue-500" />
-                    <div className="flex-1">
-                      <p className="font-medium">{fileState.file.name}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {(fileState.file.size / (1024 * 1024)).toFixed(2)} MB
-                      </p>
-                    </div>
-                    {fileState.status === 'completed' && (
-                      <CheckCircle className="size-6 text-green-500" />
-                    )}
-                    {fileState.status === 'error' && (
-                      <AlertCircle className="size-6 text-red-500" />
-                    )}
+              <div className="p-4 bg-white dark:bg-neutral-800/60 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                    <FileText className="size-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Translation Progress */}
-            {fileState.isProcessing && (
-              <div className="space-y-3">
-                <Progress
-                  value={fileState.progress}
-                  className="w-full h-2"
-                />
-                <div className="text-center space-y-2">
-                  {fileState.status === 'parsing' && (
-                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                      {t('file_parsing')}
-                    </p>
-                  )}
-                  {fileState.status === 'translating' && (
-                    <>
-                      <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                        {t('file_translating_progress')}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('translation_progress_detail', [
-                          fileState.currentSegment.toString(),
-                          fileState.totalSegments.toString()
-                        ])}
-                      </p>
-                    </>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold truncate text-gray-800 dark:text-neutral-200">{fileState.file.name}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-0.5">{(fileState.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  </div>
+                  {fileState.status === 'completed' && <CheckCircle className="size-5 text-green-500" />}
+                  {fileState.status === 'error' && <AlertCircle className="size-5 text-red-500" />}
                 </div>
+
+                {fileState.isProcessing && (
+                  <div className="mt-4 pt-4 border-t border-gray-50 dark:border-neutral-700/50">
+                    <Progress value={fileState.progress} className="h-1.5 rounded-full bg-gray-100 dark:bg-neutral-700" />
+                    <div className="flex justify-between items-center mt-3">
+                      <span className="text-[11px] font-semibold text-blue-500 animate-pulse uppercase tracking-tight">
+                        {fileState.status === 'parsing' ? t('file_parsing') : t('file_translating_progress')}
+                      </span>
+                      <span className="text-[11px] text-gray-400 font-mono">
+                        {fileState.progress}% — {fileState.currentSegment}/{fileState.totalSegments}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Error Display */}
-            {fileState.error && (
-              <Alert variant="destructive">
-                <AlertCircle className="size-4" />
-                <AlertDescription className="mt-1">
-                  {fileState.error}
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Feedback & Actions */}
+            <div className="mt-auto pt-2 space-y-4">
+              {fileState.error && (
+                <div className="p-3.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl flex gap-3 text-red-600 dark:text-red-400">
+                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                  <p className="text-xs font-medium leading-relaxed">{fileState.error}</p>
+                </div>
+              )}
 
-            {/* Translate Button */}
-            {fileState.file && !fileState.isProcessing && fileState.status !== 'completed' && (
-              <Button
-                onClick={translateFile}
-                className="w-full"
-                size="lg"
-              >
-                <Languages className="size-4 mr-2" />
-                {t('translate_full_page')}
-              </Button>
-            )}
-
-            {/* Download Section */}
-            {fileState.status === 'completed' && fileState.translatedContent && (
-              <div className="space-y-4">
-                <Alert variant="success" className="border-green-200 dark:border-green-800">
-                  <CheckCircle className="size-4" />
-                  <AlertDescription className="mt-1">
-                    {t('translation_completed')}
-                  </AlertDescription>
-                </Alert>
-
-                <Button
-                  onClick={downloadTranslatedFile}
-                  className="w-full"
-                  size="lg"
-                >
-                  <Download className="size-4 mr-2" />
-                  {t('download_translated_file')}
+              {fileState.file && !fileState.isProcessing && fileState.status !== 'completed' && (
+                <Button onClick={translateFile} className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]" size="lg">
+                  <Languages className="size-4 mr-2" />
+                  {t('translate_full_page')}
                 </Button>
+              )}
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="auto-download" className="text-xs font-medium">
-                    {t('auto_download')}
-                  </Label>
-                  <Switch
-                    id="auto-download"
-                    checked={autoDownload}
-                    disabled={!autoDownloadReady}
-                    onCheckedChange={(checked) => {
-                      setAutoDownload(checked);
-                    }}
-                  />
+              {fileState.status === 'completed' && fileState.translatedContent && (
+                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+                  <div className="p-3.5 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 rounded-xl flex gap-3 text-green-600 dark:text-green-400">
+                    <CheckCircle className="size-4 shrink-0 mt-0.5" />
+                    <p className="text-xs font-medium">{t('translation_completed')}</p>
+                  </div>
+
+                  <Button onClick={downloadTranslatedFile} className="w-full h-12 rounded-2xl bg-gray-900 dark:bg-white dark:text-black hover:bg-gray-800 font-bold shadow-lg transition-all active:scale-[0.98]" size="lg">
+                    <Download className="size-4 mr-2" />
+                    {t('download_translated_file')}
+                  </Button>
+
+                  <div className="flex items-center justify-between px-2 pt-2">
+                    <Label htmlFor="auto-download" className="text-[11px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t('auto_download')}</Label>
+                    <Switch id="auto-download" checked={autoDownload} disabled={!autoDownloadReady} onCheckedChange={(checked) => setAutoDownload(checked)} />
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".epub"
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                if (files.length > 0) handleFilesSelect(files);
-              }}
-              style={{ display: 'none' }}
-            />
+              )}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Footer Info */}
+      <div className="mt-4 pt-4 border-t border-gray-100/50 dark:border-neutral-800/50 flex items-center justify-center opacity-30">
+        <span className="text-[9px] font-black tracking-[0.2em] text-gray-400 uppercase">Native Translate Premium</span>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".epub"
+        multiple
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length > 0) handleFilesSelect(files);
+        }}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };

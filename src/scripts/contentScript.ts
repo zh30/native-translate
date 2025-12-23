@@ -47,23 +47,23 @@ type SurfaceState = 'info' | 'progress' | 'success' | 'warning';
 const DESIGN_STYLE_ID = 'native-translate-design-system';
 const DESIGN_SYSTEM_STYLES = `
 :root {
-  --nt-font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
-  --nt-color-surface: rgba(255, 255, 255, 0.78);
-  --nt-color-surface-strong: rgba(255, 255, 255, 0.92);
-  --nt-color-outline: rgba(60, 60, 67, 0.18);
-  --nt-color-text: #1c1c1e;
-  --nt-color-subtle: rgba(28, 28, 30, 0.55);
-  --nt-color-accent: #0a84ff;
-  --nt-color-accent-strong: #0060df;
-  --nt-color-success: #30d158;
-  --nt-color-warning: #ff9f0a;
-  --nt-color-error: #ff453a;
-  --nt-shadow-elevated: 0 18px 44px rgba(28, 28, 30, 0.18);
+  --nt-font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --nt-color-surface: rgba(255, 255, 255, 0.72);
+  --nt-color-surface-strong: rgba(255, 255, 255, 0.88);
+  --nt-color-outline: rgba(0, 0, 0, 0.08);
+  --nt-color-text: #000000;
+  --nt-color-subtle: rgba(0, 0, 0, 0.5);
+  --nt-color-accent: #007AFF;
+  --nt-color-accent-strong: #0056B3;
+  --nt-color-success: #34C759;
+  --nt-color-warning: #FF9500;
+  --nt-color-error: #FF3B30;
+  --nt-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
   --nt-space-xs: 4px;
   --nt-space-sm: 8px;
   --nt-space-md: 12px;
   --nt-space-lg: 16px;
-  --nt-radius-lg: 18px;
+  --nt-radius-lg: 20px;
   --nt-radius-pill: 999px;
   --nt-progress-value: 0;
   --nt-progress-opacity: 0;
@@ -71,50 +71,53 @@ const DESIGN_SYSTEM_STYLES = `
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --nt-color-surface: rgba(36, 36, 38, 0.85);
-    --nt-color-surface-strong: rgba(28, 28, 30, 0.9);
-    --nt-color-outline: rgba(118, 118, 128, 0.32);
-    --nt-color-text: #f5f5f7;
-    --nt-color-subtle: rgba(245, 245, 247, 0.65);
-    --nt-shadow-elevated: 0 18px 36px rgba(0, 0, 0, 0.42);
+    --nt-color-surface: rgba(28, 28, 30, 0.72);
+    --nt-color-surface-strong: rgba(44, 44, 46, 0.88);
+    --nt-color-outline: rgba(255, 255, 255, 0.12);
+    --nt-color-text: #FFFFFF;
+    --nt-color-subtle: rgba(255, 255, 255, 0.55);
+    --nt-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 }
 
 .native-translate-overlay {
   position: fixed;
-  top: calc(var(--nt-space-lg) + var(--nt-space-xs));
-  inset-inline-end: calc(var(--nt-space-lg) + var(--nt-space-xs));
+  top: 20px;
+  inset-inline-end: 20px;
   z-index: 2147483647;
   pointer-events: none;
   font-family: var(--nt-font-family);
-  animation: nt-fade-in 180ms ease-out;
-  max-width: min(360px, calc(100vw - 2 * (var(--nt-space-lg) + var(--nt-space-xs))));
+  animation: nt-spring-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 320px;
+  width: 100%;
 }
 
 .native-translate-overlay[data-dir='rtl'] {
   inset-inline-end: auto;
-  inset-inline-start: calc(var(--nt-space-lg) + var(--nt-space-xs));
+  inset-inline-start: 20px;
 }
 
 .native-translate-overlay__surface {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--nt-space-md);
-  padding: calc(var(--nt-space-md) + 2px) var(--nt-space-lg);
+  padding: 14px 18px;
   border-radius: var(--nt-radius-lg);
-  border: 1px solid var(--nt-color-outline);
+  border: 0.5px solid var(--nt-color-outline);
   background: var(--nt-color-surface);
   color: var(--nt-color-text);
   box-shadow: var(--nt-shadow-elevated);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
 }
 
 .native-translate-overlay__copy {
   display: flex;
   flex-direction: column;
-  gap: var(--nt-space-xs);
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .native-translate-overlay[data-dir='rtl'] .native-translate-overlay__surface {
@@ -130,43 +133,46 @@ const DESIGN_SYSTEM_STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--nt-radius-pill);
-  background: linear-gradient(135deg, var(--nt-color-accent), var(--nt-color-accent-strong));
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--nt-color-accent);
   color: #ffffff;
   font-size: 16px;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35);
-  animation: none;
+  transition: background 0.3s ease;
 }
 
 .native-translate-overlay__title {
   margin: 0;
   font-weight: 600;
   font-size: 13px;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 .native-translate-overlay__desc {
-  margin: var(--nt-space-xs) 0 0;
+  margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.4;
   color: var(--nt-color-subtle);
-  white-space: pre-wrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .native-translate-overlay__progress {
   position: absolute;
-  inset-inline: calc(var(--nt-space-lg) - var(--nt-space-sm));
-  bottom: calc(var(--nt-space-sm) - 2px);
-  height: 4px;
-  border-radius: var(--nt-radius-pill);
-  background: linear-gradient(90deg, var(--nt-color-accent), var(--nt-color-accent-strong));
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--nt-color-accent);
+  opacity: var(--nt-progress-opacity);
   transform-origin: left;
   transform: scaleX(var(--nt-progress-value));
-  opacity: var(--nt-progress-opacity);
-  transition: transform 200ms ease, opacity 180ms ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  border-bottom-left-radius: var(--nt-radius-lg);
+  border-bottom-right-radius: var(--nt-radius-lg);
 }
 
 .native-translate-overlay[data-dir='rtl'] .native-translate-overlay__progress {
@@ -174,52 +180,43 @@ const DESIGN_SYSTEM_STYLES = `
 }
 
 .native-translate-overlay[data-state='success'] .native-translate-overlay__icon {
-  background: linear-gradient(135deg, var(--nt-color-success), #27c052);
+  background: var(--nt-color-success);
 }
 
 .native-translate-overlay[data-state='warning'] .native-translate-overlay__icon {
-  background: linear-gradient(135deg, var(--nt-color-warning), #ff8c00);
+  background: var(--nt-color-warning);
 }
 
 .native-translate-overlay[data-state='progress'] .native-translate-overlay__icon {
-  background: linear-gradient(135deg, var(--nt-color-accent-strong), var(--nt-color-accent));
-  animation: nt-spin 1.1s linear infinite;
-}
-
-.native-translate-overlay[data-state='warning'] .native-translate-overlay__surface {
-  border-color: rgba(255, 159, 10, 0.28);
-}
-
-.native-translate-overlay[data-state='success'] .native-translate-overlay__surface {
-  border-color: rgba(48, 209, 88, 0.24);
+  background: var(--nt-color-accent);
 }
 
 .native-translate-overlay--exit {
-  animation: nt-fade-out 160ms ease-in forwards;
+  animation: nt-spring-out 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .native-translate-inline-hint {
   position: fixed;
   z-index: 2147483647;
   pointer-events: none;
-  animation: nt-fade-opacity 160ms ease-out;
+  animation: nt-hint-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .native-translate-inline-hint__surface {
   display: flex;
   align-items: center;
-  gap: var(--nt-space-sm);
-  padding: var(--nt-space-sm) calc(var(--nt-space-sm) + 4px);
+  gap: 8px;
+  padding: 6px 12px;
   border-radius: var(--nt-radius-pill);
-  border: 1px solid var(--nt-color-outline);
   background: var(--nt-color-surface-strong);
   color: var(--nt-color-text);
   font-family: var(--nt-font-family);
-  font-size: 11px;
-  line-height: 1.4;
-  box-shadow: 0 12px 34px rgba(28, 28, 30, 0.22);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid var(--nt-color-outline);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .native-translate-inline-hint[data-dir='rtl'] .native-translate-inline-hint__surface {
@@ -231,48 +228,40 @@ const DESIGN_SYSTEM_STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--nt-radius-pill);
-  background: rgba(10, 132, 255, 0.18);
+  width: 18px;
+  height: 18px;
   color: var(--nt-color-accent);
   font-size: 12px;
   flex-shrink: 0;
-  animation: none;
-}
-
-.native-translate-inline-hint[data-state='success'] .native-translate-inline-hint__icon {
-  background: rgba(48, 209, 88, 0.18);
-  color: var(--nt-color-success);
-}
-
-.native-translate-inline-hint[data-state='warning'] .native-translate-inline-hint__icon {
-  background: rgba(255, 204, 0, 0.18);
-  color: var(--nt-color-warning);
-}
-
-.native-translate-inline-hint[data-state='progress'] .native-translate-inline-hint__icon {
-  background: rgba(0, 96, 223, 0.18);
-  color: var(--nt-color-accent-strong);
-  animation: nt-spin 1.1s linear infinite;
 }
 
 .native-translate-inline-hint--exit {
-  animation: nt-fade-out 160ms ease-in forwards;
+  animation: nt-hint-out 0.2s ease-in forwards;
 }
 
-@keyframes nt-fade-in {
+@keyframes nt-spring-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: scale(0.95) translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
-@keyframes nt-fade-opacity {
+@keyframes nt-spring-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+}
+
+@keyframes nt-hint-in {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -283,21 +272,14 @@ const DESIGN_SYSTEM_STYLES = `
   }
 }
 
-@keyframes nt-fade-out {
+@keyframes nt-hint-out {
   from {
     opacity: 1;
+    transform: translateY(0);
   }
   to {
     opacity: 0;
-  }
-}
-
-@keyframes nt-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+    transform: translateY(4px);
   }
 }
 `;
@@ -462,7 +444,48 @@ function ensurePageBridgeInjected(): void {
   if (document.getElementById(BRIDGE_SCRIPT_ID)) return;
   const script = document.createElement('script');
   script.id = BRIDGE_SCRIPT_ID;
-  script.textContent = `(() => {\n  if (window.__nativeTranslateBridgeInit) return;\n  window.__nativeTranslateBridgeInit = true;\n  const pool = new Map();\n  function directAdapter() {\n    const legacy = window.Translator;\n    if (legacy && typeof legacy.create === 'function') {\n      return { create: legacy.create.bind(legacy) };\n    }\n    const modern = window.translation;\n    if (modern && typeof modern.createTranslator === 'function') {\n      return { create: modern.createTranslator.bind(modern) };\n    }\n    return null;\n  }\n  async function getTranslator(source, target) {\n    const key = source + '->' + target;\n    if (pool.has(key)) return pool.get(key);\n    const adapter = directAdapter();\n    if (!adapter) throw new Error('Translator API unavailable');\n    const t = await adapter.create({ sourceLanguage: source, targetLanguage: target });\n    if (t && t.ready) {\n      try { await t.ready; } catch (e) {}\n    }\n    pool.set(key, t);\n    return t;\n  }\n  window.addEventListener('message', async (event) => {\n    const data = event && event.data;\n    if (!data || data.type !== '${BRIDGE_REQ_TYPE}') return;\n    try {\n      if (data.action === 'translate') {\n        const t = await getTranslator(data.source, data.target);\n        const out = await t.translate(data.text);\n        window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: true, result: out }, '*');\n      }\n    } catch (err) {\n      const msg = (err && (err.message || String(err))) || 'bridge_error';\n      window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: false, error: msg }, '*');\n    }\n  }, { capture: false });\n})();`;
+  script.textContent = `(() => {
+  if (window.__nativeTranslateBridgeInit) return;
+  window.__nativeTranslateBridgeInit = true;
+  const pool = new Map();
+  function directAdapter() {
+    const legacy = window.Translator;
+    if (legacy && typeof legacy.create === 'function') {
+      return { create: legacy.create.bind(legacy) };
+    }
+    const modern = window.translation;
+    if (modern && typeof modern.createTranslator === 'function') {
+      return { create: modern.createTranslator.bind(modern) };
+    }
+    return null;
+  }
+  async function getTranslator(source, target) {
+    const key = source + '->' + target;
+    if (pool.has(key)) return pool.get(key);
+    const adapter = directAdapter();
+    if (!adapter) throw new Error('Translator API unavailable');
+    const t = await adapter.create({ sourceLanguage: source, targetLanguage: target });
+    if (t && t.ready) {
+      try { await t.ready; } catch (e) { }
+    }
+    pool.set(key, t);
+    return t;
+  }
+  window.addEventListener('message', async (event) => {
+    const data = event && event.data;
+    if (!data || data.type !== '${BRIDGE_REQ_TYPE}') return;
+    try {
+      if (data.action === 'translate') {
+        const t = await getTranslator(data.source, data.target);
+        const out = await t.translate(data.text);
+        window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: true, result: out }, '*');
+      }
+    } catch (err) {
+      const msg = (err && (err.message || String(err))) || 'bridge_error';
+      window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: false, error: msg }, '*');
+    }
+  }, { capture: false });
+})(); `;
   (document.documentElement || document.head || document.body || document).appendChild(script);
 }
 
@@ -563,7 +586,7 @@ const MIN_LENGTH_HEADING = 2; // h1-h6 允许 2 个字符
 const translationCache = new Map<string, string>();
 
 function buildCacheKey(text: string, sourceLanguage: string, targetLanguage: string): string {
-  return `${sourceLanguage}|${targetLanguage}|${text}`;
+  return `${sourceLanguage}| ${targetLanguage}| ${text} `;
 }
 
 interface PopupSettings {
@@ -900,8 +923,8 @@ function showInlineHintNearElement(element: Element, initialText: string): Inlin
       Math.max(8, dir === 'rtl' ? base.left : base.right)
     );
     const clampedY = Math.min(window.innerHeight - 8, Math.max(8, base.top));
-    container.style.left = `${Math.round(clampedX)}px`;
-    container.style.top = `${Math.round(clampedY)}px`;
+    container.style.left = `${Math.round(clampedX)} px`;
+    container.style.top = `${Math.round(clampedY)} px`;
     const transform = dir === 'rtl'
       ? 'translate(6px, -110%)'
       : 'translate(-100%, -110%)';
@@ -944,7 +967,7 @@ function showInlineHintNearElement(element: Element, initialText: string): Inlin
 }
 
 function clearPreviousTranslationsAndMarks(): void {
-  const inserted = Array.from(document.querySelectorAll(`.${TRANSLATED_CLASS}`));
+  const inserted = Array.from(document.querySelectorAll(`.${TRANSLATED_CLASS} `));
   for (const el of inserted) {
     el.remove();
   }
@@ -999,10 +1022,10 @@ function shouldTranslateElement(element: Element): boolean {
     const allow = t === 'a' || t === 'button' || t === 'span' || t === 'li';
     if (!allow) return false;
   }
-  if (element.closest(`.${TRANSLATED_CLASS}`)) return false;
+  if (element.closest(`.${TRANSLATED_CLASS} `)) return false;
   if ((element as HTMLElement).getAttribute(TRANSLATED_ATTR) === '1') return false;
   // 若内部已包含翻译或已被标记处理，跳过，避免父子重复翻译
-  if (element.querySelector(`.${TRANSLATED_CLASS}, [${TRANSLATED_ATTR}="1"]`)) return false;
+  if (element.querySelector(`.${TRANSLATED_CLASS}, [${TRANSLATED_ATTR} = "1"]`)) return false;
   return true;
 }
 
@@ -1344,7 +1367,7 @@ async function translateBlocksSequentially(
 }
 
 function getPairKey(sourceLanguage: LanguageCode, targetLanguage: LanguageCode): string {
-  return `${sourceLanguage}->${targetLanguage}`;
+  return `${sourceLanguage} -> ${targetLanguage} `;
 }
 
 async function markPairReady(
@@ -1435,7 +1458,7 @@ function buildDetectionSample(maxChars = 4000): string {
   for (const item of blocks) {
     if (!item.text) continue;
     if (sample.length + item.text.length > maxChars) break;
-    sample += sample ? `\n${item.text}` : item.text;
+    sample += sample ? `\n${item.text} ` : item.text;
     if (sample.length >= maxChars) break;
   }
   return sample.slice(0, maxChars);
@@ -1784,7 +1807,7 @@ const processingElements = new WeakSet<Element>();
 async function translateElementOnDemand(element: Element): Promise<void> {
   if (!element) return;
   if ((element as HTMLElement).getAttribute(TRANSLATED_ATTR) === '1') return;
-  if (element.querySelector(`.${TRANSLATED_CLASS}`)) return;
+  if (element.querySelector(`.${TRANSLATED_CLASS} `)) return;
   if (processingElements.has(element)) return;
   const text = getElementText(element);
   const isHeading = /^h[1-6]$/.test(element.tagName.toLowerCase());
