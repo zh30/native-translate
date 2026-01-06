@@ -961,7 +961,7 @@ const SidePanel: React.FC = () => {
                   <Languages className="size-4 text-blue-500" />
                   <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">{t('source_language')}</span>
                 </div>
-                <div className="min-w-[120px]">
+                <div className="min-w-30">
                   <AppSelect
                     value={sourceLanguage}
                     onValueChange={(v) => setSourceLanguage((v as LanguageOption) || 'auto')}
@@ -991,7 +991,7 @@ const SidePanel: React.FC = () => {
                   <ArrowLeftRight className="size-4 text-blue-500" />
                   <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">{t('target_language')}</span>
                 </div>
-                <div className="min-w-[120px]">
+                <div className="min-w-30">
                   <AppSelect
                     value={targetLanguage}
                     onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
@@ -1025,8 +1025,8 @@ const SidePanel: React.FC = () => {
                 {isTranslating && (
                   <div className="flex items-center gap-1.5 text-blue-500 font-medium animate-pulse">
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
                     </span>
                     {t('preparing_translator')}
                   </div>
@@ -1045,7 +1045,7 @@ const SidePanel: React.FC = () => {
                 <ArrowLeftRight className="size-4 text-blue-500" />
                 <span className="text-xs font-semibold text-gray-600 dark:text-neutral-400">{t('target_language')}</span>
               </div>
-              <div className="min-w-[140px]">
+              <div className="min-w-35">
                 <AppSelect
                   value={targetLanguage}
                   onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
@@ -1056,6 +1056,7 @@ const SidePanel: React.FC = () => {
 
             {/* File Upload Area */}
             {(!fileState.file || fileState.status === 'completed') && (
+              // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
               <div
                 className="group relative h-56 rounded-3xl border-2 border-dashed border-gray-200 dark:border-neutral-800 flex flex-col items-center justify-center gap-4 transition-all hover:bg-white dark:hover:bg-neutral-800/50 hover:border-blue-400/50 dark:hover:border-blue-500/50 cursor-pointer overflow-hidden"
                 onDrop={handleFileDrop}

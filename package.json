@@ -1,6 +1,6 @@
 {
   "name": "native-translate",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,18 +13,14 @@
     "lint": "biome check .",
     "lint:fix": "biome check . --write"
   },
-  "keywords": [
-    "browser",
-    "extension",
-    "chrome"
-  ],
+  "keywords": ["browser", "extension", "chrome"],
   "author": "zhanghe.dev",
   "license": "MIT",
   "packageManager": "pnpm@10.18.3",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@rspack/cli": "^1.6.8",
-    "@rspack/core": "^1.6.8",
+    "@rspack/cli": "^1.7.1",
+    "@rspack/core": "^1.7.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -34,9 +30,9 @@
     "@types/jszip": "^3.4.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "chrome-types": "^0.1.401",
+    "chrome-types": "^0.1.404",
     "css-loader": "^7.1.2",
-    "jsdom": "^27.3.0",
+    "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
     "tailwindcss": "^4.1.18",
