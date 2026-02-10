@@ -30,6 +30,9 @@ export interface TextSegment {
   domPath: string;
 }
 
+const TRANSLATION_SELECTOR = '.native-translate-translation';
+const TRANSLATABLE_SELECTOR = 'p, li, blockquote, h1, h2, h3, h4, h5, h6';
+
 class EpubParser {
   private zip: JSZip;
   private opfPath = '';
@@ -215,7 +218,9 @@ class EpubParser {
         const tag = node.tagName.toLowerCase();
         const parent: Element | null = node.parentElement;
         if (!parent) break;
-        const siblings = Array.from(parent.children).filter((c: Element) => c.tagName.toLowerCase() === tag);
+        const siblings = Array.from(parent.children).filter((c: Element) => (
+          c.tagName.toLowerCase() === tag && !c.classList.contains('native-translate-translation')
+        ));
         const index = siblings.indexOf(node) + 1; // nth-of-type is 1-based
         parts.unshift(`${tag}:nth-of-type(${index})`);
         node = parent;
@@ -236,9 +241,13 @@ class EpubParser {
         if (doc.getElementsByTagName('parsererror').length > 0) {
           doc = dom.parseFromString(html, 'text/html');
         }
-        const textElements = doc.querySelectorAll('p, li, blockquote, h1, h2, h3, h4, h5, h6');
+        for (const node of Array.from(doc.querySelectorAll(TRANSLATION_SELECTOR))) {
+          node.remove();
+        }
+        const textElements = doc.querySelectorAll(TRANSLATABLE_SELECTOR);
         let order = 0;
         for (const el of Array.from(textElements)) {
+          if (el.classList.contains('native-translate-translation')) continue;
           const text = el.textContent?.trim() || '';
           if (text.length <= 10) continue;
           const domPath = computeCssPath(el);
@@ -352,20 +361,65 @@ class EpubParser {
     }
 
     // Remove existing translated nodes to avoid duplication on re-run
-    for (const el of Array.from(doc.querySelectorAll('.native-translate-translation'))) {
+    for (const el of Array.from(doc.querySelectorAll(TRANSLATION_SELECTOR))) {
       el.remove();
     }
 
     // Strict 1-to-1 by domPath only; two-phase: resolve all targets first, then insert
     const resolvablePairs: Array<{ el: Element; seg: TextSegment }> = [];
     const missing: TextSegment[] = [];
+    const usedElements = new Set<Element>();
     for (const seg of segments) {
       if (!seg.translatedText || !seg.domPath) continue;
       const el = doc.querySelector(seg.domPath);
-      if (el) {
+      if (el && !usedElements.has(el) && !el.classList.contains('native-translate-translation')) {
         resolvablePairs.push({ el, seg });
+        usedElements.add(el);
       } else {
         missing.push(seg);
+      }
+    }
+
+    if (missing.length > 0) {
+      const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim();
+      const candidates = Array.from(doc.querySelectorAll(TRANSLATABLE_SELECTOR))
+        .filter((el) => !el.classList.contains('native-translate-translation'))
+        .map((el, index) => ({
+          el,
+          order: index,
+          tag: el.tagName.toLowerCase(),
+          normalizedText: normalizeText(el.textContent || ''),
+        }));
+
+      const pickCandidate = (
+        seg: TextSegment,
+        predicate: (candidate: (typeof candidates)[number], normalizedSource: string) => boolean
+      ): (typeof candidates)[number] | null => {
+        const normalizedSource = normalizeText(seg.originalText);
+        let best: (typeof candidates)[number] | null = null;
+        let bestDistance = Number.POSITIVE_INFINITY;
+        for (const candidate of candidates) {
+          if (usedElements.has(candidate.el)) continue;
+          if (!predicate(candidate, normalizedSource)) continue;
+          const distance = Math.abs(candidate.order - seg.order);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            best = candidate;
+          }
+        }
+        return best;
+      };
+
+      for (const seg of missing) {
+        if (!seg.translatedText) continue;
+        const candidate = pickCandidate(seg, (c, sourceText) => c.tag === seg.elementType && c.normalizedText === sourceText)
+          || pickCandidate(seg, (c, sourceText) => c.normalizedText === sourceText)
+          || pickCandidate(seg, (c) => c.tag === seg.elementType)
+          || pickCandidate(seg, () => true);
+        if (candidate) {
+          resolvablePairs.push({ el: candidate.el, seg });
+          usedElements.add(candidate.el);
+        }
       }
     }
 

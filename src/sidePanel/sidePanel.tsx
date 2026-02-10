@@ -44,6 +44,7 @@ async function mapWithConcurrency<T, R>(
   concurrencyLimit: number,
   worker: (item: T, index: number) => Promise<R>
 ): Promise<R[]> {
+  if (items.length === 0) return [];
   const results: R[] = new Array(items.length);
   let inFlight = 0;
   let nextIndex = 0;
@@ -69,6 +70,25 @@ async function mapWithConcurrency<T, R>(
     };
     launch();
   });
+}
+
+interface SegmentGroup {
+  text: string;
+  indices: number[];
+}
+
+function groupSegmentsByText(segments: TextSegment[]): SegmentGroup[] {
+  const groups = new Map<string, SegmentGroup>();
+  for (let i = 0; i < segments.length; i++) {
+    const text = segments[i].originalText;
+    const existing = groups.get(text);
+    if (existing) {
+      existing.indices.push(i);
+      continue;
+    }
+    groups.set(text, { text, indices: [i] });
+  }
+  return Array.from(groups.values());
 }
 
 // File translation state interface
@@ -649,17 +669,19 @@ const SidePanel: React.FC = () => {
       }));
 
       // Speed-ups:
-      // 1) Detect source language once using a sample
+      // 1) Detect source language once using a sample (or respect manual source selection)
       const sampleText = segments
         .slice(0, Math.min(12, segments.length))
         .map(s => s.originalText)
         .join('\n\n')
         .slice(0, 3000);
-      let detectedSource: LanguageCode = 'en';
-      try {
-        const d = await detectLanguageLocal(sampleText);
-        if (d) detectedSource = d;
-      } catch { }
+      let detectedSource: LanguageCode = sourceLanguage === 'auto' ? 'en' : sourceLanguage;
+      if (sourceLanguage === 'auto') {
+        try {
+          const d = await detectLanguageLocal(sampleText);
+          if (d) detectedSource = d;
+        } catch { }
+      }
 
       // 2) Reuse translator instance if possible
       let translator: TranslatorInstance | null = null;
@@ -671,65 +693,93 @@ const SidePanel: React.FC = () => {
         translator = null;
       }
 
-      // 3) Ensure content script once for possible fallback
-      await ensureContentScript();
-
-      // 4) Deduplicate cache for repeated paragraphs
-      const memoryCache = new Map<string, string>();
-
-      // 5) Limited concurrency translation
       const total = segments.length;
-      let completed = 0;
-      const updateProgress = () => {
-        const pct = Math.round(((completed) / total) * 100);
-        setFileState(prev => ({ ...prev, progress: pct, currentSegment: completed }));
-      };
+      const translatedSegments: TextSegment[] = segments.map(segment => ({
+        ...segment,
+        translatedText: segment.originalText
+      }));
+      if (total > 0 && detectedSource !== targetLanguage) {
+        let contentScriptReady = false;
+        const ensureContentScriptReady = async () => {
+          if (contentScriptReady) return;
+          await ensureContentScript();
+          contentScriptReady = true;
+        };
+        const memoryCache = new Map<string, string>();
+        const groups = groupSegmentsByText(segments);
 
-      const worker = async (segment: TextSegment): Promise<TextSegment> => {
-        try {
-          if (detectedSource === targetLanguage) {
-            completed++;
-            updateProgress();
-            return { ...segment, translatedText: segment.originalText };
-          }
-          const cached = memoryCache.get(segment.originalText);
-          if (cached) {
-            completed++;
-            updateProgress();
-            return { ...segment, translatedText: cached };
-          }
+        let completed = 0;
+        let lastCommittedCompleted = -1;
+        let lastProgressAt = 0;
+        const commitProgress = (force = false) => {
+          const now = Date.now();
+          if (!force && completed !== total && completed === lastCommittedCompleted) return;
+          if (!force && completed !== total && now - lastProgressAt < 80) return;
+          const pct = Math.round((completed / total) * 100);
+          lastCommittedCompleted = completed;
+          lastProgressAt = now;
+          setFileState(prev => ({ ...prev, progress: pct, currentSegment: completed }));
+        };
 
-          // Prefer local translator
+        const translateOneText = async (text: string): Promise<string> => {
+          const cached = memoryCache.get(text);
+          if (cached) return cached;
+
           if (translator) {
-            const out = await translator.translate(segment.originalText);
-            memoryCache.set(segment.originalText, out);
-            completed++;
-            updateProgress();
-            return { ...segment, translatedText: out };
+            const out = await translator.translate(text);
+            memoryCache.set(text, out);
+            return out;
           }
 
-          // Fallback via content script bridge
           const tabId = activeTabIdRef.current ?? null;
           if (!tabId) throw new Error('Active tab missing');
-          const res = (await chrome.tabs.sendMessage(tabId, {
-            type: MSG_TRANSLATE_TEXT,
-            payload: { text: segment.originalText, sourceLanguage: detectedSource, targetLanguage },
-          })) as { ok?: boolean; result?: string; detectedSource?: LanguageCode } | undefined;
-          if (res?.ok && typeof res.result === 'string') {
-            memoryCache.set(segment.originalText, res.result);
-            completed++;
-            updateProgress();
-            return { ...segment, translatedText: res.result };
-          }
-          throw new Error('Translation failed');
-        } catch {
-          completed++;
-          updateProgress();
-          return { ...segment, translatedText: segment.originalText };
-        }
-      };
 
-      const translatedSegments = await mapWithConcurrency(segments, Math.max(1, Math.min(12, concurrency)), worker);
+          const sendTranslate = async () => {
+            const res = (await chrome.tabs.sendMessage(tabId, {
+              type: MSG_TRANSLATE_TEXT,
+              payload: { text, sourceLanguage: detectedSource, targetLanguage },
+            })) as { ok?: boolean; result?: string } | undefined;
+            if (res?.ok && typeof res.result === 'string') return res.result;
+            throw new Error('Translation failed');
+          };
+
+          await ensureContentScriptReady();
+          try {
+            const out = await sendTranslate();
+            memoryCache.set(text, out);
+            return out;
+          } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            if (/Receiving end does not exist|Could not establish connection/i.test(msg)) {
+              contentScriptReady = false;
+              await ensureContentScriptReady();
+              await new Promise((resolve) => setTimeout(resolve, 50));
+              const out = await sendTranslate();
+              memoryCache.set(text, out);
+              return out;
+            }
+            throw error;
+          }
+        };
+
+        await mapWithConcurrency(groups, Math.max(1, Math.min(12, concurrency)), async (group) => {
+          let translated = group.text;
+          try {
+            translated = await translateOneText(group.text);
+          } catch {
+            translated = group.text;
+          }
+          for (const index of group.indices) {
+            translatedSegments[index] = { ...translatedSegments[index], translatedText: translated };
+          }
+          completed += group.indices.length;
+          commitProgress();
+          return translated;
+        });
+        commitProgress(true);
+      } else {
+        setFileState(prev => ({ ...prev, progress: 100, currentSegment: total }));
+      }
 
       // Generate translated EPUB
       const translatedBlob = await generateTranslatedEpub(
@@ -743,7 +793,8 @@ const SidePanel: React.FC = () => {
         translatedContent: translatedBlob,
         status: 'completed',
         isProcessing: false,
-        progress: 100
+        progress: 100,
+        currentSegment: total
       }));
 
       // Auto-download if enabled
@@ -767,7 +818,7 @@ const SidePanel: React.FC = () => {
         isProcessing: false
       }));
     }
-  }, [fileState.file, autoDownload, targetLanguage, ensureContentScript, concurrency]);
+  }, [fileState.file, autoDownload, targetLanguage, sourceLanguage, ensureContentScript, concurrency]);
 
   const translate = React.useCallback(async () => {
     const tabId = activeTabIdRef.current;

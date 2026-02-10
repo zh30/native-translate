@@ -1,6 +1,6 @@
 {
   "name": "native-translate",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,32 +13,36 @@
     "lint": "biome check .",
     "lint:fix": "biome check . --write"
   },
-  "keywords": ["browser", "extension", "chrome"],
+  "keywords": [
+    "browser",
+    "extension",
+    "chrome"
+  ],
   "author": "zhanghe.dev",
   "license": "MIT",
   "packageManager": "pnpm@10.18.3",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@rspack/cli": "^1.7.1",
-    "@rspack/core": "^1.7.1",
+    "@rspack/cli": "^1.7.5",
+    "@rspack/core": "^1.7.5",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.1",
+    "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/jszip": "^3.4.1",
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
-    "chrome-types": "^0.1.404",
-    "css-loader": "^7.1.2",
+    "chrome-types": "^0.1.415",
+    "css-loader": "^7.1.3",
     "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
     "tailwindcss": "^4.1.18",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
@@ -51,8 +55,8 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.540.0",
     "radash": "^12.1.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "tailwind-merge": "^3.4.0"
   }
 }
