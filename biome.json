@@ -15,6 +15,7 @@
       "**/*.svg",
       "**/*.webp",
       "**/*.avif",
+      "src/styles/tailwind.css",
       "pnpm-lock.yaml"
     ]
   },
@@ -34,10 +35,7 @@
     }
   },
   "javascript": {
-    "globals": [
-      "chrome",
-      "__DEV__"
-    ],
+    "globals": ["chrome", "__DEV__"],
     "jsxRuntime": "reactClassic",
     "formatter": {
       "quoteStyle": "single",

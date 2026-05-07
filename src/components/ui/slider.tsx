@@ -1,15 +1,22 @@
-import * as React from 'react';
+import * as React from 'react'
 
 interface SliderProps {
-  value: number;
-  min?: number;
-  max?: number;
-  step?: number;
-  onChange: (value: number) => void;
-  className?: string;
+  value: number
+  min?: number
+  max?: number
+  step?: number
+  onChange: (value: number) => void
+  className?: string
 }
 
-export const Slider: React.FC<SliderProps> = ({ value, min = 1, max = 12, step = 1, onChange, className }) => {
+export const Slider: React.FC<SliderProps> = ({
+  value,
+  min = 1,
+  max = 12,
+  step = 1,
+  onChange,
+  className,
+}) => {
   return (
     <input
       type="range"
@@ -20,7 +27,5 @@ export const Slider: React.FC<SliderProps> = ({ value, min = 1, max = 12, step =
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.target.value))}
       className={className}
     />
-  );
-};
-
-
+  )
+}

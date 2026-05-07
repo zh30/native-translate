@@ -1,18 +1,18 @@
-import * as React from 'react';
-import * as SelectPrimitive from '@radix-ui/react-select';
-import { cn } from '@/utils/cn';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/utils/cn'
+import * as SelectPrimitive from '@radix-ui/react-select'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import * as React from 'react'
 
 export interface Option {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 export interface AppSelectProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  options: Option[];
-  disabled?: boolean;
+  value: string
+  onValueChange: (value: string) => void
+  options: Option[]
+  disabled?: boolean
 }
 
 export function AppSelect({ value, onValueChange, options, disabled = false }: AppSelectProps) {
@@ -21,12 +21,15 @@ export function AppSelect({ value, onValueChange, options, disabled = false }: A
       <SelectPrimitive.Trigger
         className={cn(
           'w-full relative pr-8 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#282828] px-3 py-2 text-left text-sm',
-          disabled && 'cursor-not-allowed opacity-60'
+          disabled && 'cursor-not-allowed opacity-60',
         )}
         disabled={disabled}
       >
         <SelectPrimitive.Value />
-        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" aria-hidden="true" />
+        <ChevronDown
+          className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60"
+          aria-hidden="true"
+        />
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
@@ -58,6 +61,5 @@ export function AppSelect({ value, onValueChange, options, disabled = false }: A
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
     </SelectPrimitive.Root>
-  );
+  )
 }
-

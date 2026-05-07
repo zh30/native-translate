@@ -1,134 +1,158 @@
-import '../styles/tailwind.css';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { t } from '@/utils/i18n';
-import { getUILocale, isRTLLanguage } from '@/utils/rtl';
-import { AppSelect } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { debounce } from 'radash';
-import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage';
+import '../styles/tailwind.css'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import { AppSelect } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import {
+  DEFAULT_TARGET_LANGUAGE,
+  type LanguageCode,
+  SUPPORTED_LANGUAGES,
+  canonicalizeLanguageForTranslation,
+  isSameLanguageForTranslation,
+  refineGenericChineseLanguage,
+} from '@/shared/languages'
+import { MSG_EASTER_CONFETTI, MSG_TRANSLATE_TEXT, MSG_WARM_TRANSLATOR } from '@/shared/messages'
+import {
+  STREAMING_LENGTH_THRESHOLD,
+  type TranslatorInstance,
+  normalizeToAsyncStringIterable,
+} from '@/shared/streaming'
+import {
+  type EpubBook,
+  type TextSegment,
+  generateTranslatedEpub,
+  parseEpubFile,
+} from '@/utils/epubParser'
+import { t } from '@/utils/i18n'
+import { getUILocale, isRTLLanguage } from '@/utils/rtl'
+import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage'
+import {
+  AlertCircle,
   ArrowLeftRight,
-  Languages,
-  Type,
-  Upload,
+  CheckCircle,
   Download,
   FileText,
-  CheckCircle,
-  AlertCircle,
-  Loader2
-} from 'lucide-react';
-import { type LanguageCode, SUPPORTED_LANGUAGES, DEFAULT_TARGET_LANGUAGE } from '@/shared/languages';
-import { MSG_TRANSLATE_TEXT, MSG_EASTER_CONFETTI, MSG_WARM_TRANSLATOR } from '@/shared/messages';
-import { STREAMING_LENGTH_THRESHOLD, normalizeToAsyncStringIterable, type TranslatorInstance } from '@/shared/streaming';
-import { parseEpubFile, generateTranslatedEpub, type EpubBook, type TextSegment } from '@/utils/epubParser';
+  Languages,
+  Loader2,
+  Type,
+  Upload,
+} from 'lucide-react'
+import { debounce } from 'radash'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 
-
-type LanguageOption = LanguageCode | 'auto';
+type LanguageOption = LanguageCode | 'auto'
 
 const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
   value: lang.code,
   label: lang.label,
-}));
+}))
 
 // Limited-concurrency async mapper (top-level function to avoid hook deps)
 async function mapWithConcurrency<T, R>(
   items: T[],
   concurrencyLimit: number,
-  worker: (item: T, index: number) => Promise<R>
+  worker: (item: T, index: number) => Promise<R>,
 ): Promise<R[]> {
-  if (items.length === 0) return [];
-  const results: R[] = new Array(items.length);
-  let inFlight = 0;
-  let nextIndex = 0;
+  if (items.length === 0) return []
+  const results: R[] = new Array(items.length)
+  let inFlight = 0
+  let nextIndex = 0
   return await new Promise<R[]>((resolve, reject) => {
     const launch = () => {
       while (inFlight < concurrencyLimit && nextIndex < items.length) {
-        const current = nextIndex++;
-        inFlight++;
+        const current = nextIndex++
+        inFlight++
         void worker(items[current], current)
           .then((res) => {
-            results[current] = res;
+            results[current] = res
           })
           .catch(reject)
           .finally(() => {
-            inFlight--;
+            inFlight--
             if (results.length === items.length && nextIndex >= items.length && inFlight === 0) {
-              resolve(results);
+              resolve(results)
             } else {
-              launch();
+              launch()
             }
-          });
+          })
       }
-    };
-    launch();
-  });
+    }
+    launch()
+  })
 }
 
 interface SegmentGroup {
-  text: string;
-  indices: number[];
+  text: string
+  indices: number[]
 }
 
 function groupSegmentsByText(segments: TextSegment[]): SegmentGroup[] {
-  const groups = new Map<string, SegmentGroup>();
+  const groups = new Map<string, SegmentGroup>()
   for (let i = 0; i < segments.length; i++) {
-    const text = segments[i].originalText;
-    const existing = groups.get(text);
+    const text = segments[i].originalText
+    const existing = groups.get(text)
     if (existing) {
-      existing.indices.push(i);
-      continue;
+      existing.indices.push(i)
+      continue
     }
-    groups.set(text, { text, indices: [i] });
+    groups.set(text, { text, indices: [i] })
   }
-  return Array.from(groups.values());
+  return Array.from(groups.values())
 }
 
 // File translation state interface
 interface FileTranslationState {
-  file: File | null;
-  isProcessing: boolean;
-  progress: number;
-  currentSegment: number;
-  totalSegments: number;
-  translatedContent: Blob | null;
-  status: 'idle' | 'parsing' | 'translating' | 'completed' | 'error';
-  error: string | null;
-  book: EpubBook | null;
-  segments: TextSegment[] | null;
+  file: File | null
+  isProcessing: boolean
+  progress: number
+  currentSegment: number
+  totalSegments: number
+  translatedContent: Blob | null
+  status: 'idle' | 'parsing' | 'translating' | 'completed' | 'error'
+  error: string | null
+  book: EpubBook | null
+  segments: TextSegment[] | null
 }
-
 
 // ============ Local built-in AI APIs (optional, best-effort) ============
 // 使用共享的 TranslatorInstance 类型
 
 interface TranslatorStaticLegacy {
-  create: (opts: { sourceLanguage: LanguageCode; targetLanguage: LanguageCode; monitor?: (m: unknown) => void }) => Promise<TranslatorInstance> | TranslatorInstance;
+  create: (opts: {
+    sourceLanguage: LanguageCode
+    targetLanguage: LanguageCode
+    monitor?: (m: unknown) => void
+  }) => Promise<TranslatorInstance> | TranslatorInstance
 }
 
 interface TranslatorStaticModern {
-  createTranslator: (opts: { sourceLanguage: LanguageCode; targetLanguage: LanguageCode; monitor?: (m: unknown) => void }) => Promise<TranslatorInstance> | TranslatorInstance;
+  createTranslator: (opts: {
+    sourceLanguage: LanguageCode
+    targetLanguage: LanguageCode
+    monitor?: (m: unknown) => void
+  }) => Promise<TranslatorInstance> | TranslatorInstance
 }
 
 type GlobalWithAPIs = (Window & typeof globalThis) & {
-  Translator?: TranslatorStaticLegacy;
-  translation?: TranslatorStaticModern;
-  LanguageDetector?: LanguageDetectorStatic;
-} & Record<string, unknown>;
+  Translator?: TranslatorStaticLegacy
+  translation?: TranslatorStaticModern
+  LanguageDetector?: LanguageDetectorStatic
+} & Record<string, unknown>
 
 interface LanguageDetectorInstance {
-  detect: (text: string) => Promise<Array<{ detectedLanguage: LanguageCode; confidence: number }>>;
+  detect: (text: string) => Promise<Array<{ detectedLanguage: LanguageCode; confidence: number }>>
 }
 
 interface LanguageDetectorStatic {
-  create: (opts?: { monitor?: (m: unknown) => void }) => Promise<LanguageDetectorInstance> | LanguageDetectorInstance;
+  create: (opts?: { monitor?: (m: unknown) => void }) =>
+    | Promise<LanguageDetectorInstance>
+    | LanguageDetectorInstance
 }
 
 async function resolveLocalTranslatorAdapter(): Promise<
@@ -136,55 +160,65 @@ async function resolveLocalTranslatorAdapter(): Promise<
   | { kind: 'modern'; api: TranslatorStaticModern }
   | null
 > {
-  const w = window as unknown as GlobalWithAPIs;
-  const legacy = w.Translator as TranslatorStaticLegacy | undefined;
+  const w = window as unknown as GlobalWithAPIs
+  const legacy = w.Translator as TranslatorStaticLegacy | undefined
   if (legacy && typeof legacy.create === 'function') {
-    return { kind: 'legacy', api: legacy };
+    return { kind: 'legacy', api: legacy }
   }
-  const modern = w.translation as TranslatorStaticModern | undefined;
+  const modern = w.translation as TranslatorStaticModern | undefined
   if (modern && typeof modern.createTranslator === 'function') {
-    return { kind: 'modern', api: modern };
+    return { kind: 'modern', api: modern }
   }
-  return null;
+  return null
 }
 
-async function getOrCreateLocalTranslator(source: LanguageCode, target: LanguageCode): Promise<TranslatorInstance> {
-  const key = `__nt_sp_translator_${source}_${target}`;
-  const g = window as unknown as GlobalWithAPIs;
-  if (g[key as keyof typeof g]) return g[key as keyof typeof g] as TranslatorInstance;
-  const adapter = await resolveLocalTranslatorAdapter();
-  if (!adapter) throw new Error('Translator API unavailable');
-  let instance: TranslatorInstance;
+async function getOrCreateLocalTranslator(
+  source: LanguageCode,
+  target: LanguageCode,
+): Promise<TranslatorInstance> {
+  const key = `__nt_sp_translator_${source}_${target}`
+  const g = window as unknown as GlobalWithAPIs
+  if (g[key as keyof typeof g]) return g[key as keyof typeof g] as TranslatorInstance
+  const adapter = await resolveLocalTranslatorAdapter()
+  if (!adapter) throw new Error('Translator API unavailable')
+  let instance: TranslatorInstance
   if (adapter.kind === 'legacy') {
-    instance = await adapter.api.create({ sourceLanguage: source, targetLanguage: target });
+    instance = await adapter.api.create({ sourceLanguage: source, targetLanguage: target })
   } else {
-    instance = await (adapter.api as TranslatorStaticModern).createTranslator({ sourceLanguage: source, targetLanguage: target });
+    instance = await (adapter.api as TranslatorStaticModern).createTranslator({
+      sourceLanguage: source,
+      targetLanguage: target,
+    })
   }
   if (instance?.ready) {
-    try { await instance.ready; } catch { }
+    try {
+      await instance.ready
+    } catch {}
   }
-  (g as Record<string, unknown>)[key] = instance;
-  return instance;
+  ;(g as Record<string, unknown>)[key] = instance
+  return instance
 }
 
 async function getOrCreateLocalDetector(): Promise<LanguageDetectorInstance> {
-  const cacheKey = '__nt_sp_detector';
-  const w = window as unknown as GlobalWithAPIs;
-  if ((w as Record<string, unknown>)[cacheKey]) return (w as Record<string, unknown>)[cacheKey] as LanguageDetectorInstance;
-  const detectorApi = (w.LanguageDetector as LanguageDetectorStatic | undefined);
-  if (!detectorApi || typeof detectorApi.create !== 'function') throw new Error('Language Detector API unavailable');
-  const det = await detectorApi.create();
-  (w as Record<string, unknown>)[cacheKey] = det;
-  return det;
+  const cacheKey = '__nt_sp_detector'
+  const w = window as unknown as GlobalWithAPIs
+  if ((w as Record<string, unknown>)[cacheKey])
+    return (w as Record<string, unknown>)[cacheKey] as LanguageDetectorInstance
+  const detectorApi = w.LanguageDetector as LanguageDetectorStatic | undefined
+  if (!detectorApi || typeof detectorApi.create !== 'function')
+    throw new Error('Language Detector API unavailable')
+  const det = await detectorApi.create()
+  ;(w as Record<string, unknown>)[cacheKey] = det
+  return det
 }
 
 async function detectLanguageLocal(text: string): Promise<LanguageCode | null> {
   try {
-    const det = await getOrCreateLocalDetector();
-    const res = await det.detect(text.slice(0, 2000));
-    return res?.[0]?.detectedLanguage ?? null;
+    const det = await getOrCreateLocalDetector()
+    const res = await det.detect(text.slice(0, 2000))
+    return res?.[0]?.detectedLanguage ?? null
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -192,70 +226,70 @@ async function detectLanguageLocal(text: string): Promise<LanguageCode | null> {
 
 // ============ Confetti (no-deps, lightweight) ============
 interface ConfettiParticle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  color: string;
-  rotation: number;
-  rotationSpeed: number;
-  gravity: number;
-  drag: number;
-  ageMs: number;
-  ttlMs: number;
+  x: number
+  y: number
+  vx: number
+  vy: number
+  size: number
+  color: string
+  rotation: number
+  rotationSpeed: number
+  gravity: number
+  drag: number
+  ageMs: number
+  ttlMs: number
 }
 
 function playConfetti(durationMs = 3000, particleCount = 320): Promise<void> {
   return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
     if (!ctx) {
-      resolve();
-      return;
+      resolve()
+      return
     }
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '999999';
-    canvas.style.opacity = '1';
-    document.body.appendChild(canvas);
+    canvas.style.position = 'fixed'
+    canvas.style.top = '0'
+    canvas.style.left = '0'
+    canvas.style.width = '100%'
+    canvas.style.height = '100%'
+    canvas.style.pointerEvents = 'none'
+    canvas.style.zIndex = '999999'
+    canvas.style.opacity = '1'
+    document.body.appendChild(canvas)
 
-    const dpr = Math.max(window.devicePixelRatio || 1, 1);
+    const dpr = Math.max(window.devicePixelRatio || 1, 1)
     const resize = () => {
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-    };
-    resize();
-    window.addEventListener('resize', resize);
+      canvas.width = Math.floor(window.innerWidth * dpr)
+      canvas.height = Math.floor(window.innerHeight * dpr)
+    }
+    resize()
+    window.addEventListener('resize', resize)
 
-    const rand = (min: number, max: number) => min + Math.random() * (max - min);
-    const COLORS = ['#FFC700', '#FF85C0', '#60A5FA', '#34D399', '#F472B6', '#FBBF24'];
+    const rand = (min: number, max: number) => min + Math.random() * (max - min)
+    const COLORS = ['#FFC700', '#FF85C0', '#60A5FA', '#34D399', '#F472B6', '#FBBF24']
 
-    const particles: ConfettiParticle[] = [];
-    const emissionDuration = Math.max(800, Math.floor(durationMs * 0.55));
-    const fadeOutDuration = Math.min(1200, Math.floor(durationMs * 0.4));
-    const targetRatePerMs = particleCount / emissionDuration; // particles per ms
-    let spawnRemainder = 0;
+    const particles: ConfettiParticle[] = []
+    const emissionDuration = Math.max(800, Math.floor(durationMs * 0.55))
+    const fadeOutDuration = Math.min(1200, Math.floor(durationMs * 0.4))
+    const targetRatePerMs = particleCount / emissionDuration // particles per ms
+    let spawnRemainder = 0
 
     const spawn = (count: number) => {
       for (let i = 0; i < count; i++) {
         // 三路喷口：左上、右上、随机顶端，提升横向覆盖
-        const lane = Math.random();
-        let x = 0;
-        let vx = 0;
+        const lane = Math.random()
+        let x = 0
+        let vx = 0
         if (lane < 0.33) {
-          x = rand(canvas.width * 0.05, canvas.width * 0.2);
-          vx = rand(1.2, 3.2) * dpr;
+          x = rand(canvas.width * 0.05, canvas.width * 0.2)
+          vx = rand(1.2, 3.2) * dpr
         } else if (lane < 0.66) {
-          x = rand(canvas.width * 0.8, canvas.width * 0.95);
-          vx = -rand(1.2, 3.2) * dpr;
+          x = rand(canvas.width * 0.8, canvas.width * 0.95)
+          vx = -rand(1.2, 3.2) * dpr
         } else {
-          x = rand(0, canvas.width);
-          vx = rand(-2.0, 2.0) * dpr;
+          x = rand(0, canvas.width)
+          vx = rand(-2.0, 2.0) * dpr
         }
         particles.push({
           x,
@@ -270,97 +304,103 @@ function playConfetti(durationMs = 3000, particleCount = 320): Promise<void> {
           drag: rand(0.988, 0.996),
           ageMs: 0,
           ttlMs: rand(durationMs * 0.9, durationMs * 1.3),
-        });
+        })
       }
-    };
+    }
 
     // 初始少量即刻爆发，避免只在顶部一角
-    spawn(Math.floor(particleCount * 0.25));
+    spawn(Math.floor(particleCount * 0.25))
 
-    const start = performance.now();
-    let last = start;
-    let raf = 0;
+    const start = performance.now()
+    let last = start
+    let raf = 0
 
     const cleanup = () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
-      canvas.remove();
-    };
+      cancelAnimationFrame(raf)
+      window.removeEventListener('resize', resize)
+      canvas.remove()
+    }
 
     const tick = (now: number) => {
-      const elapsed = now - start;
-      const dt = Math.min(32, now - last); // clamp dt to reduce frame spikes
-      last = now;
+      const elapsed = now - start
+      const dt = Math.min(32, now - last) // clamp dt to reduce frame spikes
+      last = now
 
       // 持续喷射，覆盖全屏
       if (elapsed < emissionDuration) {
-        const quota = targetRatePerMs * dt + spawnRemainder;
-        const toSpawn = Math.floor(quota);
-        spawnRemainder = quota - toSpawn;
-        if (toSpawn > 0) spawn(toSpawn);
+        const quota = targetRatePerMs * dt + spawnRemainder
+        const toSpawn = Math.floor(quota)
+        spawnRemainder = quota - toSpawn
+        if (toSpawn > 0) spawn(toSpawn)
       }
 
       // 结尾淡出
-      const fadeStart = durationMs - fadeOutDuration;
-      const alpha = elapsed >= fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / fadeOutDuration) : 1;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      ctx.globalAlpha = alpha;
+      const fadeStart = durationMs - fadeOutDuration
+      const alpha =
+        elapsed >= fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / fadeOutDuration) : 1
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.save()
+      ctx.globalAlpha = alpha
 
       // 更新并绘制
       for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.ageMs += dt;
-        p.vx *= p.drag;
-        p.vy *= p.drag;
-        p.vy += p.gravity;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rotation += p.rotationSpeed;
+        const p = particles[i]
+        p.ageMs += dt
+        p.vx *= p.drag
+        p.vy *= p.drag
+        p.vy += p.gravity
+        p.x += p.vx
+        p.y += p.vy
+        p.rotation += p.rotationSpeed
 
         // 出界或寿命到期则移除
-        if (p.y > canvas.height + 40 * dpr || p.x < -40 * dpr || p.x > canvas.width + 40 * dpr || p.ageMs > p.ttlMs) {
-          particles.splice(i, 1);
-          continue;
+        if (
+          p.y > canvas.height + 40 * dpr ||
+          p.x < -40 * dpr ||
+          p.x > canvas.width + 40 * dpr ||
+          p.ageMs > p.ttlMs
+        ) {
+          particles.splice(i, 1)
+          continue
         }
 
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.fillStyle = p.color;
-        const w = p.size;
-        const h = p.size * 0.6;
-        ctx.fillRect(-w / 2, -h / 2, w, h);
-        ctx.restore();
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate(p.rotation)
+        ctx.fillStyle = p.color
+        const w = p.size
+        const h = p.size * 0.6
+        ctx.fillRect(-w / 2, -h / 2, w, h)
+        ctx.restore()
       }
 
-      ctx.restore();
+      ctx.restore()
 
       // 结束条件：时间到且没有粒子
       if (elapsed >= durationMs && particles.length === 0) {
-        cleanup();
-        resolve();
+        cleanup()
+        resolve()
       } else {
-        raf = requestAnimationFrame(tick);
+        raf = requestAnimationFrame(tick)
       }
-    };
+    }
 
-    raf = requestAnimationFrame(tick);
-  });
+    raf = requestAnimationFrame(tick)
+  })
 }
 
 const SidePanel: React.FC = () => {
   // Tab state
-  const [activeTab, setActiveTab] = React.useState<'text' | 'file'>('text');
+  const [activeTab, setActiveTab] = React.useState<'text' | 'file'>('text')
 
   // Text translation state
-  const [sourceLanguage, setSourceLanguage] = React.useState<LanguageOption>('auto');
-  const [targetLanguage, setTargetLanguage] = React.useState<LanguageCode>(DEFAULT_TARGET_LANGUAGE);
-  const [inputText, setInputText] = React.useState<string>('');
-  const [outputText, setOutputText] = React.useState<string>('');
-  const [detectedSource, setDetectedSource] = React.useState<LanguageCode | null>(null);
-  const [isTranslating, setIsTranslating] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [sourceLanguage, setSourceLanguage] = React.useState<LanguageOption>('auto')
+  const [targetLanguage, setTargetLanguage] = React.useState<LanguageCode>(DEFAULT_TARGET_LANGUAGE)
+  const [inputText, setInputText] = React.useState<string>('')
+  const [outputText, setOutputText] = React.useState<string>('')
+  const [detectedSource, setDetectedSource] = React.useState<LanguageCode | null>(null)
+  const [isTranslating, setIsTranslating] = React.useState<boolean>(false)
+  const [error, setError] = React.useState<string | null>(null)
 
   // File translation state
   const [fileState, setFileState] = React.useState<FileTranslationState>({
@@ -374,133 +414,181 @@ const SidePanel: React.FC = () => {
     error: null,
     book: null,
     segments: null,
-  });
+  })
 
   // Performance settings: auto-tune based on hardware
   const [concurrency, setConcurrency] = React.useState<number>(() => {
-    const cores = (navigator as unknown as { hardwareConcurrency?: number }).hardwareConcurrency;
+    const cores = (navigator as unknown as { hardwareConcurrency?: number }).hardwareConcurrency
     // Heuristic: use min(12, max(4, floor(cores * 0.75)))
-    const guess = Math.floor(((cores && cores > 0) ? cores : 8) * 0.75);
-    return Math.max(4, Math.min(12, guess));
-  });
+    const guess = Math.floor((cores && cores > 0 ? cores : 8) * 0.75)
+    return Math.max(4, Math.min(12, guess))
+  })
 
-  const activeTabIdRef = React.useRef<number | null>(null);
+  const activeTabIdRef = React.useRef<number | null>(null)
   // 流式任务管理
-  const streamReaderRef = React.useRef<ReadableStreamDefaultReader<unknown> | null>(null);
-  const jobCounterRef = React.useRef<number>(0);
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
-  const [pendingFiles, setPendingFiles] = React.useState<File[]>([]);
+  const streamReaderRef = React.useRef<ReadableStreamDefaultReader<unknown> | null>(null)
+  const jobCounterRef = React.useRef<number>(0)
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
+  const [pendingFiles, setPendingFiles] = React.useState<File[]>([])
   const [autoDownload, setAutoDownload, autoDownloadReady] = useChromeLocalStorage<boolean>(
     'fileTranslation:autoDownload',
-    false
-  );
+    false,
+  )
 
   React.useEffect(() => {
-    const ui = getUILocale();
-    const dir = isRTLLanguage(ui) ? 'rtl' : 'ltr';
-    document.documentElement.setAttribute('dir', dir);
-    document.documentElement.setAttribute('lang', ui);
-  }, []);
+    const ui = getUILocale()
+    const dir = isRTLLanguage(ui) ? 'rtl' : 'ltr'
+    document.documentElement.setAttribute('dir', dir)
+    document.documentElement.setAttribute('lang', ui)
+  }, [])
+
+  const refreshActiveTabId = React.useCallback(async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+      activeTabIdRef.current = tab?.id ?? null
+      return activeTabIdRef.current
+    } catch (_e) {
+      activeTabIdRef.current = null
+      return null
+    }
+  }, [])
+
+  const getActiveTabId = React.useCallback(async () => {
+    if (activeTabIdRef.current != null) return activeTabIdRef.current
+    return await refreshActiveTabId()
+  }, [refreshActiveTabId])
 
   React.useEffect(() => {
-    (async () => {
-      try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        activeTabIdRef.current = tab?.id ?? null;
-      } catch (_e) {
-        activeTabIdRef.current = null;
+    void refreshActiveTabId()
+
+    const onActivated: Parameters<typeof chrome.tabs.onActivated.addListener>[0] = ({ tabId }) => {
+      activeTabIdRef.current = tabId
+    }
+
+    const onRemoved: Parameters<typeof chrome.tabs.onRemoved.addListener>[0] = (tabId) => {
+      if (activeTabIdRef.current === tabId) {
+        activeTabIdRef.current = null
+        void refreshActiveTabId()
       }
-    })();
-  }, []);
+    }
+
+    const windowsOnFocusChanged = chrome.windows.onFocusChanged as unknown as {
+      addListener(listener: (windowId: number) => void): void
+      removeListener(listener: (windowId: number) => void): void
+    }
+    const onWindowFocusChanged = () => {
+      void refreshActiveTabId()
+    }
+
+    chrome.tabs.onActivated.addListener(onActivated)
+    chrome.tabs.onRemoved.addListener(onRemoved)
+    windowsOnFocusChanged.addListener(onWindowFocusChanged)
+
+    return () => {
+      chrome.tabs.onActivated.removeListener(onActivated)
+      chrome.tabs.onRemoved.removeListener(onRemoved)
+      windowsOnFocusChanged.removeListener(onWindowFocusChanged)
+    }
+  }, [refreshActiveTabId])
 
   // 进入站点或背景标记变化时，触发一次撒花彩蛋
   React.useEffect(() => {
-    const KEY = MSG_EASTER_CONFETTI;
+    const KEY = MSG_EASTER_CONFETTI
 
     const tryOnce = async () => {
       try {
-        const res = await chrome.storage.local.get(KEY);
+        const res = await chrome.storage.local.get(KEY)
         if (res && (res as Record<string, unknown>)[KEY] === true) {
-          await playConfetti();
-          await chrome.storage.local.remove(KEY);
+          await playConfetti()
+          await chrome.storage.local.remove(KEY)
         }
       } catch {
         // noop
       }
-    };
+    }
 
-    void tryOnce();
+    void tryOnce()
 
-    const onStorageChanged: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (changes, areaName) => {
-      if (areaName !== 'local') return;
-      const change = changes[KEY];
+    const onStorageChanged: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (
+      changes,
+      areaName,
+    ) => {
+      if (areaName !== 'local') return
+      const change = changes[KEY]
       if (change && change.newValue === true) {
         void (async () => {
-          await playConfetti();
-          await chrome.storage.local.remove(KEY);
-        })();
+          await playConfetti()
+          await chrome.storage.local.remove(KEY)
+        })()
       }
-    };
+    }
 
-    chrome.storage.onChanged.addListener(onStorageChanged);
+    chrome.storage.onChanged.addListener(onStorageChanged)
 
-    const runtimeListener: Parameters<typeof chrome.runtime.onMessage.addListener>[0] = (message) => {
+    const runtimeListener: Parameters<typeof chrome.runtime.onMessage.addListener>[0] = (
+      message,
+    ) => {
       if ((message as { type?: string } | undefined)?.type === MSG_EASTER_CONFETTI) {
-        void playConfetti();
+        void playConfetti()
       }
-      return false;
-    };
-    chrome.runtime.onMessage.addListener(runtimeListener);
+      return false
+    }
+    chrome.runtime.onMessage.addListener(runtimeListener)
 
     return () => {
-      chrome.storage.onChanged.removeListener(onStorageChanged);
-      chrome.runtime.onMessage.removeListener(runtimeListener);
-    };
-  }, []);
+      chrome.storage.onChanged.removeListener(onStorageChanged)
+      chrome.runtime.onMessage.removeListener(runtimeListener)
+    }
+  }, [])
 
   // 卸载清理：取消可能存在的流式读取
   React.useEffect(() => {
     return () => {
-      const reader = streamReaderRef.current;
+      const reader = streamReaderRef.current
       if (reader) {
-        try { reader.cancel(); } catch { /* noop */ }
-        streamReaderRef.current = null;
+        try {
+          reader.cancel()
+        } catch {
+          /* noop */
+        }
+        streamReaderRef.current = null
       }
-    };
-  }, []);
+    }
+  }, [])
 
   const pingOnce = React.useCallback(async (tabId: number): Promise<boolean> => {
     try {
-      const res = await chrome.tabs.sendMessage(tabId, { type: '__PING__' });
-      return Boolean((res as { ok?: boolean } | undefined)?.ok);
+      const res = await chrome.tabs.sendMessage(tabId, { type: '__PING__' })
+      return Boolean((res as { ok?: boolean } | undefined)?.ok)
     } catch (_e) {
-      return false;
+      return false
     }
-  }, []);
+  }, [])
 
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
   // File handling functions
   const handleFileSelect = React.useCallback((file: File) => {
     if (!file.name.toLowerCase().endsWith('.epub')) {
-      setFileState(prev => ({
+      setFileState((prev) => ({
         ...prev,
         error: t('unsupported_file_format'),
-        status: 'error'
-      }));
-      return;
+        status: 'error',
+      }))
+      return
     }
 
-    if (file.size > 50 * 1024 * 1024) { // 50MB limit
-      setFileState(prev => ({
+    if (file.size > 50 * 1024 * 1024) {
+      // 50MB limit
+      setFileState((prev) => ({
         ...prev,
         error: t('file_too_large'),
-        status: 'error'
-      }));
-      return;
+        status: 'error',
+      }))
+      return
     }
 
-    setFileState(prev => ({
+    setFileState((prev) => ({
       ...prev,
       file,
       error: null,
@@ -508,509 +596,568 @@ const SidePanel: React.FC = () => {
       translatedContent: null,
       progress: 0,
       currentSegment: 0,
-      totalSegments: 0
-    }));
-  }, []);
+      totalSegments: 0,
+    }))
+  }, [])
 
   const startNextFile = React.useCallback(() => {
     setPendingFiles((prev) => {
       // 若已有文件在处理（或未完成），则保持队列不动
       if (fileState.isProcessing || (fileState.file && fileState.status !== 'completed')) {
-        return prev;
+        return prev
       }
-      const next = prev[0];
-      if (!next) return prev;
-      handleFileSelect(next);
-      return prev.slice(1);
-    });
-  }, [fileState.isProcessing, fileState.file, fileState.status, handleFileSelect]);
+      const next = prev[0]
+      if (!next) return prev
+      handleFileSelect(next)
+      return prev.slice(1)
+    })
+  }, [fileState.isProcessing, fileState.file, fileState.status, handleFileSelect])
 
-  const handleFilesSelect = React.useCallback((files: File[]) => {
-    const valid: File[] = [];
-    for (const f of files) {
-      if (!f.name.toLowerCase().endsWith('.epub')) continue;
-      if (f.size > 50 * 1024 * 1024) continue;
-      valid.push(f);
-    }
-    if (valid.length === 0) {
-      setFileState(prev => ({ ...prev, error: t('unsupported_file_format'), status: 'error' }));
-      return;
-    }
-    setPendingFiles(prev => prev.concat(valid));
-    // 若当前空闲，则立即启动下一个
-    startNextFile();
-  }, [startNextFile]);
+  const handleFilesSelect = React.useCallback(
+    (files: File[]) => {
+      const valid: File[] = []
+      for (const f of files) {
+        if (!f.name.toLowerCase().endsWith('.epub')) continue
+        if (f.size > 50 * 1024 * 1024) continue
+        valid.push(f)
+      }
+      if (valid.length === 0) {
+        setFileState((prev) => ({ ...prev, error: t('unsupported_file_format'), status: 'error' }))
+        return
+      }
+      setPendingFiles((prev) => prev.concat(valid))
+      // 若当前空闲，则立即启动下一个
+      startNextFile()
+    },
+    [startNextFile],
+  )
 
-  const handleFileDrop = React.useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleFileDrop = React.useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
 
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) {
-      handleFilesSelect(files);
-    }
-  }, [handleFilesSelect]);
+      const files = Array.from(e.dataTransfer.files || [])
+      if (files.length > 0) {
+        handleFilesSelect(files)
+      }
+    },
+    [handleFilesSelect],
+  )
 
   const handleDragOver = React.useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
 
   const triggerFileSelect = React.useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+    fileInputRef.current?.click()
+  }, [])
 
   const downloadTranslatedFile = React.useCallback(() => {
-    if (!fileState.translatedContent || !fileState.book) return;
+    if (!fileState.translatedContent || !fileState.book) return
 
-    const url = URL.createObjectURL(fileState.translatedContent);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${fileState.book.metadata.title}_translated.epub`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(fileState.translatedContent)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${fileState.book.metadata.title}_translated.epub`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
     // 手动下载后，若仍有待处理文件，则继续下一个
-    startNextFile();
-  }, [fileState.translatedContent, fileState.book, startNextFile]);
+    startNextFile()
+  }, [fileState.translatedContent, fileState.book, startNextFile])
 
   // (mapper moved to top-level)
 
   const ensureContentScript = React.useCallback(async () => {
-    const tabId = activeTabIdRef.current;
-    if (!tabId) return;
-    const ok = await pingOnce(tabId);
-    if (ok) return;
+    const tabId = await getActiveTabId()
+    if (!tabId) return
+    const ok = await pingOnce(tabId)
+    if (ok) return
     try {
-      const tab = (await chrome.tabs.get(tabId)) as chrome.tabs.Tab;
-      const url = tab.url ?? '';
-      if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) return;
-      await chrome.scripting.executeScript({ target: { tabId }, files: ['contentScript.js'] });
-      await new Promise((r) => setTimeout(r, 50));
-      await pingOnce(tabId);
-    } catch (_err) { }
-  }, [pingOnce]);
+      const tab = (await chrome.tabs.get(tabId)) as chrome.tabs.Tab
+      const url = tab.url ?? ''
+      if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) return
+      await chrome.scripting.executeScript({ target: { tabId }, files: ['contentScript.js'] })
+      await new Promise((r) => setTimeout(r, 50))
+      await pingOnce(tabId)
+    } catch (_err) {}
+  }, [getActiveTabId, pingOnce])
 
   const warmTranslatorForActiveTab = React.useCallback(
     async (warmTarget: LanguageCode) => {
-      const tabId = activeTabIdRef.current;
-      if (!tabId) return;
-      await ensureContentScript();
+      const tabId = await getActiveTabId()
+      if (!tabId) return
+      await ensureContentScript()
       const sendWarm = async () => {
-        await chrome.tabs.sendMessage(tabId, {
+        const activeTabId = await getActiveTabId()
+        if (!activeTabId) return
+        await chrome.tabs.sendMessage(activeTabId, {
           type: MSG_WARM_TRANSLATOR,
           payload: {
             targetLanguage: warmTarget,
             sourceLanguage: sourceLanguage,
           },
-        });
-      };
+        })
+      }
       try {
-        await sendWarm();
+        await sendWarm()
       } catch (error) {
-        const tab = await chrome.tabs.get(tabId);
-        const url = tab.url ?? '';
+        const activeTabId = await getActiveTabId()
+        if (!activeTabId) return
+        const tab = await chrome.tabs.get(activeTabId)
+        const url = tab.url ?? ''
         if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
           try {
             await chrome.scripting.executeScript({
-              target: { tabId },
+              target: { tabId: activeTabId },
               files: ['contentScript.js'],
-            });
-            await sendWarm();
+            })
+            await sendWarm()
           } catch (_e) {
             // ignore warming failure
           }
         }
       }
     },
-    [ensureContentScript, sourceLanguage]
-  );
+    [ensureContentScript, getActiveTabId, sourceLanguage],
+  )
 
   React.useEffect(() => {
-    void warmTranslatorForActiveTab(targetLanguage);
-  }, [targetLanguage, warmTranslatorForActiveTab]);
+    void warmTranslatorForActiveTab(targetLanguage)
+  }, [targetLanguage, warmTranslatorForActiveTab])
 
   React.useEffect(() => {
-    if (sourceLanguage === 'auto') return;
-    void warmTranslatorForActiveTab(targetLanguage);
-  }, [sourceLanguage, targetLanguage, warmTranslatorForActiveTab]);
+    if (sourceLanguage === 'auto') return
+    void warmTranslatorForActiveTab(targetLanguage)
+  }, [sourceLanguage, targetLanguage, warmTranslatorForActiveTab])
 
   const translateFile = React.useCallback(async () => {
     if (!fileState.file) {
-      setFileState(prev => ({
+      setFileState((prev) => ({
         ...prev,
         error: t('select_file_first'),
-        status: 'error'
-      }));
-      return;
+        status: 'error',
+      }))
+      return
     }
 
-    setFileState(prev => ({
+    setFileState((prev) => ({
       ...prev,
       isProcessing: true,
       error: null,
       status: 'parsing',
       progress: 0,
       currentSegment: 0,
-      totalSegments: 0
-    }));
+      totalSegments: 0,
+    }))
 
     try {
       // Parse EPUB file
-      const { book, segments } = await parseEpubFile(fileState.file);
+      const { book, segments } = await parseEpubFile(fileState.file)
 
-      setFileState(prev => ({
+      setFileState((prev) => ({
         ...prev,
         book,
         segments,
         totalSegments: segments.length,
-        status: 'translating'
-      }));
+        status: 'translating',
+      }))
 
       // Speed-ups:
       // 1) Detect source language once using a sample (or respect manual source selection)
       const sampleText = segments
         .slice(0, Math.min(12, segments.length))
-        .map(s => s.originalText)
+        .map((s) => s.originalText)
         .join('\n\n')
-        .slice(0, 3000);
-      let detectedSource: LanguageCode = sourceLanguage === 'auto' ? 'en' : sourceLanguage;
+        .slice(0, 3000)
+      let detectedSource: LanguageCode = sourceLanguage === 'auto' ? 'en' : sourceLanguage
       if (sourceLanguage === 'auto') {
         try {
-          const d = await detectLanguageLocal(sampleText);
-          if (d) detectedSource = d;
-        } catch { }
+          const d = await detectLanguageLocal(sampleText)
+          if (d) {
+            detectedSource = canonicalizeLanguageForTranslation(
+              refineGenericChineseLanguage(d, book.metadata.language),
+            ) as LanguageCode
+          }
+        } catch {}
       }
 
       // 2) Reuse translator instance if possible
-      let translator: TranslatorInstance | null = null;
+      let translator: TranslatorInstance | null = null
       try {
-        if (detectedSource !== targetLanguage) {
-          translator = await getOrCreateLocalTranslator(detectedSource, targetLanguage);
+        if (!isSameLanguageForTranslation(detectedSource, targetLanguage)) {
+          translator = await getOrCreateLocalTranslator(detectedSource, targetLanguage)
         }
       } catch {
-        translator = null;
+        translator = null
       }
 
-      const total = segments.length;
-      const translatedSegments: TextSegment[] = segments.map(segment => ({
+      const total = segments.length
+      const translatedSegments: TextSegment[] = segments.map((segment) => ({
         ...segment,
-        translatedText: segment.originalText
-      }));
-      if (total > 0 && detectedSource !== targetLanguage) {
-        let contentScriptReady = false;
+        translatedText: segment.originalText,
+      }))
+      if (total > 0 && !isSameLanguageForTranslation(detectedSource, targetLanguage)) {
+        let contentScriptReady = false
         const ensureContentScriptReady = async () => {
-          if (contentScriptReady) return;
-          await ensureContentScript();
-          contentScriptReady = true;
-        };
-        const memoryCache = new Map<string, string>();
-        const groups = groupSegmentsByText(segments);
+          if (contentScriptReady) return
+          await ensureContentScript()
+          contentScriptReady = true
+        }
+        const memoryCache = new Map<string, string>()
+        const groups = groupSegmentsByText(segments)
 
-        let completed = 0;
-        let lastCommittedCompleted = -1;
-        let lastProgressAt = 0;
+        let completed = 0
+        let lastCommittedCompleted = -1
+        let lastProgressAt = 0
         const commitProgress = (force = false) => {
-          const now = Date.now();
-          if (!force && completed !== total && completed === lastCommittedCompleted) return;
-          if (!force && completed !== total && now - lastProgressAt < 80) return;
-          const pct = Math.round((completed / total) * 100);
-          lastCommittedCompleted = completed;
-          lastProgressAt = now;
-          setFileState(prev => ({ ...prev, progress: pct, currentSegment: completed }));
-        };
+          const now = Date.now()
+          if (!force && completed !== total && completed === lastCommittedCompleted) return
+          if (!force && completed !== total && now - lastProgressAt < 80) return
+          const pct = Math.round((completed / total) * 100)
+          lastCommittedCompleted = completed
+          lastProgressAt = now
+          setFileState((prev) => ({ ...prev, progress: pct, currentSegment: completed }))
+        }
 
         const translateOneText = async (text: string): Promise<string> => {
-          const cached = memoryCache.get(text);
-          if (cached) return cached;
+          const cached = memoryCache.get(text)
+          if (cached) return cached
 
           if (translator) {
-            const out = await translator.translate(text);
-            memoryCache.set(text, out);
-            return out;
+            const out = await translator.translate(text)
+            memoryCache.set(text, out)
+            return out
           }
-
-          const tabId = activeTabIdRef.current ?? null;
-          if (!tabId) throw new Error('Active tab missing');
 
           const sendTranslate = async () => {
-            const res = (await chrome.tabs.sendMessage(tabId, {
+            const currentTabId = await getActiveTabId()
+            if (!currentTabId) throw new Error('Active tab missing')
+            const res = (await chrome.tabs.sendMessage(currentTabId, {
               type: MSG_TRANSLATE_TEXT,
               payload: { text, sourceLanguage: detectedSource, targetLanguage },
-            })) as { ok?: boolean; result?: string } | undefined;
-            if (res?.ok && typeof res.result === 'string') return res.result;
-            throw new Error('Translation failed');
-          };
-
-          await ensureContentScriptReady();
-          try {
-            const out = await sendTranslate();
-            memoryCache.set(text, out);
-            return out;
-          } catch (error) {
-            const msg = error instanceof Error ? error.message : String(error);
-            if (/Receiving end does not exist|Could not establish connection/i.test(msg)) {
-              contentScriptReady = false;
-              await ensureContentScriptReady();
-              await new Promise((resolve) => setTimeout(resolve, 50));
-              const out = await sendTranslate();
-              memoryCache.set(text, out);
-              return out;
-            }
-            throw error;
+            })) as { ok?: boolean; result?: string } | undefined
+            if (res?.ok && typeof res.result === 'string') return res.result
+            throw new Error('Translation failed')
           }
-        };
+
+          await ensureContentScriptReady()
+          try {
+            const out = await sendTranslate()
+            memoryCache.set(text, out)
+            return out
+          } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error)
+            if (/Receiving end does not exist|Could not establish connection/i.test(msg)) {
+              contentScriptReady = false
+              await ensureContentScriptReady()
+              await new Promise((resolve) => setTimeout(resolve, 50))
+              const out = await sendTranslate()
+              memoryCache.set(text, out)
+              return out
+            }
+            throw error
+          }
+        }
 
         await mapWithConcurrency(groups, Math.max(1, Math.min(12, concurrency)), async (group) => {
-          let translated = group.text;
+          let translated = group.text
           try {
-            translated = await translateOneText(group.text);
+            translated = await translateOneText(group.text)
           } catch {
-            translated = group.text;
+            translated = group.text
           }
           for (const index of group.indices) {
-            translatedSegments[index] = { ...translatedSegments[index], translatedText: translated };
+            translatedSegments[index] = { ...translatedSegments[index], translatedText: translated }
           }
-          completed += group.indices.length;
-          commitProgress();
-          return translated;
-        });
-        commitProgress(true);
+          completed += group.indices.length
+          commitProgress()
+          return translated
+        })
+        commitProgress(true)
       } else {
-        setFileState(prev => ({ ...prev, progress: 100, currentSegment: total }));
+        setFileState((prev) => ({ ...prev, progress: 100, currentSegment: total }))
       }
 
       // Generate translated EPUB
       const translatedBlob = await generateTranslatedEpub(
         fileState.file,
         book,
-        translatedSegments
-      );
+        translatedSegments,
+        targetLanguage,
+      )
 
-      setFileState(prev => ({
+      setFileState((prev) => ({
         ...prev,
         translatedContent: translatedBlob,
         status: 'completed',
         isProcessing: false,
         progress: 100,
-        currentSegment: total
-      }));
+        currentSegment: total,
+      }))
 
       // Auto-download if enabled
       if (autoDownload) {
-        const url = URL.createObjectURL(translatedBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${book.metadata.title}_translated.epub`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        const url = URL.createObjectURL(translatedBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${book.metadata.title}_translated.epub`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
       }
-
     } catch (error) {
-      console.error('File translation error:', error);
-      setFileState(prev => ({
+      console.error('File translation error:', error)
+      setFileState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : t('unknown_error'),
         status: 'error',
-        isProcessing: false
-      }));
+        isProcessing: false,
+      }))
     }
-  }, [fileState.file, autoDownload, targetLanguage, sourceLanguage, ensureContentScript, concurrency]);
+  }, [
+    fileState.file,
+    autoDownload,
+    targetLanguage,
+    sourceLanguage,
+    ensureContentScript,
+    concurrency,
+    getActiveTabId,
+  ])
 
   const translate = React.useCallback(async () => {
-    const tabId = activeTabIdRef.current;
+    const tabId = await getActiveTabId()
     if (!tabId || !inputText.trim()) {
-      setOutputText('');
-      setDetectedSource(null);
-      return;
+      setOutputText('')
+      setDetectedSource(null)
+      return
     }
-    setError(null);
-    setIsTranslating(true);
+    setError(null)
+    setIsTranslating(true)
     try {
       // 取消上一次进行中的流
       if (streamReaderRef.current) {
-        try { await streamReaderRef.current.cancel(); } catch { /* noop */ }
-        streamReaderRef.current = null;
+        try {
+          await streamReaderRef.current.cancel()
+        } catch {
+          /* noop */
+        }
+        streamReaderRef.current = null
       }
       // 新任务 id，避免竞态覆盖
-      jobCounterRef.current = (jobCounterRef.current || 0) + 1;
-      const jobId = jobCounterRef.current;
+      jobCounterRef.current = (jobCounterRef.current || 0) + 1
+      const jobId = jobCounterRef.current
 
       // 1) 尝试本地直译（若内置 API 在侧边栏可用）
-      let localSucceeded = false;
+      let localSucceeded = false
       try {
-        const src: LanguageCode = sourceLanguage === 'auto'
-          ? (await detectLanguageLocal(inputText)) || 'en'
-          : (sourceLanguage as LanguageCode);
-        if (src && targetLanguage && src !== targetLanguage) {
-          const translator = await getOrCreateLocalTranslator(src, targetLanguage);
+        const src: LanguageCode =
+          sourceLanguage === 'auto'
+            ? (canonicalizeLanguageForTranslation(
+                (await detectLanguageLocal(inputText)) || 'en',
+              ) as LanguageCode)
+            : (sourceLanguage as LanguageCode)
+        if (src && targetLanguage && !isSameLanguageForTranslation(src, targetLanguage)) {
+          const translator = await getOrCreateLocalTranslator(src, targetLanguage)
 
           // 按行翻译，严格保持换行结构
-          setOutputText('');
-          setDetectedSource(sourceLanguage === 'auto' ? src : null);
-          const lines = inputText.split(/\r?\n/);
-          const resultLines: string[] = [];
+          setOutputText('')
+          setDetectedSource(sourceLanguage === 'auto' ? src : null)
+          const lines = inputText.split(/\r?\n/)
+          const resultLines: string[] = []
           for (const line of lines) {
             if (jobCounterRef.current !== jobId) {
               // 被新任务打断，直接退出，交由新任务处理
-              return;
+              return
             }
             if (!line) {
-              resultLines.push('');
-              setOutputText(resultLines.join('\n'));
-              continue;
+              resultLines.push('')
+              setOutputText(resultLines.join('\n'))
+              continue
             }
-            const canStreamLine = typeof translator.translateStreaming === 'function' && line.length >= STREAMING_LENGTH_THRESHOLD;
+            const canStreamLine =
+              typeof translator.translateStreaming === 'function' &&
+              line.length >= STREAMING_LENGTH_THRESHOLD
             if (canStreamLine) {
-              let receivedAny = false;
-              let partial = '';
+              let receivedAny = false
+              let partial = ''
               try {
-                const streamLike = (translator.translateStreaming as (text: string) => unknown)(line);
+                const streamLike = (translator.translateStreaming as (text: string) => unknown)(
+                  line,
+                )
                 for await (const chunk of normalizeToAsyncStringIterable(streamLike, (reader) => {
-                  streamReaderRef.current = reader;
+                  streamReaderRef.current = reader
                 })) {
-                  if (jobCounterRef.current !== jobId) return;
-                  receivedAny = true;
-                  partial += chunk;
-                  setOutputText(resultLines.concat(partial).join('\n'));
+                  if (jobCounterRef.current !== jobId) return
+                  receivedAny = true
+                  partial += chunk
+                  setOutputText(resultLines.concat(partial).join('\n'))
                 }
               } catch (_e) {
                 // 忽略流式错误，回退到非流式
               } finally {
-                streamReaderRef.current = null;
+                streamReaderRef.current = null
               }
-              if (jobCounterRef.current !== jobId) return;
+              if (jobCounterRef.current !== jobId) return
               if (receivedAny) {
-                resultLines.push(partial);
-                setOutputText(resultLines.join('\n'));
+                resultLines.push(partial)
+                setOutputText(resultLines.join('\n'))
               } else {
-                const out = await translator.translate(line);
-                if (jobCounterRef.current !== jobId) return;
-                resultLines.push(out);
-                setOutputText(resultLines.join('\n'));
+                const out = await translator.translate(line)
+                if (jobCounterRef.current !== jobId) return
+                resultLines.push(out)
+                setOutputText(resultLines.join('\n'))
               }
             } else {
-              const out = await translator.translate(line);
-              if (jobCounterRef.current !== jobId) return;
-              resultLines.push(out);
-              setOutputText(resultLines.join('\n'));
+              const out = await translator.translate(line)
+              if (jobCounterRef.current !== jobId) return
+              resultLines.push(out)
+              setOutputText(resultLines.join('\n'))
             }
           }
           if (jobCounterRef.current === jobId) {
-            localSucceeded = true;
+            localSucceeded = true
           }
         } else {
           // 同语种，无需翻译
-          setOutputText(inputText);
-          setDetectedSource(sourceLanguage === 'auto' ? src : null);
-          localSucceeded = true;
+          setOutputText(inputText)
+          setDetectedSource(sourceLanguage === 'auto' ? src : null)
+          localSucceeded = true
         }
       } catch {
-        localSucceeded = false;
+        localSucceeded = false
       }
 
       if (!localSucceeded) {
         // 2) 回退到内容脚本（页面主世界桥或直接使用内容脚本的内置 API）
-        const sendTranslate = async (): Promise<{ ok?: boolean; result?: string; detectedSource?: LanguageCode; error?: string } | undefined> => {
-          const res = await chrome.tabs.sendMessage(tabId, {
+        const sendTranslate = async (): Promise<
+          | { ok?: boolean; result?: string; detectedSource?: LanguageCode; error?: string }
+          | undefined
+        > => {
+          const currentTabId = await getActiveTabId()
+          if (!currentTabId) throw new Error('Active tab missing')
+          const res = await chrome.tabs.sendMessage(currentTabId, {
             type: MSG_TRANSLATE_TEXT,
             payload: {
               text: inputText,
               sourceLanguage,
               targetLanguage,
             },
-          });
-          return res as { ok?: boolean; result?: string; detectedSource?: LanguageCode; error?: string } | undefined;
-        };
+          })
+          return res as
+            | { ok?: boolean; result?: string; detectedSource?: LanguageCode; error?: string }
+            | undefined
+        }
 
-        await ensureContentScript();
-        let res: { ok?: boolean; result?: string; detectedSource?: LanguageCode; error?: string } | undefined;
+        await ensureContentScript()
+        let res:
+          | { ok?: boolean; result?: string; detectedSource?: LanguageCode; error?: string }
+          | undefined
         try {
-          res = await sendTranslate();
+          res = await sendTranslate()
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = err instanceof Error ? err.message : String(err)
           if (/Receiving end does not exist|Could not establish connection/i.test(msg)) {
-            await ensureContentScript();
-            await new Promise((r) => setTimeout(r, 50));
-            res = await sendTranslate();
+            await ensureContentScript()
+            await new Promise((r) => setTimeout(r, 50))
+            res = await sendTranslate()
           } else {
-            throw err;
+            throw err
           }
         }
         if (res?.ok) {
-          setOutputText(res.result ?? '');
-          setDetectedSource(res.detectedSource ?? null);
+          setOutputText(res.result ?? '')
+          setDetectedSource(res.detectedSource ?? null)
         } else {
-          throw new Error(res?.error || t('send_translate_command_failed'));
+          throw new Error(res?.error || t('send_translate_command_failed'))
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('unknown_error'));
+      setError(e instanceof Error ? e.message : t('unknown_error'))
     } finally {
-      setIsTranslating(false);
+      setIsTranslating(false)
     }
-  }, [inputText, sourceLanguage, targetLanguage, ensureContentScript]);
+  }, [inputText, sourceLanguage, targetLanguage, ensureContentScript, getActiveTabId])
 
-  const debouncedTranslateRef = React.useRef<(((arg?: unknown) => void) & { cancel?: () => void }) | null>(null);
+  const debouncedTranslateRef = React.useRef<
+    (((arg?: unknown) => void) & { cancel?: () => void }) | null
+  >(null)
   React.useEffect(() => {
-    const fn = debounce({ delay: 500 }, (_?: unknown) => { void translate(); }) as unknown as
-      ((arg?: unknown) => void) & { cancel?: () => void };
-    debouncedTranslateRef.current = fn;
+    const fn = debounce({ delay: 500 }, (_?: unknown) => {
+      void translate()
+    }) as unknown as ((arg?: unknown) => void) & { cancel?: () => void }
+    debouncedTranslateRef.current = fn
     return () => {
-      fn.cancel?.();
-    };
-  }, [translate]);
+      fn.cancel?.()
+    }
+  }, [translate])
 
   React.useEffect(() => {
     // 引用以满足依赖检查
-    const _consume = inputText;
-    debouncedTranslateRef.current?.('input');
-  }, [inputText]);
+    const _consume = inputText
+    debouncedTranslateRef.current?.('input')
+  }, [inputText])
 
   React.useEffect(() => {
     // 语言切换时立即翻译，确保目标语言与检测一致
-    void translate();
-  }, [translate]);
+    void translate()
+  }, [translate])
 
   // 当文件选中且空闲时自动开始翻译
   React.useEffect(() => {
     if (fileState.file && fileState.status === 'idle' && !fileState.isProcessing) {
-      void translateFile();
+      void translateFile()
     }
-  }, [fileState.file, fileState.status, fileState.isProcessing, translateFile]);
+  }, [fileState.file, fileState.status, fileState.isProcessing, translateFile])
 
   // 单个文件完成后，若队列中仍有文件，继续处理下一个
   React.useEffect(() => {
-    if (!fileState.isProcessing && fileState.status === 'completed' && autoDownload) {
-      startNextFile();
+    if (!fileState.isProcessing && fileState.status === 'completed') {
+      startNextFile()
     }
-  }, [fileState.isProcessing, fileState.status, autoDownload, startNextFile]);
+  }, [fileState.isProcessing, fileState.status, startNextFile])
 
   return (
     <div className="p-5 h-screen overflow-hidden flex flex-col box-border font-sans selection:bg-blue-100 dark:selection:bg-blue-900 bg-gray-50/50 dark:bg-[#1c1c1e]">
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'text' | 'file')} className="flex-1 flex flex-col min-h-0">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'text' | 'file')}
+        className="flex-1 flex flex-col min-h-0"
+      >
         <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-200/50 dark:bg-neutral-800/50 rounded-xl mb-6">
-          <TabsTrigger value="text" className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700">
+          <TabsTrigger
+            value="text"
+            className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700"
+          >
             <Type className="size-3.5" />
             {t('text_translation_tab')}
           </TabsTrigger>
-          <TabsTrigger value="file" className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700">
+          <TabsTrigger
+            value="file"
+            className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700"
+          >
             <FileText className="size-3.5" />
             {t('file_translation_tab')}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="text" className="flex-1 flex flex-col min-h-0 relative m-0 focus-visible:outline-none">
+        <TabsContent
+          value="text"
+          className="flex-1 flex flex-col min-h-0 relative m-0 focus-visible:outline-none"
+        >
           <div className="flex-1 flex flex-col gap-5 min-h-0">
             {/* Input Section */}
             <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-sm overflow-hidden">
               <div className="px-4 py-3 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-800/40 border-b border-gray-100 dark:border-neutral-700/50">
                 <div className="flex items-center gap-2">
                   <Languages className="size-4 text-blue-500" />
-                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">{t('source_language')}</span>
+                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">
+                    {t('source_language')}
+                  </span>
                 </div>
                 <div className="min-w-30">
                   <AppSelect
@@ -1036,11 +1183,15 @@ const SidePanel: React.FC = () => {
             </div>
 
             {/* Output Section */}
-            <div className={`flex-1 flex flex-col min-h-0 rounded-2xl border transition-all duration-300 ${isTranslating ? 'border-blue-200 dark:border-blue-900/50 shadow-blue-500/5' : 'border-gray-200/50 dark:border-neutral-700/50'} bg-white dark:bg-neutral-800/40 shadow-sm overflow-hidden`}>
+            <div
+              className={`flex-1 flex flex-col min-h-0 rounded-2xl border transition-all duration-300 ${isTranslating ? 'border-blue-200 dark:border-blue-900/50 shadow-blue-500/5' : 'border-gray-200/50 dark:border-neutral-700/50'} bg-white dark:bg-neutral-800/40 shadow-sm overflow-hidden`}
+            >
               <div className="px-4 py-3 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-800/40 border-b border-gray-100 dark:border-neutral-700/50">
                 <div className="flex items-center gap-2">
                   <ArrowLeftRight className="size-4 text-blue-500" />
-                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">{t('target_language')}</span>
+                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">
+                    {t('target_language')}
+                  </span>
                 </div>
                 <div className="min-w-30">
                   <AppSelect
@@ -1069,7 +1220,12 @@ const SidePanel: React.FC = () => {
                   {detectedSource && sourceLanguage === 'auto' && (
                     <>
                       <Type className="size-3" />
-                      <span>{t('auto_detect')}: <span className="text-gray-600 dark:text-gray-400 font-medium">{detectedSource}</span></span>
+                      <span>
+                        {t('auto_detect')}:{' '}
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                          {detectedSource}
+                        </span>
+                      </span>
                     </>
                   )}
                 </div>
@@ -1088,13 +1244,18 @@ const SidePanel: React.FC = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="file" className="flex-1 flex flex-col min-h-0 m-0 focus-visible:outline-none">
+        <TabsContent
+          value="file"
+          className="flex-1 flex flex-col min-h-0 m-0 focus-visible:outline-none"
+        >
           <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
             {/* Target Language Selection */}
             <div className="p-4 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ArrowLeftRight className="size-4 text-blue-500" />
-                <span className="text-xs font-semibold text-gray-600 dark:text-neutral-400">{t('target_language')}</span>
+                <span className="text-xs font-semibold text-gray-600 dark:text-neutral-400">
+                  {t('target_language')}
+                </span>
               </div>
               <div className="min-w-35">
                 <AppSelect
@@ -1118,8 +1279,12 @@ const SidePanel: React.FC = () => {
                   <Upload className="size-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-300">{t('file_upload_area')}</p>
-                  <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-1 uppercase tracking-wider">{t('file_supported_formats')}</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-300">
+                    {t('file_upload_area')}
+                  </p>
+                  <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-1 uppercase tracking-wider">
+                    {t('file_supported_formats')}
+                  </p>
                 </div>
               </div>
             )}
@@ -1132,19 +1297,30 @@ const SidePanel: React.FC = () => {
                     <FileText className="size-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold truncate text-gray-800 dark:text-neutral-200">{fileState.file.name}</p>
-                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-0.5">{(fileState.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    <p className="text-[13px] font-semibold truncate text-gray-800 dark:text-neutral-200">
+                      {fileState.file.name}
+                    </p>
+                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-0.5">
+                      {(fileState.file.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
                   </div>
-                  {fileState.status === 'completed' && <CheckCircle className="size-5 text-green-500" />}
+                  {fileState.status === 'completed' && (
+                    <CheckCircle className="size-5 text-green-500" />
+                  )}
                   {fileState.status === 'error' && <AlertCircle className="size-5 text-red-500" />}
                 </div>
 
                 {fileState.isProcessing && (
                   <div className="mt-4 pt-4 border-t border-gray-50 dark:border-neutral-700/50">
-                    <Progress value={fileState.progress} className="h-1.5 rounded-full bg-gray-100 dark:bg-neutral-700" />
+                    <Progress
+                      value={fileState.progress}
+                      className="h-1.5 rounded-full bg-gray-100 dark:bg-neutral-700"
+                    />
                     <div className="flex justify-between items-center mt-3">
                       <span className="text-[11px] font-semibold text-blue-500 animate-pulse uppercase tracking-tight">
-                        {fileState.status === 'parsing' ? t('file_parsing') : t('file_translating_progress')}
+                        {fileState.status === 'parsing'
+                          ? t('file_parsing')
+                          : t('file_translating_progress')}
                       </span>
                       <span className="text-[11px] text-gray-400 font-mono">
                         {fileState.progress}% — {fileState.currentSegment}/{fileState.totalSegments}
@@ -1165,7 +1341,11 @@ const SidePanel: React.FC = () => {
               )}
 
               {fileState.file && !fileState.isProcessing && fileState.status !== 'completed' && (
-                <Button onClick={translateFile} className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]" size="lg">
+                <Button
+                  onClick={translateFile}
+                  className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+                  size="lg"
+                >
                   <Languages className="size-4 mr-2" />
                   {t('translate_full_page')}
                 </Button>
@@ -1178,14 +1358,28 @@ const SidePanel: React.FC = () => {
                     <p className="text-xs font-medium">{t('translation_completed')}</p>
                   </div>
 
-                  <Button onClick={downloadTranslatedFile} className="w-full h-12 rounded-2xl bg-gray-900 dark:bg-white dark:text-black hover:bg-gray-800 font-bold shadow-lg transition-all active:scale-[0.98]" size="lg">
+                  <Button
+                    onClick={downloadTranslatedFile}
+                    className="w-full h-12 rounded-2xl bg-gray-900 dark:bg-white dark:text-black hover:bg-gray-800 font-bold shadow-lg transition-all active:scale-[0.98]"
+                    size="lg"
+                  >
                     <Download className="size-4 mr-2" />
                     {t('download_translated_file')}
                   </Button>
 
                   <div className="flex items-center justify-between px-2 pt-2">
-                    <Label htmlFor="auto-download" className="text-[11px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest">{t('auto_download')}</Label>
-                    <Switch id="auto-download" checked={autoDownload} disabled={!autoDownloadReady} onCheckedChange={(checked) => setAutoDownload(checked)} />
+                    <Label
+                      htmlFor="auto-download"
+                      className="text-[11px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest"
+                    >
+                      {t('auto_download')}
+                    </Label>
+                    <Switch
+                      id="auto-download"
+                      checked={autoDownload}
+                      disabled={!autoDownloadReady}
+                      onCheckedChange={(checked) => setAutoDownload(checked)}
+                    />
                   </div>
                 </div>
               )}
@@ -1196,7 +1390,9 @@ const SidePanel: React.FC = () => {
 
       {/* Footer Info */}
       <div className="mt-4 pt-4 border-t border-gray-100/50 dark:border-neutral-800/50 flex items-center justify-center opacity-30">
-        <span className="text-[9px] font-black tracking-[0.2em] text-gray-400 uppercase">Native Translate Premium</span>
+        <span className="text-[9px] font-black tracking-[0.2em] text-gray-400 uppercase">
+          Native Translate Premium
+        </span>
       </div>
 
       <input
@@ -1205,15 +1401,15 @@ const SidePanel: React.FC = () => {
         accept=".epub"
         multiple
         onChange={(e) => {
-          const files = Array.from(e.target.files ?? []);
-          if (files.length > 0) handleFilesSelect(files);
+          const files = Array.from(e.target.files ?? [])
+          if (files.length > 0) handleFilesSelect(files)
         }}
         style={{ display: 'none' }}
       />
     </div>
-  );
-};
+  )
+}
 
-const container = document.getElementById('root');
-const root = ReactDOM.createRoot(container as HTMLElement);
-root.render(<SidePanel />);
+const container = document.getElementById('root')
+const root = ReactDOM.createRoot(container as HTMLElement)
+root.render(<SidePanel />)
