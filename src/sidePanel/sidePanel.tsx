@@ -23,6 +23,11 @@ import {
   normalizeToAsyncStringIterable,
 } from '@/shared/streaming'
 import {
+  estimateTranslatorConcurrency,
+  groupSegmentsByText,
+  mapWithConcurrency,
+} from '@/shared/translationQueue'
+import {
   type EpubBook,
   type TextSegment,
   generateTranslatedEpub,
@@ -52,59 +57,6 @@ const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
   value: lang.code,
   label: lang.label,
 }))
-
-// Limited-concurrency async mapper (top-level function to avoid hook deps)
-async function mapWithConcurrency<T, R>(
-  items: T[],
-  concurrencyLimit: number,
-  worker: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  if (items.length === 0) return []
-  const results: R[] = new Array(items.length)
-  let inFlight = 0
-  let nextIndex = 0
-  return await new Promise<R[]>((resolve, reject) => {
-    const launch = () => {
-      while (inFlight < concurrencyLimit && nextIndex < items.length) {
-        const current = nextIndex++
-        inFlight++
-        void worker(items[current], current)
-          .then((res) => {
-            results[current] = res
-          })
-          .catch(reject)
-          .finally(() => {
-            inFlight--
-            if (results.length === items.length && nextIndex >= items.length && inFlight === 0) {
-              resolve(results)
-            } else {
-              launch()
-            }
-          })
-      }
-    }
-    launch()
-  })
-}
-
-interface SegmentGroup {
-  text: string
-  indices: number[]
-}
-
-function groupSegmentsByText(segments: TextSegment[]): SegmentGroup[] {
-  const groups = new Map<string, SegmentGroup>()
-  for (let i = 0; i < segments.length; i++) {
-    const text = segments[i].originalText
-    const existing = groups.get(text)
-    if (existing) {
-      existing.indices.push(i)
-      continue
-    }
-    groups.set(text, { text, indices: [i] })
-  }
-  return Array.from(groups.values())
-}
 
 // File translation state interface
 interface FileTranslationState {
@@ -417,12 +369,10 @@ const SidePanel: React.FC = () => {
   })
 
   // Performance settings: auto-tune based on hardware
-  const [concurrency, setConcurrency] = React.useState<number>(() => {
+  const concurrency = React.useMemo<number>(() => {
     const cores = (navigator as unknown as { hardwareConcurrency?: number }).hardwareConcurrency
-    // Heuristic: use min(12, max(4, floor(cores * 0.75)))
-    const guess = Math.floor((cores && cores > 0 ? cores : 8) * 0.75)
-    return Math.max(4, Math.min(12, guess))
-  })
+    return estimateTranslatorConcurrency(cores)
+  }, [])
 
   const activeTabIdRef = React.useRef<number | null>(null)
   // 流式任务管理

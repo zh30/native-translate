@@ -921,7 +921,7 @@ function clearTranslatedTextContentMarkersAfterExternalMutation(element: Element
 }
 
 function buildCacheKey(text: string, sourceLanguage: string, targetLanguage: string): string {
-  return `${sourceLanguage}| ${targetLanguage}| ${text} `
+  return `${sourceLanguage}\u0000${targetLanguage}\u0000${text}`
 }
 
 function getCachedTranslation(cacheKey: string): string | undefined {

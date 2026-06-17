@@ -1,7 +1,6 @@
 import '../styles/tailwind.css'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { AppSelect } from '@/components/ui/select'
 import {
@@ -16,7 +15,15 @@ import { cn } from '@/utils/cn'
 import { t } from '@/utils/i18n'
 import { getUILocale, isRTLLanguage } from '@/utils/rtl'
 import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage'
-import { Globe2, Keyboard, Languages, Loader2, PanelRightOpen, Wand2 } from 'lucide-react'
+import {
+  Globe2,
+  Keyboard,
+  Languages,
+  Loader2,
+  PanelRightOpen,
+  ShieldCheck,
+  Wand2,
+} from 'lucide-react'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
@@ -199,167 +206,76 @@ const Popup: React.FC = () => {
   }, [])
 
   return (
-    <div
+    <main
       className={cn(
-        'min-w-[320px] max-w-[360px] space-y-4 p-4 text-sm text-gray-900',
-        'dark:text-gray-100',
+        'w-[360px] bg-[#f5f7f8] p-3 text-sm text-zinc-950',
+        'dark:bg-[#111315] dark:text-zinc-100',
       )}
     >
-      <header className="flex items-center gap-2">
-        <div
-          className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-full',
-            'bg-blue-500/10 text-blue-500 dark:bg-blue-400/10 dark:text-blue-300',
-          )}
-        >
-          <Globe2 className="h-5 w-5" />
-        </div>
-        <div className="flex flex-col">
-          <h1 className="text-lg font-semibold leading-tight">{t('popup_title')}</h1>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400">
-            {t('translate_full_page_desc')}
-          </p>
-        </div>
-      </header>
-
-      {!settingsReady ? (
-        <Card className="border-dashed">
-          <CardContent
-            className={cn(
-              'flex items-center justify-center gap-2 py-6',
-              'text-gray-500 dark:text-gray-400',
-            )}
-          >
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {t('checking')}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <Card
-            className={cn(
-              'border-gray-200/80 bg-white/70',
-              'dark:border-neutral-800/80 dark:bg-neutral-950/70',
-            )}
-          >
-            <CardContent className="space-y-4 p-4">
-              <div className="space-y-2">
-                <Label
-                  className={cn(
-                    'inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide',
-                    'text-gray-500 dark:text-gray-400',
-                  )}
-                >
-                  <Languages className="h-4 w-4" />
-                  {t('target_language')}
-                </Label>
-                <AppSelect
-                  value={settings.targetLanguage}
-                  disabled={!settingsReady}
-                  onValueChange={(v) => {
-                    const next = v as LanguageCode
-                    setSettings((s) => ({ ...s, targetLanguage: next }))
-                    void warmActiveTabTranslator({ targetLanguage: next })
-                  }}
-                  options={LANGUAGE_OPTIONS}
-                />
+      <div
+        className={cn(
+          'rounded-lg border border-zinc-200 bg-white shadow-[0_16px_48px_rgba(15,23,42,0.14)]',
+          'dark:border-zinc-800 dark:bg-zinc-950',
+        )}
+      >
+        <header className="border-b border-zinc-100 p-4 dark:border-zinc-800">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-lg',
+                  'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
+                )}
+              >
+                <Globe2 className="h-5 w-5" />
               </div>
-
-              <div className="space-y-2">
-                <Label
+              <div>
+                <h1 className="text-base font-semibold leading-tight">{t('popup_title')}</h1>
+                <p
                   className={cn(
-                    'inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide',
-                    'text-gray-500 dark:text-gray-400',
+                    'mt-1 line-clamp-2 text-[11px] leading-4 text-zinc-500',
+                    'dark:text-zinc-400',
                   )}
                 >
-                  <Wand2 className="h-4 w-4" />
-                  {t('input_target_language')}
-                </Label>
-                <AppSelect
-                  value={settings.inputTargetLanguage ?? DEFAULT_INPUT_TARGET_LANGUAGE}
-                  disabled={!settingsReady}
-                  onValueChange={(v) => {
-                    const next = v as LanguageCode
-                    setSettings((s) => ({ ...s, inputTargetLanguage: next }))
-                    void warmActiveTabTranslator({ targetLanguage: next })
-                  }}
-                  options={LANGUAGE_OPTIONS}
-                />
-                <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  {t('input_target_language_desc')}
+                  {t('extension_description')}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div
+              aria-label={t('extension_description')}
+              className={cn(
+                'inline-flex shrink-0 items-center rounded-md p-1.5',
+                'bg-emerald-50 text-emerald-700',
+                'dark:bg-emerald-950 dark:text-emerald-300',
+              )}
+              title={t('extension_description')}
+            >
+              <ShieldCheck className="h-3 w-3" />
+            </div>
+          </div>
+        </header>
 
-          <Card
-            className={cn(
-              'border-gray-200/80 bg-white/70',
-              'dark:border-neutral-800/80 dark:bg-neutral-950/70',
-            )}
-          >
-            <CardContent className="space-y-4 p-4">
-              <div className="space-y-2">
-                <Label
-                  className={cn(
-                    'inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide',
-                    'text-gray-500 dark:text-gray-400',
-                  )}
-                >
-                  <Keyboard className="h-4 w-4" />
-                  {t('hover_hotkey')}
-                </Label>
-                <AppSelect
-                  value={settings.hotkeyModifier ?? 'alt'}
-                  disabled={!settingsReady}
-                  onValueChange={async (v) => {
-                    const next = v as 'alt' | 'control' | 'shift'
-                    setSettings((s) => ({ ...s, hotkeyModifier: next }))
-                    try {
-                      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-                      if (tab?.id) {
-                        try {
-                          await chrome.tabs.sendMessage(tab.id, {
-                            type: MSG_UPDATE_HOTKEY,
-                            payload: { hotkeyModifier: next },
-                          })
-                        } catch (_err) {
-                          const url = tab.url ?? ''
-                          if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
-                            try {
-                              await chrome.scripting.executeScript({
-                                target: { tabId: tab.id },
-                                files: ['contentScript.js'],
-                              })
-                              await chrome.tabs.sendMessage(tab.id, {
-                                type: MSG_UPDATE_HOTKEY,
-                                payload: { hotkeyModifier: next },
-                              })
-                            } catch (_e) {
-                              /* noop */
-                            }
-                          }
-                        }
-                      }
-                    } catch (_e) {
-                      /* noop */
-                    }
-                  }}
-                  options={HOTKEY_OPTIONS.map((option) => ({
-                    value: option.value,
-                    label: t(option.labelKey),
-                  }))}
-                />
-                <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  {t('hover_hotkey_desc')}
-                </p>
-              </div>
-
-              <div className="space-y-3">
+        <div className="space-y-3 p-4">
+          {!settingsReady ? (
+            <div
+              className={cn(
+                'flex h-40 items-center justify-center gap-2 rounded-lg border border-dashed',
+                'border-zinc-200 text-zinc-500 dark:border-zinc-800 dark:text-zinc-400',
+              )}
+            >
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('checking')}
+            </div>
+          ) : (
+            <>
+              <section className="grid gap-2">
                 <Button
                   onClick={handleTranslatePage}
                   disabled={isTranslatingPage}
-                  className="w-full inline-flex items-center gap-2"
+                  className={cn(
+                    'h-11 w-full gap-2 rounded-lg bg-zinc-950 text-white',
+                    'hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200',
+                  )}
                 >
                   {isTranslatingPage ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -368,44 +284,152 @@ const Popup: React.FC = () => {
                   )}
                   {t('translate_full_page')}
                 </Button>
-                <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  {t('translate_full_page_desc')}
-                </p>
-              </div>
 
-              <Button
-                onClick={handleOpenSidePanel}
-                disabled={isOpeningSidePanel}
-                className="w-full inline-flex items-center gap-2"
-                variant="outline"
-              >
-                {isOpeningSidePanel ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <PanelRightOpen className="h-4 w-4" />
+                <Button
+                  onClick={handleOpenSidePanel}
+                  disabled={isOpeningSidePanel}
+                  className={cn(
+                    'h-10 w-full gap-2 rounded-lg border-zinc-200 bg-white text-zinc-900',
+                    'hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950',
+                    'dark:text-zinc-100 dark:hover:bg-zinc-900',
+                  )}
+                  variant="outline"
+                >
+                  {isOpeningSidePanel ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PanelRightOpen className="h-4 w-4" />
+                  )}
+                  {t('open_sidepanel')}
+                </Button>
+              </section>
+
+              <section
+                className={cn(
+                  'divide-y divide-zinc-100 rounded-lg border border-zinc-200',
+                  'dark:divide-zinc-800 dark:border-zinc-800',
                 )}
-                {t('open_sidepanel')}
-              </Button>
-            </CardContent>
-          </Card>
-        </>
-      )}
+              >
+                <div className="grid grid-cols-[1fr_156px] items-center gap-3 p-3">
+                  <Label
+                    className={cn(
+                      'inline-flex items-center gap-2 text-xs font-medium text-zinc-600',
+                      'dark:text-zinc-300',
+                    )}
+                  >
+                    <Languages className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
+                    {t('target_language')}
+                  </Label>
+                  <AppSelect
+                    value={settings.targetLanguage}
+                    disabled={!settingsReady}
+                    onValueChange={(v) => {
+                      const next = v as LanguageCode
+                      setSettings((s) => ({ ...s, targetLanguage: next }))
+                      void warmActiveTabTranslator({ targetLanguage: next })
+                    }}
+                    options={LANGUAGE_OPTIONS}
+                  />
+                </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+                <div className="grid grid-cols-[1fr_156px] items-center gap-3 p-3">
+                  <Label
+                    className={cn(
+                      'inline-flex items-center gap-2 text-xs font-medium text-zinc-600',
+                      'dark:text-zinc-300',
+                    )}
+                  >
+                    <Wand2 className="h-4 w-4 text-violet-600 dark:text-violet-300" />
+                    {t('input_target_language')}
+                  </Label>
+                  <AppSelect
+                    value={settings.inputTargetLanguage ?? DEFAULT_INPUT_TARGET_LANGUAGE}
+                    disabled={!settingsReady}
+                    onValueChange={(v) => {
+                      const next = v as LanguageCode
+                      setSettings((s) => ({ ...s, inputTargetLanguage: next }))
+                      void warmActiveTabTranslator({ targetLanguage: next })
+                    }}
+                    options={LANGUAGE_OPTIONS}
+                  />
+                </div>
 
-      <footer
-        className={cn(
-          'border-t border-gray-200 pt-2 text-[11px] text-gray-500',
-          'dark:border-neutral-800 dark:text-gray-400',
-        )}
-      >
-        {t('footer_note')}
-      </footer>
-    </div>
+                <div className="grid grid-cols-[1fr_156px] items-center gap-3 p-3">
+                  <Label
+                    className={cn(
+                      'inline-flex items-center gap-2 text-xs font-medium text-zinc-600',
+                      'dark:text-zinc-300',
+                    )}
+                  >
+                    <Keyboard className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+                    {t('hover_hotkey')}
+                  </Label>
+                  <AppSelect
+                    value={settings.hotkeyModifier ?? 'alt'}
+                    disabled={!settingsReady}
+                    onValueChange={async (v) => {
+                      const next = v as 'alt' | 'control' | 'shift'
+                      setSettings((s) => ({ ...s, hotkeyModifier: next }))
+                      try {
+                        const [tab] = await chrome.tabs.query({
+                          active: true,
+                          currentWindow: true,
+                        })
+                        if (tab?.id) {
+                          try {
+                            await chrome.tabs.sendMessage(tab.id, {
+                              type: MSG_UPDATE_HOTKEY,
+                              payload: { hotkeyModifier: next },
+                            })
+                          } catch (_err) {
+                            const url = tab.url ?? ''
+                            if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
+                              try {
+                                await chrome.scripting.executeScript({
+                                  target: { tabId: tab.id },
+                                  files: ['contentScript.js'],
+                                })
+                                await chrome.tabs.sendMessage(tab.id, {
+                                  type: MSG_UPDATE_HOTKEY,
+                                  payload: { hotkeyModifier: next },
+                                })
+                              } catch (_e) {
+                                /* noop */
+                              }
+                            }
+                          }
+                        }
+                      } catch (_e) {
+                        /* noop */
+                      }
+                    }}
+                    options={HOTKEY_OPTIONS.map((option) => ({
+                      value: option.value,
+                      label: t(option.labelKey),
+                    }))}
+                  />
+                </div>
+              </section>
+            </>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <footer
+          className={cn(
+            'border-t border-zinc-100 px-4 py-3 text-[10px] leading-4 text-zinc-500',
+            'dark:border-zinc-800 dark:text-zinc-400',
+          )}
+        >
+          {t('footer_note')}
+        </footer>
+      </div>
+    </main>
   )
 }
 
