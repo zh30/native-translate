@@ -4845,7 +4845,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       const respond = sendResponse as unknown as (response: unknown) => void
       respond({ ok: true })
     } catch {}
-    return false
+    return true
   }
   return false
 })

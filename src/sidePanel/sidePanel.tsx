@@ -27,6 +27,7 @@ import {
   groupSegmentsByText,
   mapWithConcurrency,
 } from '@/shared/translationQueue'
+import { cn } from '@/utils/cn'
 import {
   type EpubBook,
   type TextSegment,
@@ -57,6 +58,35 @@ const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
   value: lang.code,
   label: lang.label,
 }))
+
+const SIDE_PANEL_TABS_LIST_CLASS = cn(
+  'mb-4 grid h-auto w-full min-w-0 max-w-full grid-cols-2 gap-1 rounded-lg border',
+  'border-zinc-200 bg-zinc-100/80 p-1 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80',
+  'dark:text-zinc-400',
+)
+
+const SIDE_PANEL_TAB_TRIGGER_CLASS = cn(
+  'flex h-9 min-w-0 w-full max-w-full items-center justify-center gap-1.5 overflow-hidden',
+  'whitespace-normal rounded-md px-2 text-xs font-medium transition-all',
+  'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
+  'data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-zinc-950',
+  'data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-zinc-100',
+)
+
+interface SidePanelTabTriggerProps {
+  value: string
+  icon: React.ReactNode
+  label: string
+}
+
+function SidePanelTabTrigger({ value, icon, label }: SidePanelTabTriggerProps) {
+  return (
+    <TabsTrigger value={value} className={SIDE_PANEL_TAB_TRIGGER_CLASS} title={label}>
+      <span className="flex size-4 shrink-0 items-center justify-center">{icon}</span>
+      <span className="min-w-0 truncate">{label}</span>
+    </TabsTrigger>
+  )
+}
 
 // File translation state interface
 interface FileTranslationState {
@@ -1046,6 +1076,9 @@ const SidePanel: React.FC = () => {
     }
   }, [translate])
 
+  const translateRef = React.useRef(translate)
+  translateRef.current = translate
+
   React.useEffect(() => {
     // 引用以满足依赖检查
     const _consume = inputText
@@ -1054,8 +1087,10 @@ const SidePanel: React.FC = () => {
 
   React.useEffect(() => {
     // 语言切换时立即翻译，确保目标语言与检测一致
-    void translate()
-  }, [translate])
+    const _consumeLanguages = [sourceLanguage, targetLanguage]
+    void _consumeLanguages
+    void translateRef.current()
+  }, [sourceLanguage, targetLanguage])
 
   // 当文件选中且空闲时自动开始翻译
   React.useEffect(() => {
@@ -1072,27 +1107,23 @@ const SidePanel: React.FC = () => {
   }, [fileState.isProcessing, fileState.status, startNextFile])
 
   return (
-    <div className="p-5 h-screen overflow-hidden flex flex-col box-border font-sans selection:bg-blue-100 dark:selection:bg-blue-900 bg-gray-50/50 dark:bg-[#1c1c1e]">
+    <div className="box-border flex h-screen min-w-0 flex-col overflow-hidden p-5 font-sans selection:bg-blue-100 dark:selection:bg-blue-900 bg-gray-50/50 dark:bg-[#1c1c1e]">
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as 'text' | 'file')}
-        className="flex-1 flex flex-col min-h-0"
+        className="flex min-h-0 min-w-0 flex-1 flex-col"
       >
-        <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-200/50 dark:bg-neutral-800/50 rounded-xl mb-6">
-          <TabsTrigger
+        <TabsList className={SIDE_PANEL_TABS_LIST_CLASS}>
+          <SidePanelTabTrigger
             value="text"
-            className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700"
-          >
-            <Type className="size-3.5" />
-            {t('text_translation_tab')}
-          </TabsTrigger>
-          <TabsTrigger
+            icon={<Type className="size-3.5" />}
+            label={t('text_translation_tab')}
+          />
+          <SidePanelTabTrigger
             value="file"
-            className="py-2.5 rounded-lg flex items-center justify-center gap-2 text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-neutral-700"
-          >
-            <FileText className="size-3.5" />
-            {t('file_translation_tab')}
-          </TabsTrigger>
+            icon={<FileText className="size-3.5" />}
+            label={t('file_translation_tab')}
+          />
         </TabsList>
 
         <TabsContent
@@ -1102,14 +1133,14 @@ const SidePanel: React.FC = () => {
           <div className="flex-1 flex flex-col gap-5 min-h-0">
             {/* Input Section */}
             <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-800/40 border-b border-gray-100 dark:border-neutral-700/50">
-                <div className="flex items-center gap-2">
-                  <Languages className="size-4 text-blue-500" />
-                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">
+              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <Languages className="size-4 shrink-0 text-blue-500" />
+                  <span className="truncate text-[11px] font-bold uppercase tracking-tight text-gray-400 dark:text-gray-500">
                     {t('source_language')}
                   </span>
                 </div>
-                <div className="min-w-30">
+                <div className="w-[9.75rem] shrink-0">
                   <AppSelect
                     value={sourceLanguage}
                     onValueChange={(v) => setSourceLanguage((v as LanguageOption) || 'auto')}
@@ -1136,14 +1167,14 @@ const SidePanel: React.FC = () => {
             <div
               className={`flex-1 flex flex-col min-h-0 rounded-2xl border transition-all duration-300 ${isTranslating ? 'border-blue-200 dark:border-blue-900/50 shadow-blue-500/5' : 'border-gray-200/50 dark:border-neutral-700/50'} bg-white dark:bg-neutral-800/40 shadow-sm overflow-hidden`}
             >
-              <div className="px-4 py-3 flex items-center justify-between bg-gray-50/50 dark:bg-neutral-800/40 border-b border-gray-100 dark:border-neutral-700/50">
-                <div className="flex items-center gap-2">
-                  <ArrowLeftRight className="size-4 text-blue-500" />
-                  <span className="text-[11px] font-bold tracking-tight text-gray-400 dark:text-gray-500 uppercase">
+              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <ArrowLeftRight className="size-4 shrink-0 text-blue-500" />
+                  <span className="truncate text-[11px] font-bold uppercase tracking-tight text-gray-400 dark:text-gray-500">
                     {t('target_language')}
                   </span>
                 </div>
-                <div className="min-w-30">
+                <div className="w-[9.75rem] shrink-0">
                   <AppSelect
                     value={targetLanguage}
                     onValueChange={(v) => setTargetLanguage(v as LanguageCode)}
@@ -1200,14 +1231,14 @@ const SidePanel: React.FC = () => {
         >
           <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
             {/* Target Language Selection */}
-            <div className="p-4 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ArrowLeftRight className="size-4 text-blue-500" />
-                <span className="text-xs font-semibold text-gray-600 dark:text-neutral-400">
+            <div className="flex items-center justify-between gap-2 rounded-2xl border border-gray-200/50 bg-white p-4 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <ArrowLeftRight className="size-4 shrink-0 text-blue-500" />
+                <span className="truncate text-xs font-semibold text-gray-600 dark:text-neutral-400">
                   {t('target_language')}
                 </span>
               </div>
-              <div className="min-w-35">
+              <div className="w-[9.75rem] shrink-0">
                 <AppSelect
                   value={targetLanguage}
                   onValueChange={(v) => setTargetLanguage(v as LanguageCode)}

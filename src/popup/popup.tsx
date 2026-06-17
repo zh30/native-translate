@@ -208,28 +208,28 @@ const Popup: React.FC = () => {
   return (
     <main
       className={cn(
-        'w-[360px] bg-[#f5f7f8] p-3 text-sm text-zinc-950',
+        'box-border w-full min-w-0 bg-[#f5f7f8] p-3 text-sm text-zinc-950',
         'dark:bg-[#111315] dark:text-zinc-100',
       )}
     >
       <div
         className={cn(
-          'rounded-lg border border-zinc-200 bg-white shadow-[0_16px_48px_rgba(15,23,42,0.14)]',
-          'dark:border-zinc-800 dark:bg-zinc-950',
+          'min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-white',
+          'shadow-[0_16px_48px_rgba(15,23,42,0.14)] dark:border-zinc-800 dark:bg-zinc-950',
         )}
       >
         <header className="border-b border-zinc-100 p-4 dark:border-zinc-800">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <div
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-lg',
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
                   'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
                 )}
               >
                 <Globe2 className="h-5 w-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h1 className="text-base font-semibold leading-tight">{t('popup_title')}</h1>
                 <p
                   className={cn(
@@ -310,104 +310,110 @@ const Popup: React.FC = () => {
                   'dark:divide-zinc-800 dark:border-zinc-800',
                 )}
               >
-                <div className="grid grid-cols-[1fr_156px] items-center gap-3 p-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,9.75rem)] items-center gap-2 p-3">
                   <Label
                     className={cn(
-                      'inline-flex items-center gap-2 text-xs font-medium text-zinc-600',
+                      'inline-flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-600',
                       'dark:text-zinc-300',
                     )}
                   >
-                    <Languages className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
-                    {t('target_language')}
+                    <Languages className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />
+                    <span className="truncate">{t('target_language')}</span>
                   </Label>
-                  <AppSelect
-                    value={settings.targetLanguage}
-                    disabled={!settingsReady}
-                    onValueChange={(v) => {
-                      const next = v as LanguageCode
-                      setSettings((s) => ({ ...s, targetLanguage: next }))
-                      void warmActiveTabTranslator({ targetLanguage: next })
-                    }}
-                    options={LANGUAGE_OPTIONS}
-                  />
+                  <div className="min-w-0">
+                    <AppSelect
+                      value={settings.targetLanguage}
+                      disabled={!settingsReady}
+                      onValueChange={(v) => {
+                        const next = v as LanguageCode
+                        setSettings((s) => ({ ...s, targetLanguage: next }))
+                        void warmActiveTabTranslator({ targetLanguage: next })
+                      }}
+                      options={LANGUAGE_OPTIONS}
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-[1fr_156px] items-center gap-3 p-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,9.75rem)] items-center gap-2 p-3">
                   <Label
                     className={cn(
-                      'inline-flex items-center gap-2 text-xs font-medium text-zinc-600',
+                      'inline-flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-600',
                       'dark:text-zinc-300',
                     )}
                   >
-                    <Wand2 className="h-4 w-4 text-violet-600 dark:text-violet-300" />
-                    {t('input_target_language')}
+                    <Wand2 className="h-4 w-4 shrink-0 text-violet-600 dark:text-violet-300" />
+                    <span className="truncate">{t('input_target_language')}</span>
                   </Label>
-                  <AppSelect
-                    value={settings.inputTargetLanguage ?? DEFAULT_INPUT_TARGET_LANGUAGE}
-                    disabled={!settingsReady}
-                    onValueChange={(v) => {
-                      const next = v as LanguageCode
-                      setSettings((s) => ({ ...s, inputTargetLanguage: next }))
-                      void warmActiveTabTranslator({ targetLanguage: next })
-                    }}
-                    options={LANGUAGE_OPTIONS}
-                  />
+                  <div className="min-w-0">
+                    <AppSelect
+                      value={settings.inputTargetLanguage ?? DEFAULT_INPUT_TARGET_LANGUAGE}
+                      disabled={!settingsReady}
+                      onValueChange={(v) => {
+                        const next = v as LanguageCode
+                        setSettings((s) => ({ ...s, inputTargetLanguage: next }))
+                        void warmActiveTabTranslator({ targetLanguage: next })
+                      }}
+                      options={LANGUAGE_OPTIONS}
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-[1fr_156px] items-center gap-3 p-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,9.75rem)] items-center gap-2 p-3">
                   <Label
                     className={cn(
-                      'inline-flex items-center gap-2 text-xs font-medium text-zinc-600',
+                      'inline-flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-600',
                       'dark:text-zinc-300',
                     )}
                   >
-                    <Keyboard className="h-4 w-4 text-amber-600 dark:text-amber-300" />
-                    {t('hover_hotkey')}
+                    <Keyboard className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+                    <span className="truncate">{t('hover_hotkey')}</span>
                   </Label>
-                  <AppSelect
-                    value={settings.hotkeyModifier ?? 'alt'}
-                    disabled={!settingsReady}
-                    onValueChange={async (v) => {
-                      const next = v as 'alt' | 'control' | 'shift'
-                      setSettings((s) => ({ ...s, hotkeyModifier: next }))
-                      try {
-                        const [tab] = await chrome.tabs.query({
-                          active: true,
-                          currentWindow: true,
-                        })
-                        if (tab?.id) {
-                          try {
-                            await chrome.tabs.sendMessage(tab.id, {
-                              type: MSG_UPDATE_HOTKEY,
-                              payload: { hotkeyModifier: next },
-                            })
-                          } catch (_err) {
-                            const url = tab.url ?? ''
-                            if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
-                              try {
-                                await chrome.scripting.executeScript({
-                                  target: { tabId: tab.id },
-                                  files: ['contentScript.js'],
-                                })
-                                await chrome.tabs.sendMessage(tab.id, {
-                                  type: MSG_UPDATE_HOTKEY,
-                                  payload: { hotkeyModifier: next },
-                                })
-                              } catch (_e) {
-                                /* noop */
+                  <div className="min-w-0">
+                    <AppSelect
+                      value={settings.hotkeyModifier ?? 'alt'}
+                      disabled={!settingsReady}
+                      onValueChange={async (v) => {
+                        const next = v as 'alt' | 'control' | 'shift'
+                        setSettings((s) => ({ ...s, hotkeyModifier: next }))
+                        try {
+                          const [tab] = await chrome.tabs.query({
+                            active: true,
+                            currentWindow: true,
+                          })
+                          if (tab?.id) {
+                            try {
+                              await chrome.tabs.sendMessage(tab.id, {
+                                type: MSG_UPDATE_HOTKEY,
+                                payload: { hotkeyModifier: next },
+                              })
+                            } catch (_err) {
+                              const url = tab.url ?? ''
+                              if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
+                                try {
+                                  await chrome.scripting.executeScript({
+                                    target: { tabId: tab.id },
+                                    files: ['contentScript.js'],
+                                  })
+                                  await chrome.tabs.sendMessage(tab.id, {
+                                    type: MSG_UPDATE_HOTKEY,
+                                    payload: { hotkeyModifier: next },
+                                  })
+                                } catch (_e) {
+                                  /* noop */
+                                }
                               }
                             }
                           }
+                        } catch (_e) {
+                          /* noop */
                         }
-                      } catch (_e) {
-                        /* noop */
-                      }
-                    }}
-                    options={HOTKEY_OPTIONS.map((option) => ({
-                      value: option.value,
-                      label: t(option.labelKey),
-                    }))}
-                  />
+                      }}
+                      options={HOTKEY_OPTIONS.map((option) => ({
+                        value: option.value,
+                        label: t(option.labelKey),
+                      }))}
+                    />
+                  </div>
                 </div>
               </section>
             </>
