@@ -1,7 +1,18 @@
 import { MSG_EASTER_CONFETTI } from '@/shared/messages'
+import { FIRST_RUN_STATUS_KEY, type FirstRunStatus } from '@/shared/settings'
 
 const ZHANGHE_ORIGIN = 'https://zhanghe.dev'
 const AUTO_OPEN_STATE_KEY = 'nativeTranslate.zhangheAutoOpenState'
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason !== 'install') return
+  const status: FirstRunStatus = {
+    status: 'new',
+    updatedAt: Date.now(),
+  }
+  void chrome.storage.local.set({ [FIRST_RUN_STATUS_KEY]: status })
+  void chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') })
+})
 
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (!tab.url) return

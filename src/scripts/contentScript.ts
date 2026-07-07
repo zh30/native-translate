@@ -5,7 +5,7 @@ import {
   MSG_UPDATE_HOTKEY,
   MSG_WARM_TRANSLATOR,
 } from '@/shared/messages'
-import { POPUP_SETTINGS_KEY } from '@/shared/settings'
+import { FIRST_RUN_STATUS_KEY, type FirstRunStatus, POPUP_SETTINGS_KEY } from '@/shared/settings'
 import {
   STREAMING_LENGTH_THRESHOLD,
   type TranslatorInstance,
@@ -1113,6 +1113,14 @@ function runIdle(task: () => void, timeout = 1200): void {
 
 const warmingPairs = new Set<string>()
 
+async function updateFirstRunStatus(status: FirstRunStatus): Promise<void> {
+  try {
+    await chrome.storage.local.set({ [FIRST_RUN_STATUS_KEY]: status })
+  } catch (_e) {
+    // Status reporting must never block translation.
+  }
+}
+
 declare global {
   interface Window {
     Translator?: TranslatorStatic
@@ -1140,9 +1148,45 @@ async function scheduleWarmTranslatorPair(
   const execute = async () => {
     try {
       const ready = await wasPairReady(sourceLanguage, targetLanguage)
-      if (ready) return
-      await getOrCreateTranslator(sourceLanguage, targetLanguage)
+      if (ready) {
+        await updateFirstRunStatus({
+          status: 'ready',
+          sourceLanguage,
+          targetLanguage,
+          updatedAt: Date.now(),
+        })
+        return
+      }
+      await updateFirstRunStatus({
+        status: 'preparing',
+        sourceLanguage,
+        targetLanguage,
+        updatedAt: Date.now(),
+      })
+      await getOrCreateTranslator(sourceLanguage, targetLanguage, (progress) => {
+        void updateFirstRunStatus({
+          status: 'downloading',
+          progress,
+          sourceLanguage,
+          targetLanguage,
+          updatedAt: Date.now(),
+        })
+      })
+      await updateFirstRunStatus({
+        status: 'ready',
+        sourceLanguage,
+        targetLanguage,
+        updatedAt: Date.now(),
+      })
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      await updateFirstRunStatus({
+        status: /Translator API unavailable/i.test(message) ? 'unsupported' : 'failed',
+        sourceLanguage,
+        targetLanguage,
+        updatedAt: Date.now(),
+        error: message,
+      })
       console.warn('warm translator failed', error)
     } finally {
       warmingPairs.delete(key)

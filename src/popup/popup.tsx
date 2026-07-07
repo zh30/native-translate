@@ -1,4 +1,5 @@
 import '../styles/tailwind.css'
+import { ModelDownloadToast } from '@/components/ModelDownloadToast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -15,6 +16,7 @@ import { cn } from '@/utils/cn'
 import { t } from '@/utils/i18n'
 import { getUILocale, isRTLLanguage } from '@/utils/rtl'
 import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage'
+import { useFirstRunStatus } from '@/utils/useFirstRunStatus'
 import {
   Globe2,
   Keyboard,
@@ -61,12 +63,19 @@ const Popup: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null)
   const [isTranslatingPage, setIsTranslatingPage] = React.useState<boolean>(false)
   const [isOpeningSidePanel, setIsOpeningSidePanel] = React.useState<boolean>(false)
+  const [firstRunStatus, , setFirstRunStatus] = useFirstRunStatus()
   const translateBusyRef = React.useRef<boolean>(false)
   const sidePanelBusyRef = React.useRef<boolean>(false)
 
   const warmActiveTabTranslator = React.useCallback(
     async (payload: { targetLanguage?: LanguageCode; sourceLanguage?: LanguageCode | 'auto' }) => {
       try {
+        await setFirstRunStatus({
+          status: 'preparing',
+          sourceLanguage: payload.sourceLanguage,
+          targetLanguage: payload.targetLanguage,
+          updatedAt: Date.now(),
+        })
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
         if (!tab?.id) return
         const tabId = tab.id
@@ -96,7 +105,7 @@ const Popup: React.FC = () => {
         // ignore
       }
     },
-    [],
+    [setFirstRunStatus],
   )
 
   React.useEffect(() => {
@@ -105,6 +114,10 @@ const Popup: React.FC = () => {
     const dir = isRTLLanguage(ui) ? 'rtl' : 'ltr'
     document.documentElement.setAttribute('dir', dir)
     document.documentElement.setAttribute('lang', ui)
+  }, [])
+
+  React.useEffect(() => {
+    void chrome.action.setBadgeText({ text: '' })
   }, [])
 
   // Removed global availability check logic
@@ -435,6 +448,7 @@ const Popup: React.FC = () => {
           {t('footer_note')}
         </footer>
       </div>
+      <ModelDownloadToast status={firstRunStatus} />
     </main>
   )
 }

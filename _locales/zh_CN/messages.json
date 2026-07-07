@@ -230,5 +230,113 @@
   "select_file_first": {
     "message": "请先选择一个文件。",
     "description": "未选择文件错误提示"
+  },
+  "first_run_status_new_title": {
+    "message": "首次使用需要准备模型",
+    "description": "Popup：首次模型准备标题"
+  },
+  "first_run_status_new_desc": {
+    "message": "首次使用原生翻译时，Chrome 需要准备本地翻译模型，通常需要 1-3 分钟。",
+    "description": "Popup：首次模型准备说明"
+  },
+  "first_run_status_preparing_title": {
+    "message": "正在准备本地翻译器",
+    "description": "Popup：模型准备中标题"
+  },
+  "first_run_status_preparing_desc": {
+    "message": "请保持 Chrome 打开。若缺少模型，Chrome 会在后台下载，完成后即可翻译。",
+    "description": "Popup：模型准备中说明"
+  },
+  "first_run_status_downloading_title": {
+    "message": "正在下载翻译模型",
+    "description": "Popup：模型下载中标题"
+  },
+  "first_run_status_downloading_desc": {
+    "message": "Chrome 正在下载本地翻译模型… $1%。完成后即可正常翻译。",
+    "description": "Popup：模型下载中说明"
+  },
+  "first_run_status_ready_title": {
+    "message": "翻译器已就绪",
+    "description": "Popup：模型就绪标题"
+  },
+  "first_run_status_ready_desc": {
+    "message": "本地翻译已准备好。你可以翻译当前网页、悬停翻译文本，或打开侧边栏。",
+    "description": "Popup：模型就绪说明"
+  },
+  "first_run_status_failed_title": {
+    "message": "模型准备失败",
+    "description": "Popup：模型失败标题"
+  },
+  "first_run_status_failed_desc": {
+    "message": "Chrome 暂时无法准备翻译器。请打开普通网页后再次点击翻译。",
+    "description": "Popup：模型失败说明"
+  },
+  "first_run_status_unsupported_title": {
+    "message": "Chrome 翻译器不可用",
+    "description": "Popup：模型不支持标题"
+  },
+  "first_run_status_unsupported_desc": {
+    "message": "当前 Chrome 尚未开放内置 Translator API。请使用 Chrome 138+ 并启用内置 AI 翻译支持。",
+    "description": "Popup：模型不支持说明"
+  },
+  "first_run_prepare_action": {
+    "message": "重新准备",
+    "description": "Button label for retrying first-run model preparation"
+  },
+  "welcome_title": {
+    "message": "欢迎使用原生翻译",
+    "description": "欢迎页标题"
+  },
+  "welcome_subtitle": {
+    "message": "隐私优先的本地翻译，由 Chrome 在这台设备上准备模型。",
+    "description": "欢迎页副标题"
+  },
+  "welcome_setup_label": {
+    "message": "首次设置",
+    "description": "欢迎页设置标签"
+  },
+  "welcome_setup_title": {
+    "message": "Chrome 可能需要一点时间准备本地模型",
+    "description": "欢迎页设置标题"
+  },
+  "welcome_setup_desc": {
+    "message": "原生翻译使用 Chrome 内置 AI 翻译能力。首次使用某个语言对时，Chrome 可能会在后台下载本地模型。请保持此页面打开，直到状态变为已就绪。",
+    "description": "欢迎页设置说明"
+  },
+  "welcome_try_title": {
+    "message": "确认它可以工作",
+    "description": "欢迎页试译标题"
+  },
+  "welcome_try_desc": {
+    "message": "模型就绪后先运行一次短句本地翻译，让你在开始翻译真实网页前看到明确的成功结果。",
+    "description": "欢迎页试译说明"
+  },
+  "welcome_sample_placeholder": {
+    "message": "翻译结果会显示在这里。",
+    "description": "欢迎页试译占位"
+  },
+  "welcome_try_action": {
+    "message": "试译一句",
+    "description": "欢迎页试译按钮"
+  },
+  "welcome_next_title": {
+    "message": "接下来可以做什么",
+    "description": "欢迎页下一步标题"
+  },
+  "welcome_next_page": {
+    "message": "在普通网页上点击扩展图标，即可翻译当前页面。",
+    "description": "欢迎页下一步：网页翻译"
+  },
+  "welcome_next_hover": {
+    "message": "按住所选悬停快捷键并移动到文本上，即可原地翻译段落。",
+    "description": "欢迎页下一步：悬停翻译"
+  },
+  "welcome_next_sidepanel": {
+    "message": "使用侧边栏进行文本翻译，不需要离开当前页面。",
+    "description": "欢迎页下一步：侧边栏"
+  },
+  "welcome_next_file": {
+    "message": "打开侧边栏里的文件标签页，可以在本地翻译 EPUB 电子书。",
+    "description": "欢迎页下一步：文件翻译"
   }
 }

@@ -61,6 +61,7 @@ module.exports = (env, argv) => {
     entry: {
       popup: './src/popup/popup.tsx',
       sidePanel: './src/sidePanel/sidePanel.tsx',
+      welcome: './src/welcome/welcome.tsx',
       background: './src/scripts/background.ts',
       contentScript: './src/scripts/contentScript.ts',
     },
@@ -145,6 +146,12 @@ module.exports = (env, argv) => {
         template: './src/sidePanel/sidePanel.html',
         filename: 'sidePanel.html',
         chunks: ['sidePanel'],
+        minify: isProd,
+      }),
+      new rspack.HtmlRspackPlugin({
+        template: './src/welcome/welcome.html',
+        filename: 'welcome.html',
+        chunks: ['welcome'],
         minify: isProd,
       }),
       new rspack.CopyRspackPlugin({

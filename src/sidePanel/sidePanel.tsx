@@ -1,4 +1,5 @@
 import '../styles/tailwind.css'
+import { ModelDownloadToast } from '@/components/ModelDownloadToast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -37,6 +38,7 @@ import {
 import { t } from '@/utils/i18n'
 import { getUILocale, isRTLLanguage } from '@/utils/rtl'
 import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage'
+import { useFirstRunStatus } from '@/utils/useFirstRunStatus'
 import {
   AlertCircle,
   ArrowLeftRight,
@@ -410,6 +412,7 @@ const SidePanel: React.FC = () => {
   const jobCounterRef = React.useRef<number>(0)
   const fileInputRef = React.useRef<HTMLInputElement | null>(null)
   const [pendingFiles, setPendingFiles] = React.useState<File[]>([])
+  const [firstRunStatus, , setFirstRunStatus] = useFirstRunStatus()
   const [autoDownload, setAutoDownload, autoDownloadReady] = useChromeLocalStorage<boolean>(
     'fileTranslation:autoDownload',
     false,
@@ -668,6 +671,12 @@ const SidePanel: React.FC = () => {
 
   const warmTranslatorForActiveTab = React.useCallback(
     async (warmTarget: LanguageCode) => {
+      await setFirstRunStatus({
+        status: 'preparing',
+        sourceLanguage,
+        targetLanguage: warmTarget,
+        updatedAt: Date.now(),
+      })
       const tabId = await getActiveTabId()
       if (!tabId) return
       await ensureContentScript()
@@ -702,7 +711,7 @@ const SidePanel: React.FC = () => {
         }
       }
     },
-    [ensureContentScript, getActiveTabId, sourceLanguage],
+    [ensureContentScript, getActiveTabId, setFirstRunStatus, sourceLanguage],
   )
 
   React.useEffect(() => {
@@ -1387,6 +1396,7 @@ const SidePanel: React.FC = () => {
         }}
         style={{ display: 'none' }}
       />
+      <ModelDownloadToast status={firstRunStatus} />
     </div>
   )
 }

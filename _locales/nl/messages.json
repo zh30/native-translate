@@ -230,5 +230,113 @@
   "select_file_first": {
     "message": "Selecteer eerst een bestand.",
     "description": "No file selected error message"
+  },
+  "first_run_status_new_title": {
+    "message": "First-time setup",
+    "description": "Popup: first run model setup title"
+  },
+  "first_run_status_new_desc": {
+    "message": "Chrome needs to prepare local translation models the first time you use Native Translate. This can take 1-3 minutes.",
+    "description": "Popup: first run model setup description"
+  },
+  "first_run_status_preparing_title": {
+    "message": "Preparing local translator",
+    "description": "Popup: model preparing title"
+  },
+  "first_run_status_preparing_desc": {
+    "message": "Keep Chrome open while the built-in translator is initialized. If a model is missing, Chrome may download it in the background.",
+    "description": "Popup: model preparing description"
+  },
+  "first_run_status_downloading_title": {
+    "message": "Downloading translation model",
+    "description": "Popup: model downloading title"
+  },
+  "first_run_status_downloading_desc": {
+    "message": "Chrome is downloading the local translation model… $1%. Translation will work after this finishes.",
+    "description": "Popup: model downloading description"
+  },
+  "first_run_status_ready_title": {
+    "message": "Translator ready",
+    "description": "Popup: model ready title"
+  },
+  "first_run_status_ready_desc": {
+    "message": "Local translation is ready. You can translate the current page, hover text, or open the side panel.",
+    "description": "Popup: model ready description"
+  },
+  "first_run_status_failed_title": {
+    "message": "Model preparation failed",
+    "description": "Popup: model failed title"
+  },
+  "first_run_status_failed_desc": {
+    "message": "Chrome could not prepare the translator yet. Try opening a normal web page and clicking translate again.",
+    "description": "Popup: model failed description"
+  },
+  "first_run_status_unsupported_title": {
+    "message": "Chrome translator unavailable",
+    "description": "Popup: model unsupported title"
+  },
+  "first_run_status_unsupported_desc": {
+    "message": "This Chrome build does not expose the built-in Translator API yet. Use Chrome 138+ with built-in AI translation support enabled.",
+    "description": "Popup: model unsupported description"
+  },
+  "first_run_prepare_action": {
+    "message": "Prepare again",
+    "description": "Button label for retrying first-run model preparation"
+  },
+  "welcome_title": {
+    "message": "Welcome to Native Translate",
+    "description": "Welcome page title"
+  },
+  "welcome_subtitle": {
+    "message": "Private local translation, prepared by Chrome on this device.",
+    "description": "Welcome page subtitle"
+  },
+  "welcome_setup_label": {
+    "message": "First-time setup",
+    "description": "Welcome page setup label"
+  },
+  "welcome_setup_title": {
+    "message": "Chrome may need a minute to prepare local models",
+    "description": "Welcome page setup title"
+  },
+  "welcome_setup_desc": {
+    "message": "Native Translate uses Chrome built-in AI translation. The first time you use a language pair, Chrome may download a local model in the background. Keep this page open until the status turns ready.",
+    "description": "Welcome page setup description"
+  },
+  "welcome_try_title": {
+    "message": "Confirm it works",
+    "description": "Welcome page sample translation title"
+  },
+  "welcome_try_desc": {
+    "message": "Run a short local translation after the model is ready. This gives you a visible success signal before you start using the extension on real pages.",
+    "description": "Welcome page sample translation description"
+  },
+  "welcome_sample_placeholder": {
+    "message": "The translation result will appear here.",
+    "description": "Welcome page sample placeholder"
+  },
+  "welcome_try_action": {
+    "message": "Try sample translation",
+    "description": "Welcome page sample button"
+  },
+  "welcome_next_title": {
+    "message": "What you can do next",
+    "description": "Welcome page next steps title"
+  },
+  "welcome_next_page": {
+    "message": "Click the extension icon on any normal web page to translate the current page.",
+    "description": "Welcome next step: page translation"
+  },
+  "welcome_next_hover": {
+    "message": "Hold your selected hover hotkey over text to translate a paragraph in place.",
+    "description": "Welcome next step: hover translation"
+  },
+  "welcome_next_sidepanel": {
+    "message": "Use the side panel for text translation without leaving the page.",
+    "description": "Welcome next step: side panel"
+  },
+  "welcome_next_file": {
+    "message": "Open the file tab in the side panel to translate EPUB books locally.",
+    "description": "Welcome next step: file translation"
   }
 }
