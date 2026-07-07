@@ -33,7 +33,8 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
       .catch((error) => {
         console.error('Error enabling side panel:', error)
       })
-    // 在目标站点自动打开侧边栏并触发一次撒花
+    // Chrome only allows sidePanel.open() in direct response to a user gesture.
+    // Background page-load automation can prepare the panel and one-shot confetti only.
     if (info.status === 'complete') {
       ;(async () => {
         try {
@@ -48,9 +49,8 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
             },
           })
           await chrome.storage.local.set({ [MSG_EASTER_CONFETTI]: true })
-          await chrome.sidePanel.open({ tabId })
         } catch (e) {
-          console.error('auto-open side panel failed', e)
+          console.error('auto-enable side panel failed', e)
         }
       })()
     }
