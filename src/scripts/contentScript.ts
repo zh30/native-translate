@@ -377,14 +377,22 @@ const BRIDGE_SCRIPT_ID = 'native-translate-bridge'
 const BRIDGE_REQ_TYPE = '__NT_BRIDGE_REQ'
 const BRIDGE_RES_TYPE = '__NT_BRIDGE_RES'
 
-interface BridgeRequest {
-  type: typeof BRIDGE_REQ_TYPE
-  id: string
-  action: 'translate'
-  source: LanguageCode
-  target: LanguageCode
-  text: string
-}
+type BridgeRequest =
+  | {
+      type: typeof BRIDGE_REQ_TYPE
+      id: string
+      action: 'translate'
+      source: LanguageCode
+      target: LanguageCode
+      text: string
+    }
+  | {
+      type: typeof BRIDGE_REQ_TYPE
+      id: string
+      action: 'warm'
+      source: LanguageCode
+      target: LanguageCode
+    }
 
 interface BridgeResponse {
   type: typeof BRIDGE_RES_TYPE
@@ -401,48 +409,8 @@ function ensurePageBridgeInjected(): void {
   if (document.getElementById(BRIDGE_SCRIPT_ID)) return
   const script = document.createElement('script')
   script.id = BRIDGE_SCRIPT_ID
-  script.textContent = `(() => {
-  if (window.__nativeTranslateBridgeInit) return;
-  window.__nativeTranslateBridgeInit = true;
-  const pool = new Map();
-  function directAdapter() {
-    const legacy = window.Translator;
-    if (legacy && typeof legacy.create === 'function') {
-      return { create: legacy.create.bind(legacy) };
-    }
-    const modern = window.translation;
-    if (modern && typeof modern.createTranslator === 'function') {
-      return { create: modern.createTranslator.bind(modern) };
-    }
-    return null;
-  }
-  async function getTranslator(source, target) {
-    const key = source + '->' + target;
-    if (pool.has(key)) return pool.get(key);
-    const adapter = directAdapter();
-    if (!adapter) throw new Error('Translator API unavailable');
-    const t = await adapter.create({ sourceLanguage: source, targetLanguage: target });
-    if (t && t.ready) {
-      try { await t.ready; } catch (e) { }
-    }
-    pool.set(key, t);
-    return t;
-  }
-  window.addEventListener('message', async (event) => {
-    const data = event && event.data;
-    if (!data || data.type !== '${BRIDGE_REQ_TYPE}') return;
-    try {
-      if (data.action === 'translate') {
-        const t = await getTranslator(data.source, data.target);
-        const out = await t.translate(data.text);
-        window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: true, result: out }, '*');
-      }
-    } catch (err) {
-      const msg = (err && (err.message || String(err))) || 'bridge_error';
-      window.postMessage({ type: '${BRIDGE_RES_TYPE}', id: data.id, ok: false, error: msg }, '*');
-    }
-  }, { capture: false });
-})(); `
+  script.src = chrome.runtime.getURL('pageBridge.js')
+  script.async = false
   ;(document.documentElement || document.head || document.body || document).appendChild(script)
 }
 
@@ -462,6 +430,18 @@ function initBridgeMessageChannel(): void {
 
 function randomId(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+function errorToMessage(error: unknown): string {
+  if (error instanceof DOMException) {
+    return [error.name, error.message].filter(Boolean).join(': ') || 'DOMException'
+  }
+  if (error instanceof Error) return error.message
+  try {
+    return String(error)
+  } catch (_e) {
+    return 'Unknown error'
+  }
 }
 
 async function bridgeTranslate(
@@ -496,6 +476,47 @@ async function bridgeTranslate(
       if (res.ok && typeof res.result === 'string') {
         unavailableBridgePairs.delete(pairKey)
         resolve(res.result)
+      } else {
+        if ((res.error ?? '').toLowerCase().includes('unavailable')) {
+          unavailableBridgePairs.add(pairKey)
+        }
+        reject(new Error(res.error || 'bridge_error'))
+      }
+    })
+    window.postMessage(payload, '*')
+  })
+}
+
+async function bridgeWarmTranslatorPair(
+  sourceLanguage: LanguageCode,
+  targetLanguage: LanguageCode,
+): Promise<void> {
+  const pairKey = getPairKey(sourceLanguage, targetLanguage)
+  if (unavailableBridgePairs.has(pairKey)) {
+    throw new Error('bridge_unavailable')
+  }
+
+  ensurePageBridgeInjected()
+  initBridgeMessageChannel()
+  const id = randomId()
+  const payload: BridgeRequest = {
+    type: BRIDGE_REQ_TYPE,
+    id,
+    action: 'warm',
+    source: sourceLanguage,
+    target: targetLanguage,
+  }
+  return new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      pendingBridgeResponses.delete(id)
+      unavailableBridgePairs.add(pairKey)
+      reject(new Error('bridge_timeout'))
+    }, 10000)
+    pendingBridgeResponses.set(id, (res) => {
+      clearTimeout(timeout)
+      if (res.ok) {
+        unavailableBridgePairs.delete(pairKey)
+        resolve()
       } else {
         if ((res.error ?? '').toLowerCase().includes('unavailable')) {
           unavailableBridgePairs.add(pairKey)
@@ -1163,15 +1184,20 @@ async function scheduleWarmTranslatorPair(
         targetLanguage,
         updatedAt: Date.now(),
       })
-      await getOrCreateTranslator(sourceLanguage, targetLanguage, (progress) => {
-        void updateFirstRunStatus({
-          status: 'downloading',
-          progress,
-          sourceLanguage,
-          targetLanguage,
-          updatedAt: Date.now(),
+      try {
+        await getOrCreateTranslator(sourceLanguage, targetLanguage, (progress) => {
+          void updateFirstRunStatus({
+            status: 'downloading',
+            progress,
+            sourceLanguage,
+            targetLanguage,
+            updatedAt: Date.now(),
+          })
         })
-      })
+      } catch (_localError) {
+        await bridgeWarmTranslatorPair(sourceLanguage, targetLanguage)
+        await markPairReady(sourceLanguage, targetLanguage)
+      }
       await updateFirstRunStatus({
         status: 'ready',
         sourceLanguage,
@@ -1179,15 +1205,16 @@ async function scheduleWarmTranslatorPair(
         updatedAt: Date.now(),
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
+      const message = errorToMessage(error)
       await updateFirstRunStatus({
-        status: /Translator API unavailable/i.test(message) ? 'unsupported' : 'failed',
+        status: /Translator API unavailable|bridge_unavailable/i.test(message)
+          ? 'unsupported'
+          : 'failed',
         sourceLanguage,
         targetLanguage,
         updatedAt: Date.now(),
         error: message,
       })
-      console.warn('warm translator failed', error)
     } finally {
       warmingPairs.delete(key)
     }
@@ -2872,27 +2899,14 @@ async function translateLineWithStreamingSupport(
         // ignore and fallback
       }
       if (received && partial) return partial
-      try {
-        const out = await translator.translate(line)
-        onPartial?.(out)
-        return out
-      } catch {
-        // 如果本地失败，回退到桥
-        const out = await bridgeTranslate(line, sourceLanguage, targetLanguage)
-        onPartial?.(out)
-        return out
-      }
-    }
-    // 无流式或不满足阈值，则直接一次性
-    try {
       const out = await translator.translate(line)
       onPartial?.(out)
       return out
-    } catch {
-      const out = await bridgeTranslate(line, sourceLanguage, targetLanguage)
-      onPartial?.(out)
-      return out
     }
+    // 无流式或不满足阈值，则直接一次性
+    const out = await translator.translate(line)
+    onPartial?.(out)
+    return out
   }
   // 没有本地翻译器，使用主世界桥（不支持流式）
   const bridged = await bridgeTranslate(line, sourceLanguage, targetLanguage)
@@ -4872,9 +4886,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
         }
         source = canonicalizeLanguageForTranslator(source as LanguageCode)
         await scheduleWarmTranslatorPair(source as LanguageCode, target)
-      } catch (error) {
-        console.warn('warm translator request failed', error)
-      }
+      } catch (_error) {}
     })()
     return false
   }

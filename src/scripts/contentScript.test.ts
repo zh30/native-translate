@@ -35,6 +35,7 @@ function installChromeStub(localStorageValues: Record<string, unknown> = {}): vo
       getMessage: vi.fn((key: string) => key),
     },
     runtime: {
+      getURL: vi.fn((path: string) => `chrome-extension://native-translate/${path}`),
       onMessage: {
         addListener: vi.fn(),
       },
@@ -11306,6 +11307,76 @@ describe('content script DOM translation helpers', () => {
         }),
       )
     })
+  })
+
+  it('falls back to the page bridge when warm translator creation throws a DOMException', async () => {
+    document.documentElement.setAttribute('lang', 'en')
+
+    await loadContentScriptTestables()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.stubGlobal('translation', {
+      createTranslator: vi.fn(async () => {
+        throw new DOMException(
+          'Translator creation is blocked in this context.',
+          'InvalidStateError',
+        )
+      }),
+    })
+    const postMessage = vi.spyOn(window, 'postMessage').mockImplementation((message: unknown) => {
+      const payload = message as {
+        action?: string
+        id?: string
+        source?: string
+        target?: string
+        type?: string
+      }
+      if (payload.type !== '__NT_BRIDGE_REQ' || payload.action !== 'warm' || !payload.id) return
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            id: payload.id,
+            ok: true,
+            type: '__NT_BRIDGE_RES',
+          },
+        }),
+      )
+    })
+
+    const listener = vi.mocked(chrome.runtime.onMessage.addListener).mock.calls[0]?.[0]
+    if (!listener) throw new Error('Missing warm translator listener')
+    listener(
+      {
+        payload: {
+          sourceLanguage: 'auto',
+          targetLanguage: 'zh-CN',
+        },
+        type: 'NATIVE_TRANSLATE_WARM_TRANSLATOR',
+      },
+      {},
+      vi.fn(),
+    )
+
+    await waitFor(() => {
+      expect(postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'warm',
+          source: 'en',
+          target: 'zh-CN',
+          type: '__NT_BRIDGE_REQ',
+        }),
+        '*',
+      )
+    })
+    await waitFor(() => {
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        'nativeTranslate.firstRunStatus': expect.objectContaining({
+          sourceLanguage: 'en',
+          status: 'ready',
+          targetLanguage: 'zh-CN',
+        }),
+      })
+    })
+    expect(warn).not.toHaveBeenCalled()
   })
 
   it('uses page Chinese variant hints for hover translations with generic zh detection', async () => {

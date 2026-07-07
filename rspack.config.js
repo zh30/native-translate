@@ -64,6 +64,7 @@ module.exports = (env, argv) => {
       welcome: './src/welcome/welcome.tsx',
       background: './src/scripts/background.ts',
       contentScript: './src/scripts/contentScript.ts',
+      pageBridge: './src/scripts/pageBridge.ts',
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
