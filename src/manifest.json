@@ -40,5 +40,14 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "permissions": ["storage", "activeTab", "scripting", "tabs", "sidePanel"]
+  "permissions": ["storage", "activeTab", "scripting", "tabs", "sidePanel"],
+  "commands": {
+    "translate_page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T",
+        "mac": "MacCtrl+Shift+T"
+      },
+      "description": "__MSG_translate_full_page__"
+    }
+  }
 }
