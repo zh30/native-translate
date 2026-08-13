@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extension_name__",
-  "version": "2.4.2",
+  "version": "3.1.0",
   "description": "__MSG_extension_description__",
   "minimum_chrome_version": "138",
   "default_locale": "en",
@@ -40,5 +40,26 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "permissions": ["storage", "activeTab", "scripting", "tabs", "sidePanel"]
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "sidePanel",
+    "offscreen",
+    "contextMenus"
+  ],
+  "commands": {
+    "summarize-page": {
+      "suggested_key": { "default": "Alt+Shift+Y" },
+      "description": "__MSG_cmd_summarize__"
+    },
+    "screenshot-translate": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "__MSG_cmd_screenshot__"
+    },
+    "toggle-learning-mode": {
+      "description": "__MSG_cmd_learning__"
+    }
+  }
 }

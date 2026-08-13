@@ -65,6 +65,7 @@ module.exports = (env, argv) => {
       background: './src/scripts/background.ts',
       contentScript: './src/scripts/contentScript.ts',
       pageBridge: './src/scripts/pageBridge.ts',
+      offscreen: './src/offscreen/offscreen.ts',
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
@@ -153,6 +154,12 @@ module.exports = (env, argv) => {
         template: './src/welcome/welcome.html',
         filename: 'welcome.html',
         chunks: ['welcome'],
+        minify: isProd,
+      }),
+      new rspack.HtmlRspackPlugin({
+        template: './src/offscreen/offscreen.html',
+        filename: 'offscreen.html',
+        chunks: ['offscreen'],
         minify: isProd,
       }),
       new rspack.CopyRspackPlugin({

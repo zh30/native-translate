@@ -1,9 +1,9 @@
+import * as React from 'react'
 import {
   FIRST_RUN_STATUS_KEY,
   type FirstRunModelStatus,
   type FirstRunStatus,
 } from '@/shared/settings'
-import * as React from 'react'
 
 export const defaultFirstRunStatus: FirstRunStatus = {
   status: 'new',

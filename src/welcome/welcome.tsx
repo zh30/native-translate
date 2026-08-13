@@ -1,4 +1,7 @@
 import '../styles/tailwind.css'
+import { ArrowRight, CheckCircle2, Globe2, Loader2, PanelRightOpen, Sparkles } from 'lucide-react'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { ModelDownloadToast } from '@/components/ModelDownloadToast'
 import { Button } from '@/components/ui/button'
 import { DEFAULT_TARGET_LANGUAGE, type LanguageCode } from '@/shared/languages'
@@ -7,9 +10,6 @@ import { cn } from '@/utils/cn'
 import { t } from '@/utils/i18n'
 import { getUILocale, isRTLLanguage } from '@/utils/rtl'
 import { useFirstRunStatus } from '@/utils/useFirstRunStatus'
-import { ArrowRight, CheckCircle2, Globe2, Loader2, PanelRightOpen, Sparkles } from 'lucide-react'
-import React from 'react'
-import ReactDOM from 'react-dom/client'
 
 interface TranslatorMonitorEvent extends Event {
   loaded?: number
@@ -73,9 +73,7 @@ const Welcome: React.FC = () => {
   }, [])
 
   const prepareTranslator = React.useCallback(
-    async (options?: {
-      showError?: boolean
-    }): Promise<TranslatorInstance | null> => {
+    async (options?: { showError?: boolean }): Promise<TranslatorInstance | null> => {
       const showError = options?.showError ?? true
       if (isPreparing) return null
       setError(null)

@@ -1,0 +1,41 @@
+{
+  "cmd_summarize": {
+    "en": "Summarize this page",
+    "zh_CN": "智能摘要此页面",
+    "es": "Resumir esta página",
+    "ar": "تلخيص هذه الصفحة",
+    "hi": "इस पृष्ठ का सारांश",
+    "id": "Ringkas halaman ini",
+    "nl": "Vat deze pagina samen",
+    "pt": "Resumir esta página",
+    "th": "สรุปหน้านี้",
+    "tr": "Bu sayfayı özetle",
+    "vi": "Tóm tắt trang này"
+  },
+  "cmd_screenshot": {
+    "en": "Translate a screenshot",
+    "zh_CN": "截图翻译",
+    "es": "Traducir captura",
+    "ar": "ترجمة لقطة الشاشة",
+    "hi": "स्क्रीनशॉट अनुवाद",
+    "id": "Terjemahkan tangkapan layar",
+    "nl": "Screenshot vertalen",
+    "pt": "Traduzir captura",
+    "th": "แปลภาพหน้าจอ",
+    "tr": "Ekran görüntüsünü çevir",
+    "vi": "Dịch ảnh chụp màn hình"
+  },
+  "cmd_learning": {
+    "en": "Toggle learning mode",
+    "zh_CN": "开关学习模式",
+    "es": "Alternar modo de aprendizaje",
+    "ar": "تبديل وضع التعلم",
+    "hi": "लर्निंग मोड टॉगल करें",
+    "id": "Alihkan mode belajar",
+    "nl": "Leermodus schakelen",
+    "pt": "Ativar modo de estudo",
+    "th": "สลับโหมดการเรียน",
+    "tr": "Öğrenme modunu aç/kapat",
+    "vi": "Bật/tắt chế độ học"
+  }
+}

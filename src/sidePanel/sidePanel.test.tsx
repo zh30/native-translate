@@ -88,6 +88,7 @@ function installChromeMock(options?: { onTranslateMessage?: TranslateMessageHand
       local: {
         get: vi.fn(async () => ({})),
         set: vi.fn(async () => ({})),
+        remove: vi.fn(async () => ({})),
       },
       onChanged: {
         addListener: vi.fn(),

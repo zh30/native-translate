@@ -61,6 +61,10 @@ function primarySubtag(lang: string | undefined): string {
   return lang.replace(/_/g, '-').split('-')[0].toLowerCase()
 }
 
+export function primaryLanguageTag(lang: string | undefined): string {
+  return primarySubtag(lang)
+}
+
 function normalizeChineseVariant(lang: string): 'zh-CN' | 'zh-TW' | string {
   const normalized = lang.trim().replace(/_/g, '-').toLowerCase()
   const subtags = normalized.split('-')

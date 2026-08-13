@@ -6209,6 +6209,86 @@ describe('content script DOM translation helpers', () => {
     expect(translation?.querySelector('math')).toHaveTextContent('x=1')
   })
 
+  it('does not clone inline images or svg icons into the full-page translation layer', async () => {
+    document.body.innerHTML = `
+      <main>
+        <p>
+          Install the desktop app
+          <img src="icon.png" alt="" width="16" height="16">
+          <svg viewBox="0 0 8 8" width="12" height="12" aria-hidden="true"><circle cx="4" cy="4" r="3"></circle></svg>
+          to continue reading.
+        </p>
+      </main>
+    `
+
+    const testables = await loadContentScriptTestables()
+    const translatedInputs: string[] = []
+    const translate = async (text: string) => {
+      translatedInputs.push(text)
+      return `译:${text}`
+    }
+    vi.stubGlobal('translation', {
+      createTranslator: vi.fn(async () => ({ translate })),
+    })
+
+    await testables.translateFullPageAutoDetect('zh')
+
+    const paragraph = document.querySelector('p')
+    const translation = paragraph?.querySelector('.native-translate-translation')
+    if (!paragraph || !translation) throw new Error('Missing translated paragraph')
+
+    const sent = translatedInputs.join('\n')
+    expect(paragraph.querySelectorAll('img')).toHaveLength(1)
+    expect(paragraph.querySelectorAll('svg')).toHaveLength(1)
+    expect(translation.querySelector('img')).toBeNull()
+    expect(translation.querySelector('svg')).toBeNull()
+    expect(sent).toContain('Install the desktop app')
+    expect(sent).toContain('to continue reading.')
+    expect(sent).not.toMatch(/\[\[NT/i)
+    expect(translation.textContent ?? '').toContain('译:')
+    expect(translation).toHaveTextContent('Install the desktop app')
+    expect(translation).toHaveTextContent('to continue reading.')
+    expect(translation.textContent ?? '').not.toMatch(/\[\[NT/i)
+  })
+
+  it('renders compact icon-label rows as a muted text caption instead of a cloned chip', async () => {
+    document.body.innerHTML = `
+      <main>
+        <a href="/settings">
+          <svg viewBox="0 0 8 8" width="14" height="14" aria-hidden="true"><path d="M1 1h6v6H1z"></path></svg>
+          Open account settings
+        </a>
+      </main>
+    `
+
+    const testables = await loadContentScriptTestables()
+    const translatedInputs: string[] = []
+    const translate = async (text: string) => {
+      translatedInputs.push(text)
+      return `译:${text}`
+    }
+    vi.stubGlobal('translation', {
+      createTranslator: vi.fn(async () => ({ translate })),
+    })
+
+    await testables.translateFullPageAutoDetect('zh')
+
+    const link = document.querySelector('a')
+    const translation = document.querySelector('.native-translate-translation')
+    if (!link || !(translation instanceof HTMLElement)) throw new Error('Missing translated chip')
+
+    const sent = translatedInputs.join('\n')
+    expect(link.querySelectorAll('svg')).toHaveLength(1)
+    expect(translation.querySelector('svg')).toBeNull()
+    expect(translation.querySelector('img')).toBeNull()
+    expect(sent).toContain('Open account settings')
+    expect(translation.textContent ?? '').toContain('译:')
+    expect(translation).toHaveTextContent('Open account settings')
+    expect(translation).toHaveStyle({ display: 'block' })
+    expect(translation.style.pointerEvents).toBe('none')
+    expect(Number.parseFloat(translation.style.opacity || '1')).toBeLessThan(1)
+  })
+
   it('positions inline hints with valid pixel values', async () => {
     document.body.innerHTML = '<textarea>hello</textarea>'
     const textarea = document.querySelector('textarea')
@@ -9604,214 +9684,97 @@ describe('content script DOM translation helpers', () => {
   })
 
   it('translates closed popover content after showPopover opens it dynamically', async () => {
-    const openedPopovers = new WeakSet<Element>()
-    const originalMatches = Element.prototype.matches
-    const originalShowPopover = HTMLElement.prototype.showPopover
-    vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
-      this: Element,
-      selector: string,
-    ) {
-      if (selector === ':popover-open') return openedPopovers.has(this)
-      return originalMatches.call(this, selector)
-    })
-    Object.defineProperty(HTMLElement.prototype, 'showPopover', {
-      configurable: true,
-      value(this: HTMLElement) {
-        openedPopovers.add(this)
-      },
+    document.documentElement.setAttribute('lang', 'en')
+    document.body.innerHTML =
+      '<main><section popover><p>Popover panel should translate after opening.</p></section></main>'
+
+    const testables = await loadContentScriptTestables()
+    vi.stubGlobal('translation', {
+      createTranslator: vi.fn(async () => ({
+        translate: async (text: string) => `translated: ${text}`,
+      })),
     })
 
-    try {
-      document.documentElement.setAttribute('lang', 'en')
-      document.body.innerHTML =
-        '<main><section popover><p>Popover panel should translate after opening.</p></section></main>'
+    await testables.translateFullPageAutoDetect('zh')
 
-      const testables = await loadContentScriptTestables()
-      vi.stubGlobal('translation', {
-        createTranslator: vi.fn(async () => ({
-          translate: async (text: string) => `translated: ${text}`,
-        })),
-      })
+    const section = document.querySelector('section')
+    const paragraph = document.querySelector('section p')
+    if (!section || !paragraph) throw new Error('Missing popover candidate')
+    expect(paragraph.querySelector('.native-translate-translation')).toBeNull()
 
-      await testables.translateFullPageAutoDetect('zh')
+    section.showPopover()
 
-      const section = document.querySelector('section')
-      const paragraph = document.querySelector('section p')
-      if (!section || !paragraph) throw new Error('Missing popover candidate')
-      expect(paragraph.querySelector('.native-translate-translation')).toBeNull()
-
-      section.showPopover()
-
-      await waitFor(() => {
-        expect(paragraph.querySelector('.native-translate-translation')).toHaveTextContent(
-          'translated: Popover panel should translate after opening.',
-        )
-      })
-    } finally {
-      if (originalShowPopover) {
-        Object.defineProperty(HTMLElement.prototype, 'showPopover', {
-          configurable: true,
-          value: originalShowPopover,
-        })
-      } else {
-        Object.defineProperty(HTMLElement.prototype, 'showPopover', {
-          configurable: true,
-          value: undefined,
-        })
-      }
-    }
+    await waitFor(() => {
+      expect(paragraph.querySelector('.native-translate-translation')).toHaveTextContent(
+        'translated: Popover panel should translate after opening.',
+      )
+    })
   })
 
   it('removes stale popover translations after hidePopover closes it dynamically', async () => {
-    const openedPopovers = new WeakSet<Element>()
-    const originalMatches = Element.prototype.matches
-    const originalShowPopover = HTMLElement.prototype.showPopover
-    const originalHidePopover = HTMLElement.prototype.hidePopover
-    vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
-      this: Element,
-      selector: string,
-    ) {
-      if (selector === ':popover-open') return openedPopovers.has(this)
-      return originalMatches.call(this, selector)
-    })
-    Object.defineProperty(HTMLElement.prototype, 'showPopover', {
-      configurable: true,
-      value(this: HTMLElement) {
-        openedPopovers.add(this)
-      },
-    })
-    Object.defineProperty(HTMLElement.prototype, 'hidePopover', {
-      configurable: true,
-      value(this: HTMLElement) {
-        openedPopovers.delete(this)
-      },
+    document.documentElement.setAttribute('lang', 'en')
+    document.body.innerHTML =
+      '<main><section popover><p>Popover panel should clear after closing.</p></section></main>'
+
+    const testables = await loadContentScriptTestables()
+    vi.stubGlobal('translation', {
+      createTranslator: vi.fn(async () => ({
+        translate: async (text: string) => `translated: ${text}`,
+      })),
     })
 
-    try {
-      document.documentElement.setAttribute('lang', 'en')
-      document.body.innerHTML =
-        '<main><section popover><p>Popover panel should clear after closing.</p></section></main>'
+    await testables.translateFullPageAutoDetect('zh')
 
-      const testables = await loadContentScriptTestables()
-      vi.stubGlobal('translation', {
-        createTranslator: vi.fn(async () => ({
-          translate: async (text: string) => `translated: ${text}`,
-        })),
-      })
+    const section = document.querySelector('section')
+    const paragraph = document.querySelector('section p')
+    if (!section || !paragraph) throw new Error('Missing popover candidate')
 
-      await testables.translateFullPageAutoDetect('zh')
+    section.showPopover()
+    await waitFor(() => {
+      expect(paragraph.querySelector('.native-translate-translation')).toHaveTextContent(
+        'translated: Popover panel should clear after closing.',
+      )
+    })
 
-      const section = document.querySelector('section')
-      const paragraph = document.querySelector('section p')
-      if (!section || !paragraph) throw new Error('Missing popover candidate')
+    section.hidePopover()
 
-      section.showPopover()
-      await waitFor(() => {
-        expect(paragraph.querySelector('.native-translate-translation')).toHaveTextContent(
-          'translated: Popover panel should clear after closing.',
-        )
-      })
-
-      section.hidePopover()
-
-      await waitFor(() => {
-        expect(paragraph.querySelector('.native-translate-translation')).toBeNull()
-      })
-      expect(paragraph).not.toHaveAttribute('data-native-translate-done')
-    } finally {
-      if (originalShowPopover) {
-        Object.defineProperty(HTMLElement.prototype, 'showPopover', {
-          configurable: true,
-          value: originalShowPopover,
-        })
-      } else {
-        Object.defineProperty(HTMLElement.prototype, 'showPopover', {
-          configurable: true,
-          value: undefined,
-        })
-      }
-      if (originalHidePopover) {
-        Object.defineProperty(HTMLElement.prototype, 'hidePopover', {
-          configurable: true,
-          value: originalHidePopover,
-        })
-      } else {
-        Object.defineProperty(HTMLElement.prototype, 'hidePopover', {
-          configurable: true,
-          value: undefined,
-        })
-      }
-    }
+    await waitFor(() => {
+      expect(paragraph.querySelector('.native-translate-translation')).toBeNull()
+    })
+    expect(paragraph).not.toHaveAttribute('data-native-translate-done')
   })
 
   it('translates and clears popover content when togglePopover changes visibility', async () => {
-    const openedPopovers = new WeakSet<Element>()
-    const originalMatches = Element.prototype.matches
-    const originalTogglePopover = HTMLElement.prototype.togglePopover
-    vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
-      this: Element,
-      selector: string,
-    ) {
-      if (selector === ':popover-open') return openedPopovers.has(this)
-      return originalMatches.call(this, selector)
-    })
-    Object.defineProperty(HTMLElement.prototype, 'togglePopover', {
-      configurable: true,
-      value(this: HTMLElement, force?: boolean) {
-        const shouldOpen = force ?? !openedPopovers.has(this)
-        if (shouldOpen) {
-          openedPopovers.add(this)
-        } else {
-          openedPopovers.delete(this)
-        }
-        return shouldOpen
-      },
+    document.documentElement.setAttribute('lang', 'en')
+    document.body.innerHTML =
+      '<main><section popover><p>Toggle popover panel should track visibility.</p></section></main>'
+
+    const testables = await loadContentScriptTestables()
+    vi.stubGlobal('translation', {
+      createTranslator: vi.fn(async () => ({
+        translate: async (text: string) => `translated: ${text}`,
+      })),
     })
 
-    try {
-      document.documentElement.setAttribute('lang', 'en')
-      document.body.innerHTML =
-        '<main><section popover><p>Toggle popover panel should track visibility.</p></section></main>'
+    await testables.translateFullPageAutoDetect('zh')
 
-      const testables = await loadContentScriptTestables()
-      vi.stubGlobal('translation', {
-        createTranslator: vi.fn(async () => ({
-          translate: async (text: string) => `translated: ${text}`,
-        })),
-      })
+    const section = document.querySelector('section')
+    const paragraph = document.querySelector('section p')
+    if (!section || !paragraph) throw new Error('Missing popover candidate')
 
-      await testables.translateFullPageAutoDetect('zh')
+    section.togglePopover()
+    await waitFor(() => {
+      expect(paragraph.querySelector('.native-translate-translation')).toHaveTextContent(
+        'translated: Toggle popover panel should track visibility.',
+      )
+    })
 
-      const section = document.querySelector('section')
-      const paragraph = document.querySelector('section p')
-      if (!section || !paragraph) throw new Error('Missing popover candidate')
+    section.togglePopover()
 
-      section.togglePopover()
-      await waitFor(() => {
-        expect(paragraph.querySelector('.native-translate-translation')).toHaveTextContent(
-          'translated: Toggle popover panel should track visibility.',
-        )
-      })
-
-      section.togglePopover()
-
-      await waitFor(() => {
-        expect(paragraph.querySelector('.native-translate-translation')).toBeNull()
-      })
-      expect(paragraph).not.toHaveAttribute('data-native-translate-done')
-    } finally {
-      if (originalTogglePopover) {
-        Object.defineProperty(HTMLElement.prototype, 'togglePopover', {
-          configurable: true,
-          value: originalTogglePopover,
-        })
-      } else {
-        Object.defineProperty(HTMLElement.prototype, 'togglePopover', {
-          configurable: true,
-          value: undefined,
-        })
-      }
-    }
+    await waitFor(() => {
+      expect(paragraph.querySelector('.native-translate-translation')).toBeNull()
+    })
+    expect(paragraph).not.toHaveAttribute('data-native-translate-done')
   })
 
   it('restores patched popover methods when the full page observer stops', async () => {

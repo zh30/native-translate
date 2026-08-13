@@ -1,33 +1,55 @@
 import '../styles/tailwind.css'
+import {
+  BookOpen,
+  Camera,
+  Globe2,
+  GraduationCap,
+  Keyboard,
+  Languages,
+  Loader2,
+  PanelRightOpen,
+  ShieldCheck,
+  Sparkles,
+  Wand2,
+} from 'lucide-react'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { ModelDownloadToast } from '@/components/ModelDownloadToast'
+import { AiModelGate } from '@/components/ui/ai-model-gate'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { AppSelect } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { isAiReady, useAiCapabilities } from '@/shared/ai/capabilities'
+import type { CefrLevel } from '@/shared/ai/types'
 import {
   DEFAULT_INPUT_TARGET_LANGUAGE,
   DEFAULT_TARGET_LANGUAGE,
   type LanguageCode,
   SUPPORTED_LANGUAGES,
 } from '@/shared/languages'
-import { MSG_TRANSLATE_PAGE, MSG_UPDATE_HOTKEY, MSG_WARM_TRANSLATOR } from '@/shared/messages'
-import { POPUP_SETTINGS_KEY } from '@/shared/settings'
+import {
+  MSG_START_REGION_SELECT,
+  MSG_TOGGLE_LEARNING_MODE,
+  MSG_TRANSLATE_PAGE,
+  MSG_UPDATE_HOTKEY,
+  MSG_WARM_TRANSLATOR,
+} from '@/shared/messages'
+import {
+  AI_SETTINGS_KEY,
+  type AiSettings,
+  DEFAULT_AI_SETTINGS,
+  POPUP_SETTINGS_KEY,
+  SIDE_PANEL_INTENT_KEY,
+} from '@/shared/settings'
 import { cn } from '@/utils/cn'
 import { t } from '@/utils/i18n'
 import { getUILocale, isRTLLanguage } from '@/utils/rtl'
 import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage'
 import { useFirstRunStatus } from '@/utils/useFirstRunStatus'
-import {
-  Globe2,
-  Keyboard,
-  Languages,
-  Loader2,
-  PanelRightOpen,
-  ShieldCheck,
-  Wand2,
-} from 'lucide-react'
-import React from 'react'
-import ReactDOM from 'react-dom/client'
 
 interface PopupSettings {
   targetLanguage: LanguageCode
@@ -64,6 +86,12 @@ const Popup: React.FC = () => {
   const [isTranslatingPage, setIsTranslatingPage] = React.useState<boolean>(false)
   const [isOpeningSidePanel, setIsOpeningSidePanel] = React.useState<boolean>(false)
   const [firstRunStatus, , setFirstRunStatus] = useFirstRunStatus()
+  const [aiSettings, setAiSettings] = useChromeLocalStorage<AiSettings>(
+    AI_SETTINGS_KEY,
+    DEFAULT_AI_SETTINGS,
+  )
+  const { capabilities, refresh } = useAiCapabilities()
+  const [learningOn, setLearningOn] = React.useState(false)
   const translateBusyRef = React.useRef<boolean>(false)
   const sidePanelBusyRef = React.useRef<boolean>(false)
 
@@ -218,6 +246,36 @@ const Popup: React.FC = () => {
     }
   }, [])
 
+  const sendToActiveTab = React.useCallback(async (message: unknown) => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    if (!tab?.id) throw new Error(t('active_tab_not_found'))
+    try {
+      await chrome.tabs.sendMessage(tab.id, message)
+    } catch {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['contentScript.js'],
+      })
+      await chrome.tabs.sendMessage(tab.id, message)
+    }
+    return tab
+  }, [])
+
+  const openSidePanelWithIntent = React.useCallback(async (kind: 'summary' | 'chat' | 'vocab') => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    if (!tab?.id) throw new Error(t('active_tab_not_found'))
+    await chrome.storage.local.set({
+      [SIDE_PANEL_INTENT_KEY]: { kind, tabId: tab.id, createdAt: Date.now() },
+    })
+    try {
+      await chrome.sidePanel.setOptions({ tabId: tab.id, path: 'sidePanel.html', enabled: true })
+    } catch {
+      // ignore
+    }
+    await chrome.sidePanel.open({ tabId: tab.id })
+    window.close()
+  }, [])
+
   return (
     <main
       className={cn(
@@ -255,6 +313,7 @@ const Popup: React.FC = () => {
               </div>
             </div>
             <div
+              role="img"
               aria-label={t('extension_description')}
               className={cn(
                 'inline-flex shrink-0 items-center rounded-md p-1.5',
@@ -315,6 +374,86 @@ const Popup: React.FC = () => {
                   )}
                   {t('open_sidepanel')}
                 </Button>
+
+                {isAiReady(capabilities) ||
+                capabilities.gate === 'downloadable' ||
+                capabilities.gate === 'downloading' ||
+                capabilities.gate === 'checking' ? (
+                  <AiModelGate capabilities={capabilities} onRefresh={refresh} hideWhenUnavailable>
+                    <div className="grid gap-2">
+                      {aiSettings.features.summary ? (
+                        <Button
+                          variant="ai"
+                          className="h-10 w-full gap-2"
+                          onClick={() => void openSidePanelWithIntent('summary')}
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          {t('ai_summary_page')}
+                          <Kbd className="ml-auto">Alt+Shift+Y</Kbd>
+                        </Button>
+                      ) : null}
+                      {aiSettings.features.screenshot ? (
+                        <Button
+                          variant="outline"
+                          className="h-10 w-full gap-2"
+                          onClick={() => {
+                            void sendToActiveTab({ type: MSG_START_REGION_SELECT }).then(() =>
+                              window.close(),
+                            )
+                          }}
+                        >
+                          <Camera className="h-4 w-4" />
+                          {t('ai_screenshot_title')}
+                          <Kbd className="ml-auto">Alt+Shift+S</Kbd>
+                        </Button>
+                      ) : null}
+                      {aiSettings.features.learning ? (
+                        <Button
+                          variant={learningOn ? 'default' : 'outline'}
+                          className="h-10 w-full gap-2"
+                          onClick={() => {
+                            const next = !learningOn
+                            setLearningOn(next)
+                            void sendToActiveTab({
+                              type: MSG_TOGGLE_LEARNING_MODE,
+                              payload: { enabled: next },
+                            })
+                          }}
+                        >
+                          <GraduationCap className="h-4 w-4" />
+                          {learningOn ? t('ai_learning_disable') : t('ai_learning_enable')}
+                        </Button>
+                      ) : null}
+                      {aiSettings.features.learning ? (
+                        <div className="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+                          <span className="text-xs">{t('ai_learning_level')}</span>
+                          <SegmentedControl
+                            value={aiSettings.learning.level}
+                            onChange={(level: CefrLevel) =>
+                              setAiSettings((s) => ({ ...s, learning: { ...s.learning, level } }))
+                            }
+                            options={[
+                              { value: 'A2', label: 'A2' },
+                              { value: 'B1', label: 'B1' },
+                              { value: 'B2', label: 'B2' },
+                              { value: 'C1', label: 'C1' },
+                            ]}
+                          />
+                        </div>
+                      ) : null}
+                      <Button
+                        variant="ghost"
+                        className="h-9 w-full gap-2"
+                        onClick={() => void openSidePanelWithIntent('vocab')}
+                      >
+                        <BookOpen className="h-4 w-4" />
+                        {t('ai_learning_vocab')}
+                      </Button>
+                    </div>
+                  </AiModelGate>
+                ) : capabilities.gate === 'unavailable' ? (
+                  <p className="text-[11px] text-zinc-500">{t('ai_gate_unavailable')}</p>
+                ) : null}
               </section>
 
               <section

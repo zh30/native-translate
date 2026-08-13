@@ -338,5 +338,541 @@
   "welcome_next_file": {
     "message": "打开侧边栏里的文件标签页，可以在本地翻译 EPUB 电子书。",
     "description": "欢迎页下一步：文件翻译"
+  },
+  "cmd_summarize": {
+    "message": "智能摘要此页面",
+    "description": "cmd_summarize"
+  },
+  "cmd_screenshot": {
+    "message": "截图翻译",
+    "description": "cmd_screenshot"
+  },
+  "cmd_learning": {
+    "message": "开关学习模式",
+    "description": "cmd_learning"
+  },
+  "ai_summary_title": {
+    "message": "摘要",
+    "description": "ai_summary_title"
+  },
+  "ai_summary_page": {
+    "message": "摘要此页面",
+    "description": "ai_summary_page"
+  },
+  "ai_summary_format": {
+    "message": "格式",
+    "description": "ai_summary_format"
+  },
+  "ai_summary_length": {
+    "message": "长度",
+    "description": "ai_summary_length"
+  },
+  "ai_summary_format_key_points": {
+    "message": "关键要点",
+    "description": "ai_summary_format_key_points"
+  },
+  "ai_summary_format_tldr": {
+    "message": "一句话",
+    "description": "ai_summary_format_tldr"
+  },
+  "ai_summary_format_teaser": {
+    "message": "导语",
+    "description": "ai_summary_format_teaser"
+  },
+  "ai_summary_format_headline": {
+    "message": "标题",
+    "description": "ai_summary_format_headline"
+  },
+  "ai_summary_length_short": {
+    "message": "短",
+    "description": "ai_summary_length_short"
+  },
+  "ai_summary_length_medium": {
+    "message": "中",
+    "description": "ai_summary_length_medium"
+  },
+  "ai_summary_length_long": {
+    "message": "长",
+    "description": "ai_summary_length_long"
+  },
+  "ai_summary_bilingual": {
+    "message": "双语",
+    "description": "ai_summary_bilingual"
+  },
+  "ai_summary_copy": {
+    "message": "复制",
+    "description": "ai_summary_copy"
+  },
+  "ai_summary_copy_md": {
+    "message": "复制为 Markdown",
+    "description": "ai_summary_copy_md"
+  },
+  "ai_summary_truncated": {
+    "message": "已基于页面前面部分生成摘要。",
+    "description": "ai_summary_truncated"
+  },
+  "ai_summary_refresh": {
+    "message": "重新生成",
+    "description": "ai_summary_refresh"
+  },
+  "ai_summary_too_short": {
+    "message": "选区较短，建议直接翻译。",
+    "description": "ai_summary_too_short"
+  },
+  "ai_summary_empty": {
+    "message": "当前页面没有可摘要的正文。",
+    "description": "ai_summary_empty"
+  },
+  "ai_summary_ask_more": {
+    "message": "就此页继续提问",
+    "description": "ai_summary_ask_more"
+  },
+  "ai_chat_title": {
+    "message": "问答",
+    "description": "ai_chat_title"
+  },
+  "ai_chat_reload": {
+    "message": "重新加载",
+    "description": "ai_chat_reload"
+  },
+  "ai_chat_page_changed": {
+    "message": "页面已变化。",
+    "description": "ai_chat_page_changed"
+  },
+  "ai_chat_reload_context": {
+    "message": "重新加载上下文",
+    "description": "ai_chat_reload_context"
+  },
+  "ai_chat_empty": {
+    "message": "这个页面没有可读内容。",
+    "description": "ai_chat_empty"
+  },
+  "ai_chat_placeholder": {
+    "message": "用你的语言问这个页面…",
+    "description": "ai_chat_placeholder"
+  },
+  "ai_chat_send": {
+    "message": "发送",
+    "description": "ai_chat_send"
+  },
+  "ai_chat_clear": {
+    "message": "清空会话",
+    "description": "ai_chat_clear"
+  },
+  "ai_chat_usage": {
+    "message": "上下文",
+    "description": "ai_chat_usage"
+  },
+  "ai_chat_compacted": {
+    "message": "已自动整理较早的对话。",
+    "description": "ai_chat_compacted"
+  },
+  "ai_chat_suggested": {
+    "message": "建议问题",
+    "description": "ai_chat_suggested"
+  },
+  "ai_chat_reading": {
+    "message": "正在阅读",
+    "description": "ai_chat_reading"
+  },
+  "ai_gate_download_cta": {
+    "message": "启用本地 AI",
+    "description": "ai_gate_download_cta"
+  },
+  "ai_gate_download_desc": {
+    "message": "一次性下载 Gemini Nano。模型留在本机，与 Chrome 共用，文本不会离开浏览器。",
+    "description": "ai_gate_download_desc"
+  },
+  "ai_gate_downloading": {
+    "message": "正在下载本地模型…",
+    "description": "ai_gate_downloading"
+  },
+  "ai_gate_unavailable": {
+    "message": "此设备无法使用本地 AI。",
+    "description": "ai_gate_unavailable"
+  },
+  "ai_gate_unavailable_hint": {
+    "message": "翻译功能仍可用。详见 chrome://on-device-internals。",
+    "description": "ai_gate_unavailable_hint"
+  },
+  "ai_gate_error": {
+    "message": "无法启动本地模型。",
+    "description": "ai_gate_error"
+  },
+  "ai_gate_checking": {
+    "message": "正在检测本地 AI…",
+    "description": "ai_gate_checking"
+  },
+  "ai_gate_ready": {
+    "message": "本地 AI 已就绪",
+    "description": "ai_gate_ready"
+  },
+  "ai_gate_enable": {
+    "message": "本地 AI",
+    "description": "ai_gate_enable"
+  },
+  "ai_selection_translate": {
+    "message": "译",
+    "description": "ai_selection_translate"
+  },
+  "ai_selection_explain": {
+    "message": "释",
+    "description": "ai_selection_explain"
+  },
+  "ai_selection_summary": {
+    "message": "要点",
+    "description": "ai_selection_summary"
+  },
+  "ai_selection_extract": {
+    "message": "提取",
+    "description": "ai_selection_extract"
+  },
+  "ai_selection_copy": {
+    "message": "复制",
+    "description": "ai_selection_copy"
+  },
+  "ai_selection_vocab": {
+    "message": "加入生词本",
+    "description": "ai_selection_vocab"
+  },
+  "ai_selection_settings": {
+    "message": "设置",
+    "description": "ai_selection_settings"
+  },
+  "ai_selection_pin": {
+    "message": "固定",
+    "description": "ai_selection_pin"
+  },
+  "ai_selection_close": {
+    "message": "关闭",
+    "description": "ai_selection_close"
+  },
+  "ai_writing_title": {
+    "message": "写作助手",
+    "description": "ai_writing_title"
+  },
+  "ai_writing_translate_polish": {
+    "message": "翻译并润色",
+    "description": "ai_writing_translate_polish"
+  },
+  "ai_writing_polish": {
+    "message": "润色",
+    "description": "ai_writing_polish"
+  },
+  "ai_writing_proofread": {
+    "message": "校对",
+    "description": "ai_writing_proofread"
+  },
+  "ai_writing_tone": {
+    "message": "语气",
+    "description": "ai_writing_tone"
+  },
+  "ai_writing_tone_professional": {
+    "message": "专业",
+    "description": "ai_writing_tone_professional"
+  },
+  "ai_writing_tone_friendly": {
+    "message": "友好",
+    "description": "ai_writing_tone_friendly"
+  },
+  "ai_writing_tone_concise": {
+    "message": "简洁",
+    "description": "ai_writing_tone_concise"
+  },
+  "ai_writing_replace": {
+    "message": "替换原文",
+    "description": "ai_writing_replace"
+  },
+  "ai_writing_retry": {
+    "message": "重试",
+    "description": "ai_writing_retry"
+  },
+  "ai_writing_copy": {
+    "message": "复制",
+    "description": "ai_writing_copy"
+  },
+  "ai_writing_original": {
+    "message": "原文",
+    "description": "ai_writing_original"
+  },
+  "ai_writing_result": {
+    "message": "结果",
+    "description": "ai_writing_result"
+  },
+  "ai_screenshot_title": {
+    "message": "截图翻译",
+    "description": "ai_screenshot_title"
+  },
+  "ai_screenshot_copy_source": {
+    "message": "复制原文",
+    "description": "ai_screenshot_copy_source"
+  },
+  "ai_screenshot_copy_translation": {
+    "message": "复制译文",
+    "description": "ai_screenshot_copy_translation"
+  },
+  "ai_screenshot_retry": {
+    "message": "重新截取",
+    "description": "ai_screenshot_retry"
+  },
+  "ai_screenshot_empty": {
+    "message": "未识别到文字。",
+    "description": "ai_screenshot_empty"
+  },
+  "ai_screenshot_zoom_hint": {
+    "message": "放大后重试更准。",
+    "description": "ai_screenshot_zoom_hint"
+  },
+  "ai_screenshot_size": {
+    "message": "尺寸",
+    "description": "ai_screenshot_size"
+  },
+  "ai_screenshot_confirm": {
+    "message": "确认",
+    "description": "ai_screenshot_confirm"
+  },
+  "ai_screenshot_cancel": {
+    "message": "取消",
+    "description": "ai_screenshot_cancel"
+  },
+  "ai_screenshot_image_unreadable": {
+    "message": "图片不可见，请改用框选。",
+    "description": "ai_screenshot_image_unreadable"
+  },
+  "ai_learning_title": {
+    "message": "学习模式",
+    "description": "ai_learning_title"
+  },
+  "ai_learning_enable": {
+    "message": "学习模式",
+    "description": "ai_learning_enable"
+  },
+  "ai_learning_disable": {
+    "message": "关闭学习模式",
+    "description": "ai_learning_disable"
+  },
+  "ai_learning_level": {
+    "message": "等级",
+    "description": "ai_learning_level"
+  },
+  "ai_learning_vocab": {
+    "message": "生词本",
+    "description": "ai_learning_vocab"
+  },
+  "ai_learning_add": {
+    "message": "加入生词本",
+    "description": "ai_learning_add"
+  },
+  "ai_learning_speak": {
+    "message": "发音",
+    "description": "ai_learning_speak"
+  },
+  "ai_learning_phonetic": {
+    "message": "音标",
+    "description": "ai_learning_phonetic"
+  },
+  "ai_vocab_title": {
+    "message": "生词本",
+    "description": "ai_vocab_title"
+  },
+  "ai_vocab_search": {
+    "message": "搜索生词…",
+    "description": "ai_vocab_search"
+  },
+  "ai_vocab_empty": {
+    "message": "还没有收藏的词。",
+    "description": "ai_vocab_empty"
+  },
+  "ai_vocab_export_csv": {
+    "message": "导出 CSV",
+    "description": "ai_vocab_export_csv"
+  },
+  "ai_vocab_export_anki": {
+    "message": "导出 Anki TSV",
+    "description": "ai_vocab_export_anki"
+  },
+  "ai_vocab_clear": {
+    "message": "清空",
+    "description": "ai_vocab_clear"
+  },
+  "ai_vocab_limit": {
+    "message": "生词本已满，已淘汰最久未用的词。",
+    "description": "ai_vocab_limit"
+  },
+  "ai_vocab_group": {
+    "message": "其他",
+    "description": "ai_vocab_group"
+  },
+  "ai_voice_title": {
+    "message": "语音",
+    "description": "ai_voice_title"
+  },
+  "ai_voice_experimental": {
+    "message": "实验",
+    "description": "ai_voice_experimental"
+  },
+  "ai_voice_record": {
+    "message": "录音",
+    "description": "ai_voice_record"
+  },
+  "ai_voice_stop": {
+    "message": "停止",
+    "description": "ai_voice_stop"
+  },
+  "ai_voice_file": {
+    "message": "音频文件",
+    "description": "ai_voice_file"
+  },
+  "ai_voice_copy": {
+    "message": "复制",
+    "description": "ai_voice_copy"
+  },
+  "ai_voice_export": {
+    "message": "导出 .txt",
+    "description": "ai_voice_export"
+  },
+  "ai_voice_permission": {
+    "message": "麦克风权限被拒绝，请在 Chrome 站点设置中允许。",
+    "description": "ai_voice_permission"
+  },
+  "ai_voice_too_large": {
+    "message": "音频文件需不超过 10MB。",
+    "description": "ai_voice_too_large"
+  },
+  "ai_voice_too_long": {
+    "message": "不支持的音频格式，请使用 mp3 / wav / m4a / ogg。",
+    "description": "ai_voice_too_long"
+  },
+  "ai_voice_decode_error": {
+    "message": "无法解码该音频。",
+    "description": "ai_voice_decode_error"
+  },
+  "ai_voice_silent": {
+    "message": "未检测到语音。",
+    "description": "ai_voice_silent"
+  },
+  "ai_extract_title": {
+    "message": "智能提取",
+    "description": "ai_extract_title"
+  },
+  "ai_extract_event": {
+    "message": "活动",
+    "description": "ai_extract_event"
+  },
+  "ai_extract_contact": {
+    "message": "联系人",
+    "description": "ai_extract_contact"
+  },
+  "ai_extract_product": {
+    "message": "商品",
+    "description": "ai_extract_product"
+  },
+  "ai_extract_none": {
+    "message": "未识别出可提取的信息。",
+    "description": "ai_extract_none"
+  },
+  "ai_extract_download_ics": {
+    "message": "下载 .ics",
+    "description": "ai_extract_download_ics"
+  },
+  "ai_extract_copy_details": {
+    "message": "复制详情",
+    "description": "ai_extract_copy_details"
+  },
+  "ai_extract_copy_vcard": {
+    "message": "复制 vCard",
+    "description": "ai_extract_copy_vcard"
+  },
+  "ai_extract_copy_table": {
+    "message": "复制表格行",
+    "description": "ai_extract_copy_table"
+  },
+  "ai_extract_local_tz": {
+    "message": "原文无时区，已按本地时区处理。",
+    "description": "ai_extract_local_tz"
+  },
+  "ai_extract_reparse": {
+    "message": "重新解析",
+    "description": "ai_extract_reparse"
+  },
+  "ai_epub_digest": {
+    "message": "章节导读",
+    "description": "ai_epub_digest"
+  },
+  "ai_epub_digest_generate": {
+    "message": "生成导读",
+    "description": "ai_epub_digest_generate"
+  },
+  "ai_epub_digest_embed": {
+    "message": "导出时内嵌导读页",
+    "description": "ai_epub_digest_embed"
+  },
+  "ai_epub_digest_pending": {
+    "message": "待生成",
+    "description": "ai_epub_digest_pending"
+  },
+  "ai_epub_digest_running": {
+    "message": "生成中…",
+    "description": "ai_epub_digest_running"
+  },
+  "ai_epub_digest_done": {
+    "message": "完成",
+    "description": "ai_epub_digest_done"
+  },
+  "ai_epub_digest_retry": {
+    "message": "重试本章",
+    "description": "ai_epub_digest_retry"
+  },
+  "ai_error_model_unavailable": {
+    "message": "本地模型不可用。",
+    "description": "ai_error_model_unavailable"
+  },
+  "ai_error_download_required": {
+    "message": "请先下载本地模型。",
+    "description": "ai_error_download_required"
+  },
+  "ai_error_hardware_unsupported": {
+    "message": "此设备无法运行本地模型。",
+    "description": "ai_error_hardware_unsupported"
+  },
+  "ai_error_quota_exceeded": {
+    "message": "模型上下文已满。",
+    "description": "ai_error_quota_exceeded"
+  },
+  "ai_error_language_unsupported": {
+    "message": "暂不支持该语言。",
+    "description": "ai_error_language_unsupported"
+  },
+  "ai_error_aborted": {
+    "message": "已取消。",
+    "description": "ai_error_aborted"
+  },
+  "ai_error_internal": {
+    "message": "出错了。",
+    "description": "ai_error_internal"
+  },
+  "ai_copy": {
+    "message": "复制",
+    "description": "ai_copy"
+  },
+  "ai_retry": {
+    "message": "重试",
+    "description": "ai_retry"
+  },
+  "ai_close": {
+    "message": "关闭",
+    "description": "ai_close"
+  },
+  "ai_settings": {
+    "message": "设置",
+    "description": "ai_settings"
+  },
+  "ai_badge": {
+    "message": "AI",
+    "description": "ai_badge"
+  },
+  "ai_on_device": {
+    "message": "本地",
+    "description": "ai_on_device"
   }
 }

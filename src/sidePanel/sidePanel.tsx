@@ -1,4 +1,22 @@
 import '../styles/tailwind.css'
+import {
+  AlertCircle,
+  ArrowLeftRight,
+  BookMarked,
+  CheckCircle,
+  Download,
+  FileText,
+  Languages,
+  Loader2,
+  MessageSquare,
+  Mic,
+  Sparkles,
+  Type,
+  Upload,
+} from 'lucide-react'
+import { debounce } from 'radash'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { ModelDownloadToast } from '@/components/ModelDownloadToast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -9,50 +27,51 @@ import { AppSelect } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { isAudioReady, useAiCapabilities } from '@/shared/ai/capabilities'
+import { runAiTask } from '@/shared/ai/client'
+import { digestChapterFromSummarize } from '@/shared/ai/productInvariants'
 import {
-  DEFAULT_TARGET_LANGUAGE,
-  type LanguageCode,
-  SUPPORTED_LANGUAGES,
   canonicalizeLanguageForTranslation,
+  DEFAULT_TARGET_LANGUAGE,
   isSameLanguageForTranslation,
+  type LanguageCode,
   refineGenericChineseLanguage,
+  SUPPORTED_LANGUAGES,
 } from '@/shared/languages'
 import { MSG_EASTER_CONFETTI, MSG_TRANSLATE_TEXT, MSG_WARM_TRANSLATOR } from '@/shared/messages'
 import {
+  AI_SETTINGS_KEY,
+  type AiSettings,
+  DEFAULT_AI_SETTINGS,
+  SIDE_PANEL_INTENT_KEY,
+  type SidePanelIntent,
+} from '@/shared/settings'
+import {
+  normalizeToAsyncStringIterable,
   STREAMING_LENGTH_THRESHOLD,
   type TranslatorInstance,
-  normalizeToAsyncStringIterable,
 } from '@/shared/streaming'
 import {
   estimateTranslatorConcurrency,
   groupSegmentsByText,
   mapWithConcurrency,
 } from '@/shared/translationQueue'
+import { ChatTab } from '@/sidePanel/tabs/ChatTab'
+import { SummaryTab } from '@/sidePanel/tabs/SummaryTab'
+import { VocabTab } from '@/sidePanel/tabs/VocabTab'
+import { VoiceTab } from '@/sidePanel/tabs/VoiceTab'
 import { cn } from '@/utils/cn'
+import { addDigestToEpubBlob, type DigestChapter } from '@/utils/epubDigest'
 import {
   type EpubBook,
-  type TextSegment,
   generateTranslatedEpub,
   parseEpubFile,
+  type TextSegment,
 } from '@/utils/epubParser'
 import { t } from '@/utils/i18n'
 import { getUILocale, isRTLLanguage } from '@/utils/rtl'
 import { useChromeLocalStorage } from '@/utils/useChromeLocalStorage'
 import { useFirstRunStatus } from '@/utils/useFirstRunStatus'
-import {
-  AlertCircle,
-  ArrowLeftRight,
-  CheckCircle,
-  Download,
-  FileText,
-  Languages,
-  Loader2,
-  Type,
-  Upload,
-} from 'lucide-react'
-import { debounce } from 'radash'
-import React from 'react'
-import ReactDOM from 'react-dom/client'
 
 type LanguageOption = LanguageCode | 'auto'
 
@@ -62,10 +81,12 @@ const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
 }))
 
 const SIDE_PANEL_TABS_LIST_CLASS = cn(
-  'mb-4 grid h-auto w-full min-w-0 max-w-full grid-cols-2 gap-1 rounded-lg border',
+  'mb-4 grid h-auto w-full min-w-0 max-w-full grid-cols-3 gap-1 rounded-lg border',
   'border-zinc-200 bg-zinc-100/80 p-1 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80',
   'dark:text-zinc-400',
 )
+
+type SidePanelTab = 'text' | 'file' | 'summary' | 'chat' | 'vocab' | 'voice'
 
 const SIDE_PANEL_TAB_TRIGGER_CLASS = cn(
   'flex h-9 min-w-0 w-full max-w-full items-center justify-center gap-1.5 overflow-hidden',
@@ -134,9 +155,9 @@ interface LanguageDetectorInstance {
 }
 
 interface LanguageDetectorStatic {
-  create: (opts?: { monitor?: (m: unknown) => void }) =>
-    | Promise<LanguageDetectorInstance>
-    | LanguageDetectorInstance
+  create: (opts?: {
+    monitor?: (m: unknown) => void
+  }) => Promise<LanguageDetectorInstance> | LanguageDetectorInstance
 }
 
 async function resolveLocalTranslatorAdapter(): Promise<
@@ -375,7 +396,14 @@ function playConfetti(durationMs = 3000, particleCount = 320): Promise<void> {
 
 const SidePanel: React.FC = () => {
   // Tab state
-  const [activeTab, setActiveTab] = React.useState<'text' | 'file'>('text')
+  const [activeTab, setActiveTab] = React.useState<SidePanelTab>('text')
+  const [autoSummary, setAutoSummary] = React.useState(false)
+  const [digestChapters, setDigestChapters] = React.useState<DigestChapter[]>([])
+  const [digestBusy, setDigestBusy] = React.useState(false)
+  const [embedDigest, setEmbedDigest] = React.useState(false)
+  const { capabilities } = useAiCapabilities()
+  const [aiSettings] = useChromeLocalStorage<AiSettings>(AI_SETTINGS_KEY, DEFAULT_AI_SETTINGS)
+  const showVoice = isAudioReady(capabilities) && aiSettings.features.voice
 
   // Text translation state
   const [sourceLanguage, setSourceLanguage] = React.useState<LanguageOption>('auto')
@@ -639,18 +667,34 @@ const SidePanel: React.FC = () => {
 
   const downloadTranslatedFile = React.useCallback(() => {
     if (!fileState.translatedContent || !fileState.book) return
-
-    const url = URL.createObjectURL(fileState.translatedContent)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${fileState.book.metadata.title}_translated.epub`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-    // 手动下载后，若仍有待处理文件，则继续下一个
-    startNextFile()
-  }, [fileState.translatedContent, fileState.book, startNextFile])
+    void (async () => {
+      let blob = fileState.translatedContent
+      if (embedDigest && digestChapters.length > 0 && blob) {
+        blob = await addDigestToEpubBlob(blob, {
+          title: fileState.book?.metadata.title ?? 'Digest',
+          language: targetLanguage,
+          chapters: digestChapters,
+        })
+      }
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${fileState.book?.metadata.title}_translated.epub`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      startNextFile()
+    })()
+  }, [
+    digestChapters,
+    embedDigest,
+    fileState.translatedContent,
+    fileState.book,
+    startNextFile,
+    targetLanguage,
+  ])
 
   // (mapper moved to top-level)
 
@@ -713,6 +757,38 @@ const SidePanel: React.FC = () => {
     },
     [ensureContentScript, getActiveTabId, setFirstRunStatus, sourceLanguage],
   )
+
+  const applySidePanelIntent = React.useCallback((intent: SidePanelIntent | undefined) => {
+    if (!intent) return
+    if (intent.kind === 'summary') {
+      setActiveTab('summary')
+      setAutoSummary(true)
+    } else if (intent.kind === 'chat') setActiveTab('chat')
+    else if (intent.kind === 'vocab') setActiveTab('vocab')
+    else if (intent.kind === 'voice') setActiveTab('voice')
+    else if (intent.kind === 'file') setActiveTab('file')
+  }, [])
+
+  React.useEffect(() => {
+    void (async () => {
+      try {
+        const stored = await chrome.storage.local.get(SIDE_PANEL_INTENT_KEY)
+        const intent = stored[SIDE_PANEL_INTENT_KEY] as SidePanelIntent | undefined
+        applySidePanelIntent(intent)
+        if (intent) await chrome.storage.local.remove(SIDE_PANEL_INTENT_KEY)
+      } catch {
+        // ignore
+      }
+    })()
+    const onChanged = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area !== 'local' || !changes[SIDE_PANEL_INTENT_KEY]?.newValue) return
+      const intent = changes[SIDE_PANEL_INTENT_KEY].newValue as SidePanelIntent
+      applySidePanelIntent(intent)
+      void chrome.storage.local.remove(SIDE_PANEL_INTENT_KEY)
+    }
+    chrome.storage.onChanged.addListener(onChanged)
+    return () => chrome.storage.onChanged.removeListener(onChanged)
+  }, [applySidePanelIntent])
 
   React.useEffect(() => {
     void warmTranslatorForActiveTab(targetLanguage)
@@ -1119,7 +1195,7 @@ const SidePanel: React.FC = () => {
     <div className="box-border flex h-screen min-w-0 flex-col overflow-hidden p-5 font-sans selection:bg-blue-100 dark:selection:bg-blue-900 bg-gray-50/50 dark:bg-[#1c1c1e]">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as 'text' | 'file')}
+        onValueChange={(value) => setActiveTab(value as SidePanelTab)}
         className="flex min-h-0 min-w-0 flex-1 flex-col"
       >
         <TabsList className={SIDE_PANEL_TABS_LIST_CLASS}>
@@ -1133,6 +1209,32 @@ const SidePanel: React.FC = () => {
             icon={<FileText className="size-3.5" />}
             label={t('file_translation_tab')}
           />
+          {aiSettings.features.summary ? (
+            <SidePanelTabTrigger
+              value="summary"
+              icon={<Sparkles className="size-3.5" />}
+              label={t('ai_summary_title')}
+            />
+          ) : null}
+          {aiSettings.features.chat ? (
+            <SidePanelTabTrigger
+              value="chat"
+              icon={<MessageSquare className="size-3.5" />}
+              label={t('ai_chat_title')}
+            />
+          ) : null}
+          <SidePanelTabTrigger
+            value="vocab"
+            icon={<BookMarked className="size-3.5" />}
+            label={t('ai_vocab_title')}
+          />
+          {showVoice ? (
+            <SidePanelTabTrigger
+              value="voice"
+              icon={<Mic className="size-3.5" />}
+              label={t('ai_voice_title')}
+            />
+          ) : null}
         </TabsList>
 
         <TabsContent
@@ -1258,9 +1360,9 @@ const SidePanel: React.FC = () => {
 
             {/* File Upload Area */}
             {(!fileState.file || fileState.status === 'completed') && (
-              // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
-              <div
-                className="group relative h-56 rounded-3xl border-2 border-dashed border-gray-200 dark:border-neutral-800 flex flex-col items-center justify-center gap-4 transition-all hover:bg-white dark:hover:bg-neutral-800/50 hover:border-blue-400/50 dark:hover:border-blue-500/50 cursor-pointer overflow-hidden"
+              <button
+                type="button"
+                className="group relative flex h-56 w-full cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 border-dashed border-gray-200 transition-all hover:border-blue-400/50 hover:bg-white dark:border-neutral-800 dark:hover:border-blue-500/50 dark:hover:bg-neutral-800/50"
                 onDrop={handleFileDrop}
                 onDragOver={handleDragOver}
                 onClick={triggerFileSelect}
@@ -1276,7 +1378,7 @@ const SidePanel: React.FC = () => {
                     {t('file_supported_formats')}
                   </p>
                 </div>
-              </div>
+              </button>
             )}
 
             {/* File Info Card */}
@@ -1371,19 +1473,122 @@ const SidePanel: React.FC = () => {
                       onCheckedChange={(checked) => setAutoDownload(checked)}
                     />
                   </div>
+                  {capabilities.gate === 'ready' && aiSettings.features.epubDigest ? (
+                    <div className="space-y-2 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold">{t('ai_epub_digest')}</span>
+                        <label
+                          htmlFor="nt-embed-digest"
+                          className="inline-flex items-center gap-1 text-[11px]"
+                        >
+                          <Switch
+                            id="nt-embed-digest"
+                            checked={embedDigest}
+                            onCheckedChange={setEmbedDigest}
+                          />
+                          {t('ai_epub_digest_embed')}
+                        </label>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ai"
+                        disabled={digestBusy || !fileState.book}
+                        onClick={() => {
+                          if (!fileState.book) return
+                          setDigestBusy(true)
+                          void (async () => {
+                            const book = fileState.book
+                            if (!book) {
+                              setDigestBusy(false)
+                              return
+                            }
+                            const next: DigestChapter[] = []
+                            for (const chapter of book.chapters) {
+                              try {
+                                const result = (await runAiTask({
+                                  kind: 'summarize',
+                                  text: chapter.content.slice(0, 12_000),
+                                  format: 'key-points',
+                                  length: 'short',
+                                  targetLanguage,
+                                })) as { text?: string; sourceText?: string }
+                                next.push(
+                                  digestChapterFromSummarize(result, {
+                                    id: chapter.id,
+                                    title: chapter.title,
+                                  }),
+                                )
+                                setDigestChapters([...next])
+                              } catch {
+                                next.push(
+                                  digestChapterFromSummarize(
+                                    {},
+                                    { id: chapter.id, title: chapter.title },
+                                  ),
+                                )
+                              }
+                            }
+                            setDigestChapters(next)
+                            setDigestBusy(false)
+                          })()
+                        }}
+                      >
+                        {digestBusy ? t('ai_epub_digest_running') : t('ai_epub_digest_generate')}
+                      </Button>
+                      {digestChapters.map((chapter) => (
+                        <details key={chapter.id} className="text-xs">
+                          <summary className="cursor-pointer font-medium">{chapter.title}</summary>
+                          <ul className="mt-1 list-disc pl-4">
+                            {chapter.points.map((point, index) => (
+                              <li key={point}>
+                                {point}
+                                {chapter.pointsOriginal?.[index] ? (
+                                  <p className="text-zinc-500">{chapter.pointsOriginal[index]}</p>
+                                ) : null}
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
           </div>
         </TabsContent>
-      </Tabs>
 
-      {/* Footer Info */}
-      <div className="mt-4 pt-4 border-t border-gray-100/50 dark:border-neutral-800/50 flex items-center justify-center opacity-30">
-        <span className="text-[9px] font-black tracking-[0.2em] text-gray-400 uppercase">
-          Native Translate Premium
-        </span>
-      </div>
+        <TabsContent
+          value="summary"
+          className="m-0 flex min-h-0 flex-1 flex-col focus-visible:outline-none"
+        >
+          <SummaryTab
+            targetLanguage={targetLanguage}
+            autoStart={autoSummary}
+            onAskPage={() => setActiveTab('chat')}
+          />
+        </TabsContent>
+        <TabsContent
+          value="chat"
+          className="m-0 flex min-h-0 flex-1 flex-col focus-visible:outline-none"
+        >
+          <ChatTab targetLanguage={targetLanguage} />
+        </TabsContent>
+        <TabsContent
+          value="vocab"
+          className="m-0 flex min-h-0 flex-1 flex-col focus-visible:outline-none"
+        >
+          <VocabTab />
+        </TabsContent>
+        {showVoice ? (
+          <TabsContent
+            value="voice"
+            className="m-0 flex min-h-0 flex-1 flex-col focus-visible:outline-none"
+          >
+            <VoiceTab targetLanguage={targetLanguage} />
+          </TabsContent>
+        ) : null}
+      </Tabs>
 
       <input
         ref={fileInputRef}

@@ -1,5 +1,42 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-ai-from: oklch(0.606 0.25 292.7);
+  --color-ai-to: oklch(0.667 0.295 322.1);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.14), 0 2px 8px rgb(0 0 0 / 0.08);
+  --radius-overlay: 14px;
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-fade-up: fade-up 0.18s var(--ease-out-quart);
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-fade-up: none;
+    --animate-shimmer: none;
+  }
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

@@ -338,5 +338,541 @@
   "welcome_next_file": {
     "message": "Open the file tab in the side panel to translate EPUB books locally.",
     "description": "Welcome next step: file translation"
+  },
+  "cmd_summarize": {
+    "message": "Summarize this page",
+    "description": "cmd_summarize"
+  },
+  "cmd_screenshot": {
+    "message": "Translate a screenshot",
+    "description": "cmd_screenshot"
+  },
+  "cmd_learning": {
+    "message": "Toggle learning mode",
+    "description": "cmd_learning"
+  },
+  "ai_summary_title": {
+    "message": "Summary",
+    "description": "ai_summary_title"
+  },
+  "ai_summary_page": {
+    "message": "Summarize this page",
+    "description": "ai_summary_page"
+  },
+  "ai_summary_format": {
+    "message": "Format",
+    "description": "ai_summary_format"
+  },
+  "ai_summary_length": {
+    "message": "Length",
+    "description": "ai_summary_length"
+  },
+  "ai_summary_format_key_points": {
+    "message": "Key points",
+    "description": "ai_summary_format_key_points"
+  },
+  "ai_summary_format_tldr": {
+    "message": "TL;DR",
+    "description": "ai_summary_format_tldr"
+  },
+  "ai_summary_format_teaser": {
+    "message": "Teaser",
+    "description": "ai_summary_format_teaser"
+  },
+  "ai_summary_format_headline": {
+    "message": "Headline",
+    "description": "ai_summary_format_headline"
+  },
+  "ai_summary_length_short": {
+    "message": "Short",
+    "description": "ai_summary_length_short"
+  },
+  "ai_summary_length_medium": {
+    "message": "Medium",
+    "description": "ai_summary_length_medium"
+  },
+  "ai_summary_length_long": {
+    "message": "Long",
+    "description": "ai_summary_length_long"
+  },
+  "ai_summary_bilingual": {
+    "message": "Bilingual",
+    "description": "ai_summary_bilingual"
+  },
+  "ai_summary_copy": {
+    "message": "Copy",
+    "description": "ai_summary_copy"
+  },
+  "ai_summary_copy_md": {
+    "message": "Copy as Markdown",
+    "description": "ai_summary_copy_md"
+  },
+  "ai_summary_truncated": {
+    "message": "Summarized from the first part of this page.",
+    "description": "ai_summary_truncated"
+  },
+  "ai_summary_refresh": {
+    "message": "Refresh",
+    "description": "ai_summary_refresh"
+  },
+  "ai_summary_too_short": {
+    "message": "This selection is short — try page translation instead.",
+    "description": "ai_summary_too_short"
+  },
+  "ai_summary_empty": {
+    "message": "No page text to summarize yet.",
+    "description": "ai_summary_empty"
+  },
+  "ai_summary_ask_more": {
+    "message": "Ask about this page",
+    "description": "ai_summary_ask_more"
+  },
+  "ai_chat_title": {
+    "message": "Chat",
+    "description": "ai_chat_title"
+  },
+  "ai_chat_reload": {
+    "message": "Reload",
+    "description": "ai_chat_reload"
+  },
+  "ai_chat_page_changed": {
+    "message": "The page changed.",
+    "description": "ai_chat_page_changed"
+  },
+  "ai_chat_reload_context": {
+    "message": "Reload context",
+    "description": "ai_chat_reload_context"
+  },
+  "ai_chat_empty": {
+    "message": "This page has no readable content.",
+    "description": "ai_chat_empty"
+  },
+  "ai_chat_placeholder": {
+    "message": "Ask a question about this page…",
+    "description": "ai_chat_placeholder"
+  },
+  "ai_chat_send": {
+    "message": "Send",
+    "description": "ai_chat_send"
+  },
+  "ai_chat_clear": {
+    "message": "Clear chat",
+    "description": "ai_chat_clear"
+  },
+  "ai_chat_usage": {
+    "message": "Context",
+    "description": "ai_chat_usage"
+  },
+  "ai_chat_compacted": {
+    "message": "Earlier conversation was compacted.",
+    "description": "ai_chat_compacted"
+  },
+  "ai_chat_suggested": {
+    "message": "Suggested questions",
+    "description": "ai_chat_suggested"
+  },
+  "ai_chat_reading": {
+    "message": "Reading",
+    "description": "ai_chat_reading"
+  },
+  "ai_gate_download_cta": {
+    "message": "Enable on-device AI",
+    "description": "ai_gate_download_cta"
+  },
+  "ai_gate_download_desc": {
+    "message": "Download Gemini Nano once. It stays on this device and is shared with Chrome. Your text never leaves the browser.",
+    "description": "ai_gate_download_desc"
+  },
+  "ai_gate_downloading": {
+    "message": "Downloading on-device model…",
+    "description": "ai_gate_downloading"
+  },
+  "ai_gate_unavailable": {
+    "message": "On-device AI is unavailable on this device.",
+    "description": "ai_gate_unavailable"
+  },
+  "ai_gate_unavailable_hint": {
+    "message": "Translation still works. Open chrome://on-device-internals for details.",
+    "description": "ai_gate_unavailable_hint"
+  },
+  "ai_gate_error": {
+    "message": "Could not start the on-device model.",
+    "description": "ai_gate_error"
+  },
+  "ai_gate_checking": {
+    "message": "Checking on-device AI…",
+    "description": "ai_gate_checking"
+  },
+  "ai_gate_ready": {
+    "message": "On-device AI ready",
+    "description": "ai_gate_ready"
+  },
+  "ai_gate_enable": {
+    "message": "Local AI",
+    "description": "ai_gate_enable"
+  },
+  "ai_selection_translate": {
+    "message": "Translate",
+    "description": "ai_selection_translate"
+  },
+  "ai_selection_explain": {
+    "message": "Explain",
+    "description": "ai_selection_explain"
+  },
+  "ai_selection_summary": {
+    "message": "Key points",
+    "description": "ai_selection_summary"
+  },
+  "ai_selection_extract": {
+    "message": "Extract",
+    "description": "ai_selection_extract"
+  },
+  "ai_selection_copy": {
+    "message": "Copy",
+    "description": "ai_selection_copy"
+  },
+  "ai_selection_vocab": {
+    "message": "Add to vocab",
+    "description": "ai_selection_vocab"
+  },
+  "ai_selection_settings": {
+    "message": "Settings",
+    "description": "ai_selection_settings"
+  },
+  "ai_selection_pin": {
+    "message": "Pin",
+    "description": "ai_selection_pin"
+  },
+  "ai_selection_close": {
+    "message": "Close",
+    "description": "ai_selection_close"
+  },
+  "ai_writing_title": {
+    "message": "Writing assistant",
+    "description": "ai_writing_title"
+  },
+  "ai_writing_translate_polish": {
+    "message": "Translate & polish",
+    "description": "ai_writing_translate_polish"
+  },
+  "ai_writing_polish": {
+    "message": "Polish",
+    "description": "ai_writing_polish"
+  },
+  "ai_writing_proofread": {
+    "message": "Proofread",
+    "description": "ai_writing_proofread"
+  },
+  "ai_writing_tone": {
+    "message": "Tone",
+    "description": "ai_writing_tone"
+  },
+  "ai_writing_tone_professional": {
+    "message": "Professional",
+    "description": "ai_writing_tone_professional"
+  },
+  "ai_writing_tone_friendly": {
+    "message": "Friendly",
+    "description": "ai_writing_tone_friendly"
+  },
+  "ai_writing_tone_concise": {
+    "message": "Concise",
+    "description": "ai_writing_tone_concise"
+  },
+  "ai_writing_replace": {
+    "message": "Replace",
+    "description": "ai_writing_replace"
+  },
+  "ai_writing_retry": {
+    "message": "Retry",
+    "description": "ai_writing_retry"
+  },
+  "ai_writing_copy": {
+    "message": "Copy",
+    "description": "ai_writing_copy"
+  },
+  "ai_writing_original": {
+    "message": "Original",
+    "description": "ai_writing_original"
+  },
+  "ai_writing_result": {
+    "message": "Result",
+    "description": "ai_writing_result"
+  },
+  "ai_screenshot_title": {
+    "message": "Screenshot translate",
+    "description": "ai_screenshot_title"
+  },
+  "ai_screenshot_copy_source": {
+    "message": "Copy source",
+    "description": "ai_screenshot_copy_source"
+  },
+  "ai_screenshot_copy_translation": {
+    "message": "Copy translation",
+    "description": "ai_screenshot_copy_translation"
+  },
+  "ai_screenshot_retry": {
+    "message": "Capture again",
+    "description": "ai_screenshot_retry"
+  },
+  "ai_screenshot_empty": {
+    "message": "No text was recognized.",
+    "description": "ai_screenshot_empty"
+  },
+  "ai_screenshot_zoom_hint": {
+    "message": "Zoom in and retry for denser text.",
+    "description": "ai_screenshot_zoom_hint"
+  },
+  "ai_screenshot_size": {
+    "message": "Size",
+    "description": "ai_screenshot_size"
+  },
+  "ai_screenshot_confirm": {
+    "message": "Confirm",
+    "description": "ai_screenshot_confirm"
+  },
+  "ai_screenshot_cancel": {
+    "message": "Cancel",
+    "description": "ai_screenshot_cancel"
+  },
+  "ai_screenshot_image_unreadable": {
+    "message": "This image is not visible. Draw a box instead.",
+    "description": "ai_screenshot_image_unreadable"
+  },
+  "ai_learning_title": {
+    "message": "Learning mode",
+    "description": "ai_learning_title"
+  },
+  "ai_learning_enable": {
+    "message": "Learning mode",
+    "description": "ai_learning_enable"
+  },
+  "ai_learning_disable": {
+    "message": "Turn off learning",
+    "description": "ai_learning_disable"
+  },
+  "ai_learning_level": {
+    "message": "Level",
+    "description": "ai_learning_level"
+  },
+  "ai_learning_vocab": {
+    "message": "Vocab book",
+    "description": "ai_learning_vocab"
+  },
+  "ai_learning_add": {
+    "message": "Add to vocab",
+    "description": "ai_learning_add"
+  },
+  "ai_learning_speak": {
+    "message": "Speak",
+    "description": "ai_learning_speak"
+  },
+  "ai_learning_phonetic": {
+    "message": "Phonetic",
+    "description": "ai_learning_phonetic"
+  },
+  "ai_vocab_title": {
+    "message": "Vocab",
+    "description": "ai_vocab_title"
+  },
+  "ai_vocab_search": {
+    "message": "Search vocab…",
+    "description": "ai_vocab_search"
+  },
+  "ai_vocab_empty": {
+    "message": "No saved words yet.",
+    "description": "ai_vocab_empty"
+  },
+  "ai_vocab_export_csv": {
+    "message": "Export CSV",
+    "description": "ai_vocab_export_csv"
+  },
+  "ai_vocab_export_anki": {
+    "message": "Export Anki TSV",
+    "description": "ai_vocab_export_anki"
+  },
+  "ai_vocab_clear": {
+    "message": "Clear",
+    "description": "ai_vocab_clear"
+  },
+  "ai_vocab_limit": {
+    "message": "Vocab book is full. Oldest unused words were removed.",
+    "description": "ai_vocab_limit"
+  },
+  "ai_vocab_group": {
+    "message": "Other",
+    "description": "ai_vocab_group"
+  },
+  "ai_voice_title": {
+    "message": "Voice",
+    "description": "ai_voice_title"
+  },
+  "ai_voice_experimental": {
+    "message": "Experimental",
+    "description": "ai_voice_experimental"
+  },
+  "ai_voice_record": {
+    "message": "Record",
+    "description": "ai_voice_record"
+  },
+  "ai_voice_stop": {
+    "message": "Stop",
+    "description": "ai_voice_stop"
+  },
+  "ai_voice_file": {
+    "message": "Audio file",
+    "description": "ai_voice_file"
+  },
+  "ai_voice_copy": {
+    "message": "Copy",
+    "description": "ai_voice_copy"
+  },
+  "ai_voice_export": {
+    "message": "Export .txt",
+    "description": "ai_voice_export"
+  },
+  "ai_voice_permission": {
+    "message": "Microphone permission was denied. Allow it in Chrome site settings.",
+    "description": "ai_voice_permission"
+  },
+  "ai_voice_too_large": {
+    "message": "Audio file must be 10MB or smaller.",
+    "description": "ai_voice_too_large"
+  },
+  "ai_voice_too_long": {
+    "message": "Unsupported audio type. Use mp3, wav, m4a, or ogg.",
+    "description": "ai_voice_too_long"
+  },
+  "ai_voice_decode_error": {
+    "message": "Could not decode this audio file.",
+    "description": "ai_voice_decode_error"
+  },
+  "ai_voice_silent": {
+    "message": "No speech was detected.",
+    "description": "ai_voice_silent"
+  },
+  "ai_extract_title": {
+    "message": "Smart extract",
+    "description": "ai_extract_title"
+  },
+  "ai_extract_event": {
+    "message": "Event",
+    "description": "ai_extract_event"
+  },
+  "ai_extract_contact": {
+    "message": "Contact",
+    "description": "ai_extract_contact"
+  },
+  "ai_extract_product": {
+    "message": "Product",
+    "description": "ai_extract_product"
+  },
+  "ai_extract_none": {
+    "message": "Nothing extractable in this selection.",
+    "description": "ai_extract_none"
+  },
+  "ai_extract_download_ics": {
+    "message": "Download .ics",
+    "description": "ai_extract_download_ics"
+  },
+  "ai_extract_copy_details": {
+    "message": "Copy details",
+    "description": "ai_extract_copy_details"
+  },
+  "ai_extract_copy_vcard": {
+    "message": "Copy vCard",
+    "description": "ai_extract_copy_vcard"
+  },
+  "ai_extract_copy_table": {
+    "message": "Copy table row",
+    "description": "ai_extract_copy_table"
+  },
+  "ai_extract_local_tz": {
+    "message": "No timezone in the source; times use your local zone.",
+    "description": "ai_extract_local_tz"
+  },
+  "ai_extract_reparse": {
+    "message": "Re-parse",
+    "description": "ai_extract_reparse"
+  },
+  "ai_epub_digest": {
+    "message": "Chapter digest",
+    "description": "ai_epub_digest"
+  },
+  "ai_epub_digest_generate": {
+    "message": "Generate digest",
+    "description": "ai_epub_digest_generate"
+  },
+  "ai_epub_digest_embed": {
+    "message": "Embed digest page on export",
+    "description": "ai_epub_digest_embed"
+  },
+  "ai_epub_digest_pending": {
+    "message": "Pending",
+    "description": "ai_epub_digest_pending"
+  },
+  "ai_epub_digest_running": {
+    "message": "Generating…",
+    "description": "ai_epub_digest_running"
+  },
+  "ai_epub_digest_done": {
+    "message": "Done",
+    "description": "ai_epub_digest_done"
+  },
+  "ai_epub_digest_retry": {
+    "message": "Retry chapter",
+    "description": "ai_epub_digest_retry"
+  },
+  "ai_error_model_unavailable": {
+    "message": "On-device model is unavailable.",
+    "description": "ai_error_model_unavailable"
+  },
+  "ai_error_download_required": {
+    "message": "Download the on-device model first.",
+    "description": "ai_error_download_required"
+  },
+  "ai_error_hardware_unsupported": {
+    "message": "This device cannot run the on-device model.",
+    "description": "ai_error_hardware_unsupported"
+  },
+  "ai_error_quota_exceeded": {
+    "message": "The model context is full.",
+    "description": "ai_error_quota_exceeded"
+  },
+  "ai_error_language_unsupported": {
+    "message": "This language is not supported yet.",
+    "description": "ai_error_language_unsupported"
+  },
+  "ai_error_aborted": {
+    "message": "Cancelled.",
+    "description": "ai_error_aborted"
+  },
+  "ai_error_internal": {
+    "message": "Something went wrong.",
+    "description": "ai_error_internal"
+  },
+  "ai_copy": {
+    "message": "Copy",
+    "description": "ai_copy"
+  },
+  "ai_retry": {
+    "message": "Retry",
+    "description": "ai_retry"
+  },
+  "ai_close": {
+    "message": "Close",
+    "description": "ai_close"
+  },
+  "ai_settings": {
+    "message": "Settings",
+    "description": "ai_settings"
+  },
+  "ai_badge": {
+    "message": "AI",
+    "description": "ai_badge"
+  },
+  "ai_on_device": {
+    "message": "On-device",
+    "description": "ai_on_device"
   }
 }

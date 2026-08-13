@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build & Development
 - `pnpm dev` - Start development build with file watching AND auto-reload server (listens on port 5173/5174)
-- `pnpm build` - Production build (creates dist/ and Native-translate.zip)
+- `pnpm build` - Production build (creates dist/ and Native-translate.zip). After any code change, run this before considering the work done.
 - `pnpm tsc` - TypeScript type checking
 - `pnpm lint` - Run Biome linter
 - `pnpm lint:fix` - Run Biome linter with auto-fix

@@ -1,6 +1,6 @@
-import { type TextSegment, generateTranslatedEpub, parseEpubFile } from '@/utils/epubParser'
 import JSZip from 'jszip'
 import { describe, expect, it } from 'vitest'
+import { generateTranslatedEpub, parseEpubFile, type TextSegment } from '@/utils/epubParser'
 
 const CONTAINER_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">

@@ -1,9 +1,9 @@
+import { describe, expect, it } from 'vitest'
 import {
   estimateTranslatorConcurrency,
   groupSegmentsByText,
   mapWithConcurrency,
 } from '@/shared/translationQueue'
-import { describe, expect, it } from 'vitest'
 
 describe('translationQueue helpers', () => {
   it('groups duplicate segment text while preserving source indices', () => {

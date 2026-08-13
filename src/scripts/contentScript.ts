@@ -1,5 +1,25 @@
+import { writeToContentEditable, writeToTextControl } from '@/content/editableWriter'
+import { showExtractCard } from '@/content/extractCard'
+import { registerInPageTranslator } from '@/content/inPageTranslate'
+import { initLearningMode, isLearningModeEnabled, setLearningMode } from '@/content/learningMode'
+import { initRegionSelector, startRegionSelect } from '@/content/regionSelector'
+import { initSelectionAssistant } from '@/content/selectionAssistant'
+import { initWritingAssistant } from '@/content/writingAssistant'
+import {
+  frameHasMatchingImage,
+  isTopContentFrame,
+  learningMutexOnPageTranslate,
+  shouldHandleContentBroadcast,
+  shouldInitPageAssistants,
+} from '@/shared/ai/productInvariants'
+import { resolveExtractSelectionText, resolveLearningModeEnabled } from '@/shared/commands'
+import { extractFromTextBlocks } from '@/shared/extract'
 import { DEFAULT_INPUT_TARGET_LANGUAGE, DEFAULT_TARGET_LANGUAGE } from '@/shared/languages'
 import {
+  MSG_CLEAR_PAGE_TRANSLATION,
+  MSG_GET_PAGE_CONTENT,
+  MSG_START_REGION_SELECT,
+  MSG_TOGGLE_LEARNING_MODE,
   MSG_TRANSLATE_PAGE,
   MSG_TRANSLATE_TEXT,
   MSG_UPDATE_HOTKEY,
@@ -7,9 +27,9 @@ import {
 } from '@/shared/messages'
 import { FIRST_RUN_STATUS_KEY, type FirstRunStatus, POPUP_SETTINGS_KEY } from '@/shared/settings'
 import {
+  normalizeToAsyncStringIterable,
   STREAMING_LENGTH_THRESHOLD,
   type TranslatorInstance,
-  normalizeToAsyncStringIterable,
 } from '@/shared/streaming'
 import { isRTLLanguage } from '@/utils/rtl'
 
@@ -86,6 +106,30 @@ const DESIGN_SYSTEM_STYLES = `
 }
 
 
+
+.native-translate-translation {
+  display: block !important;
+  margin: 0.28em 0 0;
+  max-width: 100%;
+  font-size: 0.92em;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.native-translate-translation img,
+.native-translate-translation svg,
+.native-translate-translation picture,
+.native-translate-translation video,
+.native-translate-translation canvas,
+.native-translate-translation iframe {
+  display: none !important;
+}
 
 .native-translate-inline-hint {
   position: fixed;
@@ -1755,9 +1799,25 @@ const OPAQUE_INLINE_TAGS = new Set([
   'samp',
   'sub',
   'sup',
-  'svg',
   'var',
 ])
+const TRANSLATION_LAYER_MEDIA_TAGS = new Set([
+  'img',
+  'picture',
+  'source',
+  'svg',
+  'video',
+  'audio',
+  'canvas',
+  'iframe',
+  'object',
+  'embed',
+  'map',
+])
+
+function shouldOmitFromTranslationLayer(element: Element): boolean {
+  return TRANSLATION_LAYER_MEDIA_TAGS.has(element.tagName.toLowerCase())
+}
 const STANDALONE_INLINE_TEXT_TAGS = new Set([
   'a',
   'b',
@@ -2166,10 +2226,11 @@ function isSvgForeignObjectTraversalContainer(element: Element): boolean {
 }
 
 function hasStrongBlockDescendants(element: Element): boolean {
-  return (
-    element.querySelector(STRONG_BLOCK_SELECTOR) !== null ||
-    element.querySelector(ARIA_CONTENT_BLOCK_SELECTOR) !== null
-  )
+  if (element.querySelector(STRONG_BLOCK_SELECTOR) !== null) return true
+  for (const candidate of Array.from(element.querySelectorAll('[role]'))) {
+    if (hasRoleToken(getRoleTokens(candidate), ARIA_CONTENT_BLOCK_ROLES)) return true
+  }
+  return false
 }
 
 function hasAnyBlockDescendants(element: Element): boolean {
@@ -2360,14 +2421,9 @@ function getMarkedWithNodes(element: Element): { text: string; nodeMap: Map<stri
 
       if (tag === 'br') return '\n'
 
-      if (!isRoot && isTranslationOptOutElement(el)) {
-        const marker = `[[NT${counter++}]]`
-        nodeMap.set(marker, el.cloneNode(true))
-        return marker
-      }
+      if (shouldOmitFromTranslationLayer(el)) return ''
 
-      // 在 X 上，Mention 是 <a>，Emoji 是 <img>
-      if (tag === 'img') {
+      if (!isRoot && isTranslationOptOutElement(el)) {
         const marker = `[[NT${counter++}]]`
         nodeMap.set(marker, el.cloneNode(true))
         return marker
@@ -2795,15 +2851,18 @@ function createTranslationSpan(
   span.classList.add(TRANSLATED_CLASS)
   span.setAttribute(TRANSLATED_ATTR, '1')
   span.setAttribute('lang', getDomLanguageTag(targetLanguage))
-  // 使用块级表现，确保作为同级兄弟显示在原文下方
   if (span instanceof HTMLElement) {
-    const originalTag = original.tagName.toLowerCase()
-    const isInlineNavText = originalTag === 'span'
-    if (!isInlineNavText) {
-      span.style.display = 'block'
-      span.style.marginTop = '4px'
-      span.style.whiteSpace = 'pre-wrap'
-    }
+    span.style.display = 'block'
+    span.style.marginTop = '0.28em'
+    span.style.maxWidth = '100%'
+    span.style.fontSize = '0.92em'
+    span.style.fontWeight = '400'
+    span.style.lineHeight = '1.5'
+    span.style.whiteSpace = 'pre-wrap'
+    span.style.overflowWrap = 'anywhere'
+    span.style.wordBreak = 'break-word'
+    span.style.opacity = '0.78'
+    span.style.pointerEvents = 'none'
     const rtl = isRTLLanguage(targetLanguage)
     span.dir = rtl ? 'rtl' : 'ltr'
     if (rtl) {
@@ -4804,6 +4863,9 @@ async function translateFullPage(
 }
 
 async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promise<void> {
+  if (learningMutexOnPageTranslate() === 'disable') {
+    void setLearningMode(false)
+  }
   const normalizedTargetLanguage = canonicalizeLanguageForTranslator(targetLanguage)
   stopFullPageTranslationObserver()
   unavailableBridgePairs.clear()
@@ -4867,6 +4929,87 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     }
     return false
   }
+  if (message.type === MSG_GET_PAGE_CONTENT) {
+    if (
+      !shouldHandleContentBroadcast({
+        isTopFrame: isTopContentFrame(window),
+        message: 'page-content',
+      })
+    ) {
+      return false
+    }
+    const blocks = collectTranslatableBlocks(document).map((item) => item.text)
+    const extracted = extractFromTextBlocks({
+      title: document.title,
+      lang: document.documentElement.getAttribute('lang') || '',
+      url: location.href,
+      blocks,
+    })
+    try {
+      ;(_sendResponse as unknown as (response: unknown) => void)(extracted)
+    } catch {
+      // ignore
+    }
+    return true
+  }
+  if (message.type === MSG_START_REGION_SELECT) {
+    const payload = (message.payload ?? {}) as {
+      srcUrl?: string
+      extractSelection?: boolean
+      selectionText?: string
+    }
+    const hasMatchingImage = frameHasMatchingImage(Array.from(document.images), payload.srcUrl)
+    if (
+      !shouldHandleContentBroadcast({
+        isTopFrame: isTopContentFrame(window),
+        message: payload.extractSelection ? 'extract' : 'region-select',
+        hasMatchingImage,
+        hasSrcUrl: Boolean(payload.srcUrl),
+      })
+    ) {
+      return false
+    }
+    if (payload.extractSelection) {
+      const text = resolveExtractSelectionText(payload) || window.getSelection()?.toString() || ''
+      if (text) {
+        void (async () => {
+          const settings = await ensurePopupSettings()
+          void showExtractCard(
+            text,
+            settings.targetLanguage as import('@/shared/languages').LanguageCode,
+          )
+        })()
+      }
+      return false
+    }
+    void startRegionSelect({ srcUrl: payload.srcUrl })
+    return false
+  }
+  if (message.type === MSG_TOGGLE_LEARNING_MODE) {
+    if (
+      !shouldHandleContentBroadcast({
+        isTopFrame: isTopContentFrame(window),
+        message: 'learning',
+      })
+    ) {
+      return false
+    }
+    const enabled = resolveLearningModeEnabled(
+      message.payload as { enabled?: boolean; toggle?: boolean } | undefined,
+      isLearningModeEnabled(),
+    )
+    if (enabled) {
+      clearPreviousTranslationsAndMarks()
+      stopFullPageTranslationObserver()
+    }
+    void setLearningMode(enabled)
+    return false
+  }
+  if (message.type === MSG_CLEAR_PAGE_TRANSLATION) {
+    clearPreviousTranslationsAndMarks()
+    stopFullPageTranslationObserver()
+    return false
+  }
   if (message.type === MSG_WARM_TRANSLATOR) {
     void (async () => {
       try {
@@ -4906,54 +5049,78 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   return false
 })
 
+async function performInPageTextTranslation(
+  text: string,
+  sourceLanguage: LanguageCode | 'auto',
+  targetLanguage: LanguageCode,
+): Promise<
+  { ok: true; result: string; detectedSource: LanguageCode } | { ok: false; error: string }
+> {
+  try {
+    const normalizedTargetLanguage = canonicalizeLanguageForTranslator(targetLanguage)
+    let source: LanguageCode | null = null
+    if (sourceLanguage === 'auto') {
+      source = await detectLanguageForText(text)
+      if (source) {
+        source = refineGenericChineseWithDocumentLanguage(source)
+      }
+      if (!source) source = 'en'
+    } else {
+      source = sourceLanguage
+    }
+    source = canonicalizeLanguageForTranslator(source)
+    unavailableBridgePairs.delete(getPairKey(source, normalizedTargetLanguage))
+    if (isSameLanguage(source, normalizedTargetLanguage)) {
+      return { ok: true, result: text, detectedSource: source }
+    }
+    let translator: TranslatorInstance | null
+    try {
+      translator = await getOrCreateTranslator(source, normalizedTargetLanguage)
+    } catch (_e) {
+      translator = null
+    }
+    const out = await translateTextPreservingNewlines(
+      translator,
+      text,
+      source,
+      normalizedTargetLanguage,
+    )
+    return { ok: true, result: out, detectedSource: source }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'unknown_error' }
+  }
+}
+
+registerInPageTranslator(async ({ text, sourceLanguage, targetLanguage }) => {
+  const result = await performInPageTextTranslation(
+    text,
+    (sourceLanguage ?? 'auto') as LanguageCode,
+    targetLanguage as LanguageCode,
+  )
+  if (!result.ok) throw new Error(result.error)
+  return result.result
+})
+
 // 侧边栏请求：翻译任意文本 / 语言检测
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message || typeof message.type !== 'string') return false
   if (message.type === MSG_TRANSLATE_TEXT) {
+    if (
+      !shouldHandleContentBroadcast({
+        isTopFrame: isTopContentFrame(window),
+        message: 'translate-text',
+      })
+    ) {
+      return false
+    }
     const { text, sourceLanguage, targetLanguage } = (message.payload ?? {}) as {
       text: string
       sourceLanguage: LanguageCode | 'auto'
       targetLanguage: LanguageCode
     }
-    const normalizedTargetLanguage = canonicalizeLanguageForTranslator(targetLanguage)
-    ;(async () => {
-      try {
-        const respond = sendResponse as unknown as (response: unknown) => void
-        let source: LanguageCode | null = null
-        if (sourceLanguage === 'auto') {
-          source = await detectLanguageForText(text)
-          if (source) {
-            source = refineGenericChineseWithDocumentLanguage(source)
-          }
-          if (!source) source = 'en'
-        } else {
-          source = sourceLanguage
-        }
-        source = canonicalizeLanguageForTranslator(source)
-        unavailableBridgePairs.delete(getPairKey(source, normalizedTargetLanguage))
-        if (isSameLanguage(source, normalizedTargetLanguage)) {
-          respond({ ok: true, result: text, detectedSource: source })
-          return
-        }
-        let translator: TranslatorInstance | null
-        try {
-          translator = await getOrCreateTranslator(source, normalizedTargetLanguage)
-        } catch (_e) {
-          translator = null
-        }
-        // 保留原始段落与换行：按行翻译后再拼接
-        const out = await translateTextPreservingNewlines(
-          translator,
-          text,
-          source,
-          normalizedTargetLanguage,
-        )
-        respond({ ok: true, result: out, detectedSource: source })
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'unknown_error'
-        const respond = sendResponse as unknown as (response: unknown) => void
-        respond({ ok: false, error: msg })
-      }
+    void (async () => {
+      const respond = sendResponse as unknown as (response: unknown) => void
+      respond(await performInPageTextTranslation(text, sourceLanguage, targetLanguage))
     })()
     return true // 异步响应
   }
@@ -5513,14 +5680,7 @@ async function handleTripleSpaceForInput(
       if (hintActive) hintRemove()
       return
     }
-    el.value = res.translated
-    // 将光标移至末尾
-    try {
-      const end = el.value.length
-      el.selectionStart = end
-      el.selectionEnd = end
-    } catch (_e) {}
-    dispatchInputEvent(el)
+    writeToTextControl(el, res.translated)
     if (hintActive) {
       hintUpdate(tCS('overlay_translation_complete'))
       window.setTimeout(() => hintRemove(), 1000)
@@ -5550,19 +5710,7 @@ async function handleTripleSpaceForContentEditable(host: HTMLElement): Promise<v
       if (hintActive) hintRemove()
       return
     }
-    host.textContent = res.translated
-    // 光标定位到末尾
-    try {
-      const sel = window.getSelection()
-      if (sel) {
-        const range = document.createRange()
-        range.selectNodeContents(host)
-        range.collapse(false)
-        sel.removeAllRanges()
-        sel.addRange(range)
-      }
-    } catch (_e) {}
-    dispatchInputEvent(host)
+    writeToContentEditable(host, res.translated)
     if (hintActive) {
       hintUpdate(tCS('overlay_translation_complete'))
       window.setTimeout(() => hintRemove(), 1000)
@@ -5651,3 +5799,14 @@ function initializeTripleSpaceEditingTranslate(): void {
 }
 
 initializeTripleSpaceEditingTranslate()
+if (
+  shouldInitPageAssistants({
+    protocol: typeof location === 'undefined' ? '' : location.protocol,
+    customElements: typeof customElements === 'undefined' ? null : customElements,
+  })
+) {
+  initSelectionAssistant()
+  initWritingAssistant()
+  initLearningMode()
+  initRegionSelector()
+}

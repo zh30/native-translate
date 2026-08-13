@@ -25,10 +25,9 @@
     /* Modules */
     "module": "ESNext" /* Specify what module code is generated. */,
     // "rootDir": "./",                                  /* Specify the root folder within your source files. */
-    "moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,
-    "baseUrl": "." /* Enable absolute imports from project root */,
+    "moduleResolution": "bundler" /* TypeScript 7 removed node10/baseUrl; bundler matches Rspack/Vitest */,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     } /* Match bundler alias for TS */,
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */

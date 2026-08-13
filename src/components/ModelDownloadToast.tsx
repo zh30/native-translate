@@ -1,8 +1,8 @@
+import { Loader2 } from 'lucide-react'
+import React from 'react'
 import type { FirstRunStatus } from '@/shared/settings'
 import { cn } from '@/utils/cn'
 import { t } from '@/utils/i18n'
-import { Loader2 } from 'lucide-react'
-import React from 'react'
 
 interface ModelDownloadToastProps {
   status: FirstRunStatus
