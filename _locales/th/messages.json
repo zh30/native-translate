@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "On-device",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "ข้าม",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "ข้ามบทเรียน",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "ต่อไป",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "เสร็จสิ้น",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "เรียนอีกครั้ง",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "ลองแปล",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "ชี้เมาส์",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "พิมพ์",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "ทั้งหน้า",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "ชี้เมาส์เพื่อแปลย่อหน้า",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "กดค้าง $1 แล้วเลื่อนไปที่ย่อหน้า คำแปลจะปรากฏใต้ต้นฉบับ",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "แตะย่อหน้าเพื่อดูการแปลแบบชี้เมาส์ บนคอมพิวเตอร์ให้กดค้าง $1 แล้วชี้",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "กดค้าง $1",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "นี่คือการแปลแบบชี้เมาส์ บรรทัดคำแปลอยู่บนหน้าเดิม",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "กด Space สามครั้งเพื่อแปล",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "พิมพ์ในช่องใดก็ได้ แล้วกด Space สามครั้ง Native Translate จะแทนที่ด้วยคำแปลในเครื่อง",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "พิมพ์ที่นี่ แล้วกด Space สามครั้ง",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "นี่คือการแปลในช่องพิมพ์ ใช้ได้ทั้งฟอร์มและแชท",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "Space × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "แปลทั้งหน้า",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "บนเว็บจริง ให้คลิกไอคอนส่วนขยาย แล้วเลือกแปลหน้าปัจจุบัน ลองในหน้าฝึกนี้ก่อน",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "หน้าฝึกใช้",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "นี่คือการแปลทั้งหน้า ต้นฉบับกับคำแปลอยู่ด้วยกัน",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "ปิด",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "พร้อมแปลบนเว็บแล้ว",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "สามวิธีนี้ใช้ได้กับหน้าเว็บทั่วไป",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "กด Space สามครั้งในช่องพิมพ์ เพื่อแปลข้อความที่เพิ่งเขียน",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "บทที่ $1 จาก $2",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }

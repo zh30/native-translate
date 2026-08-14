@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "On-device",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "تخطي",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "تخطي الدليل",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "متابعة",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "إنهاء",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "إعادة الدليل",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "جرّب",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "تمرير",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "كتابة",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "صفحة",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "مرّر لترجمة فقرة",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "استمر بالضغط على $1 وحرّك المؤشر إلى فقرة. تظهر الترجمة تحت النص الأصلي.",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "المس فقرة لمعاينة الترجمة عند التمرير. على الكمبيوتر تضغط $1 وتمرّر.",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "استمر بالضغط على $1",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "هذه ترجمة التمرير. يبقى السطر في الصفحة.",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "اضغط المسافة ثلاث مرات للترجمة",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "اكتب في أي حقل ثم اضغط المسافة ثلاث مرات. يستبدل Native Translate النص بالترجمة المحلية.",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "اكتب هنا ثم اضغط المسافة ثلاث مرات",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "هذه ترجمة حقول الإدخال. تعمل في النماذج والمحادثات.",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "مسافة × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "ترجم الصفحة كاملة",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "في موقع حقيقي انقر أيقونة الإضافة ثم ترجم الصفحة الحالية. جرّب ذلك أولاً في صفحة التمرين.",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "صفحة تمرين",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "هذه ترجمة الصفحة كاملة. يبقى الأصل والترجمة معاً.",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "إغلاق",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "أصبحت جاهزاً للترجمة على الويب",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "الإجراءات الثلاثة نفسها تعمل في أي صفحة عادية.",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "اضغط المسافة ثلاث مرات في حقل لإدخال ما كتبته للتو.",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "الدرس $1 من $2",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }

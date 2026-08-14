@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "On-device",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "Lewati",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "Lewati tutorial",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "Lanjut",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "Selesai",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "Ulangi tutorial",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "Coba",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "Arahkan",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "Ketik",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "Halaman",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "Arahkan kursor untuk menerjemahkan paragraf",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "Tahan $1 dan gerakkan kursor ke sebuah paragraf. Terjemahan muncul di bawah teks asli.",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "Ketuk paragraf untuk melihat terjemahan hover. Di komputer, tahan $1 lalu arahkan kursor.",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "Tahan $1",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "Itulah terjemahan hover. Barisnya tetap di halaman.",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "Tekan Spasi tiga kali untuk menerjemahkan",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "Di kolom mana pun, tulis teks lalu tekan Spasi tiga kali. Native Translate menggantinya dengan terjemahan lokal.",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "Ketik di sini, lalu tekan Spasi tiga kali",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "Itulah terjemahan di kolom input. Berlaku di formulir dan obrolan.",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "Spasi × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "Terjemahkan seluruh halaman",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "Di situs sungguhan, klik ikon ekstensi, lalu Terjemahkan halaman saat ini. Coba dulu di halaman latihan ini.",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "Halaman latihan",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "Itulah terjemahan halaman penuh. Asli dan terjemahan tetap bersama.",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "Tutup",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "Siap menerjemahkan di web",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "Tiga tindakan yang sama berlaku di halaman biasa mana pun.",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "Tekan Spasi tiga kali di kolom input untuk menerjemahkan yang baru Anda tulis.",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "Pelajaran $1 dari $2",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }

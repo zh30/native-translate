@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "本地",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "跳过",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "跳过教程",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "继续",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "完成",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "再练一遍",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "试译",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "悬停",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "输入",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "整页",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "按住快捷键，原地翻译一段",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "按住 $1，把指针移到一段文字上。译文会出现在原文下方。",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "点按一段文字即可预览悬停翻译。在电脑上则是按住 $1 再悬停。",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "按住 $1",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "这就是悬停翻译，译文留在页面上。",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "连按三下空格，翻译输入框",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "在输入框里写完内容，连按三次空格。扩展会用本地译文替换原文。",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "在这里输入，然后连按三次空格",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "这就是输入框翻译，表单和聊天框里都能用。",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "空格 × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "翻译整页",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "在真实网页上，点击扩展图标，再点「翻译当前网页」。先在这张练习页上试一次。",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "练习页",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "这就是整页翻译，原文和译文叠在一起。",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "关闭",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "可以去真实网页上翻译了",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "这三件事在普通网页上同样有效。",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "在输入框里连按三次空格，即可翻译刚写的内容。",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "第 $1 / $2 课",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }

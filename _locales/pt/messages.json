@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "On-device",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "Ignorar",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "Ignorar tutorial",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "Continuar",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "Concluir",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "Repetir tutorial",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "Experimentar",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "Passar o rato",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "Escrever",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "Página",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "Passe o rato para traduzir um parágrafo",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "Mantenha $1 e mova o rato para um parágrafo. A tradução aparece por baixo do original.",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "Toque num parágrafo para pré-visualizar a tradução ao pairar. Num computador, mantenha $1 e passe o rato.",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "Mantenha $1",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "É assim a tradução ao pairar. A linha fica na página.",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "Prima Espaço três vezes para traduzir",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "Em qualquer campo, escreva o texto e prima Espaço três vezes. O Native Translate substitui-o pela tradução local.",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "Escreva aqui e prima Espaço três vezes",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "É assim a tradução em campos de texto. Funciona em formulários e conversas.",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "Espaço × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "Traduzir uma página inteira",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "Num site real, clique no ícone da extensão e depois em Traduzir página atual. Experimente primeiro nesta página de prática.",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "Página de prática",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "É assim a tradução da página. O original e a tradução ficam juntos.",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "Fechar",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "Já pode traduzir na web",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "As mesmas três ações funcionam em qualquer página normal.",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "Prima Espaço três vezes num campo para traduzir o que acabou de escrever.",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "Lição $1 de $2",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }

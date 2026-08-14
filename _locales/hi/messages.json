@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "On-device",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "छोड़ें",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "ट्यूटोरियल छोड़ें",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "आगे बढ़ें",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "पूरा करें",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "ट्यूटोरियल दोहराएँ",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "आज़माएँ",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "होवर",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "टाइप",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "पेज",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "पैराग्राफ़ अनुवाद के लिए होवर करें",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "$1 दबाए रखें और पैराग्राफ़ पर ले जाएँ। अनुवाद मूल के नीचे दिखेगा।",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "होवर अनुवाद देखने के लिए पैराग्राफ़ टैप करें। कंप्यूटर पर $1 दबाए रखकर होवर करें।",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "$1 दबाए रखें",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "यही होवर अनुवाद है। पंक्ति पेज पर रहती है।",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "अनुवाद के लिए Space तीन बार दबाएँ",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "किसी भी इनपुट में लिखें और Space तीन बार दबाएँ। Native Translate उसे स्थानीय अनुवाद से बदल देता है।",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "यहाँ लिखें, फिर Space तीन बार दबाएँ",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "यही इनपुट अनुवाद है। फ़ॉर्म और चैट में काम करता है।",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "Space × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "पूरा पेज अनुवाद करें",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "असली साइट पर एक्सटेंशन आइकन दबाएँ, फिर वर्तमान पेज अनुवाद करें। पहले इस अभ्यास पेज पर आज़माएँ।",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "अभ्यास पेज",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "यही पूरे पेज का अनुवाद है। मूल और अनुवाद साथ रहते हैं।",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "बंद करें",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "अब आप वेब पर अनुवाद कर सकते हैं",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "ये तीनों काम किसी भी सामान्य पेज पर चलते हैं।",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "इनपुट में Space तीन बार दबाकर अभी लिखा पाठ अनुवाद करें।",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "पाठ $1 / $2",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }

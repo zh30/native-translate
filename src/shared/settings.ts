@@ -7,6 +7,7 @@ export const AI_SETTINGS_KEY = 'nativeTranslate.aiSettings' as const
 export const AI_CAPABILITIES_KEY = 'nativeTranslate.aiCapabilities' as const
 export const VOCAB_BOOK_KEY = 'nativeTranslate.vocabBook' as const
 export const SIDE_PANEL_INTENT_KEY = 'nativeTranslate.sidePanelIntent' as const
+export const WELCOME_TOUR_KEY = 'nativeTranslate.welcomeTour' as const
 
 export type FirstRunModelStatus =
   | 'new'

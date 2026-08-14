@@ -874,5 +874,117 @@
   "ai_on_device": {
     "message": "On-device",
     "description": "ai_on_device"
+  },
+  "welcome_tour_skip": {
+    "message": "Atla",
+    "description": "Skip the current welcome lesson"
+  },
+  "welcome_tour_skip_all": {
+    "message": "Eğitimi atla",
+    "description": "Skip the rest of the welcome tutorial"
+  },
+  "welcome_tour_continue": {
+    "message": "Devam",
+    "description": "Continue to the next welcome lesson"
+  },
+  "welcome_tour_finish": {
+    "message": "Bitir",
+    "description": "Finish the welcome tutorial"
+  },
+  "welcome_tour_replay": {
+    "message": "Eğitimi tekrarla",
+    "description": "Replay the welcome tutorial"
+  },
+  "welcome_tour_step_ready": {
+    "message": "Dene",
+    "description": "Welcome tutorial step: try a sample"
+  },
+  "welcome_tour_step_hover": {
+    "message": "Üzerine gel",
+    "description": "Welcome tutorial step: hover translate"
+  },
+  "welcome_tour_step_type": {
+    "message": "Yaz",
+    "description": "Welcome tutorial step: triple-space"
+  },
+  "welcome_tour_step_page": {
+    "message": "Sayfa",
+    "description": "Welcome tutorial step: page translate"
+  },
+  "welcome_tour_hover_title": {
+    "message": "Bir paragrafı çevirmek için üzerine gelin",
+    "description": "Welcome hover lesson title"
+  },
+  "welcome_tour_hover_desc": {
+    "message": "$1 tuşunu basılı tutup bir paragrafın üzerine gelin. Çeviri orijinalin altında görünür.",
+    "description": "Welcome hover lesson description; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_desc_touch": {
+    "message": "Hover çevirisini görmek için bir paragrafa dokunun. Bilgisayarda $1 basılı tutup üzerine gelirsiniz.",
+    "description": "Welcome hover lesson description on touch devices; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_hint": {
+    "message": "$1 basılı tutun",
+    "description": "Welcome hover hold hint; $1 is the hotkey name"
+  },
+  "welcome_tour_hover_success": {
+    "message": "Bu, hover çevirisidir. Satır sayfada kalır.",
+    "description": "Welcome hover lesson success"
+  },
+  "welcome_tour_type_title": {
+    "message": "Çevirmek için Space tuşuna üç kez basın",
+    "description": "Welcome input lesson title"
+  },
+  "welcome_tour_type_desc": {
+    "message": "Herhangi bir alana yazıp Space tuşuna üç kez basın. Native Translate bunu yerel çeviriyle değiştirir.",
+    "description": "Welcome input lesson description"
+  },
+  "welcome_tour_type_placeholder": {
+    "message": "Buraya yazın, sonra Space tuşuna üç kez basın",
+    "description": "Welcome input lesson placeholder"
+  },
+  "welcome_tour_type_success": {
+    "message": "Bu, giriş alanı çevirisidir. Formlarda ve sohbetlerde çalışır.",
+    "description": "Welcome input lesson success"
+  },
+  "welcome_tour_space_meter": {
+    "message": "Space × 3",
+    "description": "Label for the three-space progress meter"
+  },
+  "welcome_tour_page_title": {
+    "message": "Tüm sayfayı çevir",
+    "description": "Welcome page lesson title"
+  },
+  "welcome_tour_page_desc": {
+    "message": "Gerçek bir sitede uzantı simgesine, ardından Bu sayfayı çevir’e tıklayın. Önce bu alıştırma sayfasında deneyin.",
+    "description": "Welcome page lesson description"
+  },
+  "welcome_tour_page_address": {
+    "message": "Alıştırma sayfası",
+    "description": "Fake address shown in the practice browser"
+  },
+  "welcome_tour_page_success": {
+    "message": "Bu, tam sayfa çevirisidir. Orijinal ve çeviri birlikte kalır.",
+    "description": "Welcome page lesson success"
+  },
+  "welcome_tour_close_popup": {
+    "message": "Kapat",
+    "description": "Close the practice popup"
+  },
+  "welcome_tour_done_title": {
+    "message": "Web’de çevirmeye hazırsınız",
+    "description": "Welcome tutorial finished title"
+  },
+  "welcome_tour_done_desc": {
+    "message": "Aynı üç işlem her normal sayfada çalışır.",
+    "description": "Welcome tutorial finished description"
+  },
+  "welcome_tour_done_type": {
+    "message": "Yazdığınızı çevirmek için bir alana Space tuşuna üç kez basın.",
+    "description": "Welcome recap: triple-space input translate"
+  },
+  "welcome_tour_progress": {
+    "message": "Ders $1 / $2",
+    "description": "Welcome tutorial progress; $1 current, $2 total"
   }
 }
