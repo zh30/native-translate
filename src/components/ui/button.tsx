@@ -8,12 +8,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400',
+        default:
+          'bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200',
         secondary:
-          'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100',
+          'bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200',
         outline:
-          'border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-neutral-800',
-        ghost: 'hover:bg-gray-50 dark:hover:bg-neutral-800',
+          'border border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900',
+        ghost: 'hover:bg-zinc-100 dark:hover:bg-zinc-900',
         ai: 'bg-gradient-to-r from-[var(--color-ai-from)] to-[var(--color-ai-to)] text-white hover:opacity-90',
       },
       size: {

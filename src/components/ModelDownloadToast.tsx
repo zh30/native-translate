@@ -22,7 +22,7 @@ export function ModelDownloadToast({ status, className }: ModelDownloadToastProp
     >
       <div
         className={cn(
-          'mx-auto max-w-md rounded-lg border border-cyan-200 bg-white/95 p-3',
+          'mx-auto max-w-md rounded-2xl border border-cyan-200 bg-white/95 p-3',
           'text-cyan-950 shadow-[0_20px_60px_rgba(8,145,178,0.24)] backdrop-blur',
           'dark:border-cyan-900 dark:bg-zinc-950/95 dark:text-cyan-100',
         )}

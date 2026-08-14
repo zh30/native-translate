@@ -8,19 +8,22 @@ export const OVERLAY_STYLES = `
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --nt-ai-from: oklch(0.606 0.25 292.7);
   --nt-ai-to: oklch(0.667 0.295 322.1);
-  --nt-overlay-bg: rgba(255,255,255,0.88);
-  --nt-overlay-fg: #18181b;
-  --nt-overlay-muted: #71717a;
+  --nt-overlay-bg: #ffffff;
+  --nt-overlay-fg: #09090b;
+  --nt-overlay-muted: #52525b;
   --nt-overlay-line: rgba(24,24,27,0.1);
-  --nt-radius: 14px;
-  --nt-shadow: 0 12px 32px rgb(0 0 0 / 0.14), 0 2px 8px rgb(0 0 0 / 0.08);
+  --nt-overlay-accent: #155e75;
+  --nt-radius: 16px;
+  --nt-shadow: 0 16px 48px rgba(15,23,42,0.08);
   color: var(--nt-overlay-fg);
 }
 :host([data-theme='dark']) {
-  --nt-overlay-bg: rgba(24,24,27,0.85);
+  --nt-overlay-bg: #09090b;
   --nt-overlay-fg: #fafafa;
   --nt-overlay-muted: #a1a1aa;
   --nt-overlay-line: rgba(250,250,250,0.12);
+  --nt-overlay-accent: #a5f3fc;
+  --nt-shadow: 0 16px 48px rgba(0,0,0,0.35);
 }
 * { box-sizing: border-box; }
 .nt-layer { pointer-events: none; }
@@ -60,7 +63,7 @@ export const OVERLAY_STYLES = `
   border-radius: 999px;
   cursor: pointer;
 }
-.nt-btn:hover { background: color-mix(in oklab, var(--nt-ai-from) 12%, transparent); }
+.nt-btn:hover { background: color-mix(in oklab, var(--nt-overlay-accent) 14%, transparent); }
 .nt-btn-ai {
   background: linear-gradient(90deg, var(--nt-ai-from), var(--nt-ai-to));
   color: white;
@@ -73,7 +76,7 @@ export const OVERLAY_STYLES = `
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.nt-stream { font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+.nt-stream { font-size: 13px; line-height: 1.55; white-space: pre-wrap; color: var(--nt-overlay-accent); }
 .nt-caret {
   display: inline-block;
   width: 0.55ch;

@@ -10,13 +10,13 @@ export function Progress({ value = 0, className, ...props }: ProgressProps) {
   return (
     <div
       className={cn(
-        'h-2 w-full bg-gray-200 dark:bg-neutral-800 rounded overflow-hidden',
+        'h-2 w-full overflow-hidden rounded-full bg-cyan-100 dark:bg-cyan-950',
         className,
       )}
       {...props}
     >
       <div
-        className="h-2 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500 rounded transition-all duration-300 ease-out"
+        className="h-2 rounded-full bg-cyan-600 transition-all duration-300 ease-out dark:bg-cyan-300"
         style={{ width: `${pct}%` }}
       />
     </div>

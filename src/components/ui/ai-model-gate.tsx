@@ -55,7 +55,7 @@ export function AiModelGate({
 
   if (capabilities.gate === 'downloading') {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+      <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
         <ProgressRing value={capabilities.progress ?? 0} />
         <div>
           <p className="text-sm font-medium">{t('ai_gate_downloading')}</p>
@@ -67,7 +67,7 @@ export function AiModelGate({
 
   if (capabilities.gate === 'downloadable') {
     return (
-      <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mb-2 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-[var(--color-ai-from)]" />
           <p className="text-sm font-medium">{t('ai_gate_enable')}</p>

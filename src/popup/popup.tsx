@@ -22,7 +22,6 @@ import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { AppSelect } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import { isAiReady, useAiCapabilities } from '@/shared/ai/capabilities'
 import type { CefrLevel } from '@/shared/ai/types'
 import {
@@ -67,6 +66,14 @@ const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
   value: lang.code,
   label: lang.label,
 }))
+
+function extensionIconUrl(): string {
+  try {
+    return chrome.runtime.getURL('public/icon48.png')
+  } catch {
+    return 'public/icon48.png'
+  }
+}
 
 const HOTKEY_OPTIONS: ReadonlyArray<{
   value: NonNullable<PopupSettings['hotkeyModifier']>
@@ -285,21 +292,21 @@ const Popup: React.FC = () => {
     >
       <div
         className={cn(
-          'min-w-0 overflow-hidden rounded-lg border border-zinc-200 bg-white',
-          'shadow-[0_16px_48px_rgba(15,23,42,0.14)] dark:border-zinc-800 dark:bg-zinc-950',
+          'min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white',
+          'shadow-[0_16px_48px_rgba(15,23,42,0.08)] dark:border-zinc-800 dark:bg-zinc-950',
+          'dark:shadow-[0_16px_48px_rgba(0,0,0,0.35)]',
         )}
       >
-        <header className="border-b border-zinc-100 p-4 dark:border-zinc-800">
+        <header className="border-b border-zinc-200 p-4 dark:border-zinc-800">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div
-                className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-                  'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
-                )}
-              >
-                <Globe2 className="h-5 w-5" />
-              </div>
+              <img
+                alt=""
+                className="h-10 w-10 shrink-0 rounded-lg"
+                height={40}
+                src={extensionIconUrl()}
+                width={40}
+              />
               <div className="min-w-0">
                 <h1 className="text-base font-semibold leading-tight">{t('popup_title')}</h1>
                 <p
@@ -458,7 +465,7 @@ const Popup: React.FC = () => {
 
               <section
                 className={cn(
-                  'divide-y divide-zinc-100 rounded-lg border border-zinc-200',
+                  'divide-y divide-zinc-200 rounded-2xl border border-zinc-200',
                   'dark:divide-zinc-800 dark:border-zinc-800',
                 )}
               >
@@ -493,7 +500,7 @@ const Popup: React.FC = () => {
                       'dark:text-zinc-300',
                     )}
                   >
-                    <Wand2 className="h-4 w-4 shrink-0 text-violet-600 dark:text-violet-300" />
+                    <Wand2 className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />
                     <span className="truncate">{t('input_target_language')}</span>
                   </Label>
                   <div className="min-w-0">
@@ -517,7 +524,7 @@ const Popup: React.FC = () => {
                       'dark:text-zinc-300',
                     )}
                   >
-                    <Keyboard className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+                    <Keyboard className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-300" />
                     <span className="truncate">{t('hover_hotkey')}</span>
                   </Label>
                   <div className="min-w-0">

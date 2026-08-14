@@ -78,9 +78,9 @@ const DESIGN_SYSTEM_STYLES = `
   --nt-color-outline: rgba(0, 0, 0, 0.08);
   --nt-color-text: #000000;
   --nt-color-subtle: rgba(0, 0, 0, 0.5);
-  --nt-color-accent: #007AFF;
-  --nt-color-accent-strong: #0056B3;
-  --nt-color-success: #34C759;
+  --nt-color-accent: #0e7490;
+  --nt-color-accent-strong: #155e75;
+  --nt-color-success: #059669;
   --nt-color-warning: #FF9500;
   --nt-color-error: #FF3B30;
   --nt-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);

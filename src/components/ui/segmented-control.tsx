@@ -39,7 +39,7 @@ export function SegmentedControl<T extends string>({
             className={cn(
               'rounded-md px-2 py-1 font-medium transition-colors',
               selected
-                ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-100'
+                ? 'bg-zinc-950 text-white shadow-sm dark:bg-white dark:text-zinc-950'
                 : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400',
             )}
             onClick={() => onChange(option.value)}
