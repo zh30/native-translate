@@ -18,11 +18,8 @@ import { debounce } from 'radash'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { ModelDownloadToast } from '@/components/ModelDownloadToast'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
 import { AppSelect } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -81,10 +78,24 @@ const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((lang) => ({
 }))
 
 const SIDE_PANEL_TABS_LIST_CLASS = cn(
-  'mb-4 grid h-auto w-full min-w-0 max-w-full grid-cols-3 gap-1 rounded-lg border',
-  'border-zinc-200 bg-zinc-100/80 p-1 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80',
-  'dark:text-zinc-400',
+  'mb-3 grid h-auto w-full min-w-0 max-w-full grid-cols-3 gap-1 rounded-xl border',
+  'border-zinc-200 bg-white/80 p-1 text-zinc-500',
+  'dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-400',
 )
+
+const PANEL_CARD_CLASS = cn(
+  'rounded-2xl border border-zinc-200 bg-white',
+  'shadow-[0_16px_48px_rgba(15,23,42,0.08)]',
+  'dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-[0_16px_48px_rgba(0,0,0,0.35)]',
+)
+
+const PRIMARY_BUTTON_CLASS = cn(
+  'bg-zinc-950 text-white hover:bg-zinc-800',
+  'dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200',
+)
+
+const ACCENT_TILE_CLASS =
+  'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300'
 
 type SidePanelTab = 'text' | 'file' | 'summary' | 'chat' | 'vocab' | 'voice'
 
@@ -92,14 +103,22 @@ const SIDE_PANEL_TAB_TRIGGER_CLASS = cn(
   'flex h-9 min-w-0 w-full max-w-full items-center justify-center gap-1.5 overflow-hidden',
   'whitespace-normal rounded-md px-2 text-xs font-medium transition-all',
   'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
-  'data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-zinc-950',
-  'data-[state=active]:shadow-sm dark:data-[state=active]:bg-zinc-800 dark:data-[state=active]:text-zinc-100',
+  'data-[state=active]:bg-zinc-950 data-[state=active]:font-semibold data-[state=active]:text-white',
+  'data-[state=active]:shadow-sm dark:data-[state=active]:bg-white dark:data-[state=active]:text-zinc-950',
 )
 
 interface SidePanelTabTriggerProps {
   value: string
   icon: React.ReactNode
   label: string
+}
+
+function extensionIconUrl(): string {
+  try {
+    return chrome.runtime.getURL('public/icon48.png')
+  } catch {
+    return 'public/icon48.png'
+  }
 }
 
 function SidePanelTabTrigger({ value, icon, label }: SidePanelTabTriggerProps) {
@@ -1192,12 +1211,25 @@ const SidePanel: React.FC = () => {
   }, [fileState.isProcessing, fileState.status, startNextFile])
 
   return (
-    <div className="box-border flex h-screen min-w-0 flex-col overflow-hidden p-5 font-sans selection:bg-blue-100 dark:selection:bg-blue-900 bg-gray-50/50 dark:bg-[#1c1c1e]">
+    <div className="relative box-border flex h-screen min-w-0 flex-col overflow-hidden bg-[#f5f7f8] p-4 font-sans text-zinc-950 dark:bg-[#111315] dark:text-zinc-100">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 start-[-4rem] h-56 w-56 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-500/10" />
+      </div>
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as SidePanelTab)}
-        className="flex min-h-0 min-w-0 flex-1 flex-col"
+        className="relative flex min-h-0 min-w-0 flex-1 flex-col"
       >
+        <header className="mb-3 flex items-center gap-2">
+          <img
+            alt=""
+            className="h-7 w-7 rounded-lg"
+            height={28}
+            src={extensionIconUrl()}
+            width={28}
+          />
+          <p className="min-w-0 truncate text-sm font-semibold">{t('popup_title')}</p>
+        </header>
         <TabsList className={SIDE_PANEL_TABS_LIST_CLASS}>
           <SidePanelTabTrigger
             value="text"
@@ -1241,13 +1273,14 @@ const SidePanel: React.FC = () => {
           value="text"
           className="flex-1 flex flex-col min-h-0 relative m-0 focus-visible:outline-none"
         >
-          <div className="flex-1 flex flex-col gap-5 min-h-0">
-            {/* Input Section */}
-            <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-neutral-800/40 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+          <div className="flex min-h-0 flex-1 flex-col gap-5">
+            <div className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', PANEL_CARD_CLASS)}>
+              <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
                 <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <Languages className="size-4 shrink-0 text-blue-500" />
-                  <span className="truncate text-[11px] font-bold uppercase tracking-tight text-gray-400 dark:text-gray-500">
+                  <span className={ACCENT_TILE_CLASS}>
+                    <Languages className="size-3.5" />
+                  </span>
+                  <span className="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     {t('source_language')}
                   </span>
                 </div>
@@ -1260,28 +1293,38 @@ const SidePanel: React.FC = () => {
                 </div>
               </div>
               <Textarea
-                className="flex-1 w-full p-4 resize-none bg-transparent border-none focus-visible:ring-0 text-[15px] leading-relaxed placeholder:text-gray-300 dark:placeholder:text-neutral-600"
+                className="w-full flex-1 resize-none border-none bg-transparent p-4 text-[15px] leading-relaxed shadow-none placeholder:text-zinc-500 focus-visible:ring-0 dark:placeholder:text-zinc-500"
                 placeholder={t('sidepanel_input_placeholder')}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
               />
             </div>
 
-            {/* Middle Indicator */}
-            <div className="flex items-center justify-center -my-2.5 relative z-10">
-              <div className="bg-white dark:bg-neutral-800 p-1.5 rounded-full shadow-md border border-gray-100 dark:border-neutral-700">
-                <ArrowLeftRight className="size-4 text-gray-400" />
+            <div className="relative z-10 -my-2.5 flex items-center justify-center">
+              <div
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-lg',
+                  'border border-zinc-200 bg-white text-cyan-700',
+                  'dark:border-zinc-800 dark:bg-zinc-950 dark:text-cyan-300',
+                )}
+              >
+                <ArrowLeftRight className="size-3.5" />
               </div>
             </div>
 
-            {/* Output Section */}
             <div
-              className={`flex-1 flex flex-col min-h-0 rounded-2xl border transition-all duration-300 ${isTranslating ? 'border-blue-200 dark:border-blue-900/50 shadow-blue-500/5' : 'border-gray-200/50 dark:border-neutral-700/50'} bg-white dark:bg-neutral-800/40 shadow-sm overflow-hidden`}
+              className={cn(
+                'flex min-h-0 flex-1 flex-col overflow-hidden transition-colors duration-300',
+                PANEL_CARD_CLASS,
+                isTranslating && 'border-cyan-200 dark:border-cyan-900',
+              )}
             >
-              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+              <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
                 <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <ArrowLeftRight className="size-4 shrink-0 text-blue-500" />
-                  <span className="truncate text-[11px] font-bold uppercase tracking-tight text-gray-400 dark:text-gray-500">
+                  <span className={ACCENT_TILE_CLASS}>
+                    <ArrowLeftRight className="size-3.5" />
+                  </span>
+                  <span className="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     {t('target_language')}
                   </span>
                 </div>
@@ -1293,28 +1336,33 @@ const SidePanel: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex-1 relative">
+              <div className="relative flex-1">
                 <Textarea
-                  className="w-full h-full p-4 resize-none bg-transparent border-none focus-visible:ring-0 text-[15px] cursor-default leading-relaxed text-blue-600 dark:text-blue-400 placeholder:text-gray-200 dark:placeholder:text-neutral-700"
+                  className={cn(
+                    'h-full w-full cursor-default resize-none border-none bg-transparent p-4',
+                    'text-[15px] leading-relaxed shadow-none',
+                    'text-cyan-800 placeholder:text-zinc-500 focus-visible:ring-0',
+                    'dark:text-cyan-200 dark:placeholder:text-zinc-500',
+                  )}
                   placeholder={t('sidepanel_output_placeholder')}
                   value={outputText}
                   readOnly
                 />
                 {isTranslating && !outputText && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-[2px]">
-                    <Loader2 className="size-6 text-blue-500 animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-zinc-950/70">
+                    <Loader2 className="size-6 animate-spin text-cyan-700 dark:text-cyan-300" />
                   </div>
                 )}
               </div>
 
-              <div className="px-4 py-2 flex items-center justify-between border-t border-gray-50 dark:border-neutral-700/30 text-[10px] text-gray-400 dark:text-gray-600">
+              <div className="flex items-center justify-between border-t border-zinc-200 px-4 py-2 text-[11px] text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
                 <div className="flex items-center gap-1.5">
                   {detectedSource && sourceLanguage === 'auto' && (
                     <>
                       <Type className="size-3" />
                       <span>
                         {t('auto_detect')}:{' '}
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">
+                        <span className="font-medium text-zinc-700 dark:text-zinc-300">
                           {detectedSource}
                         </span>
                       </span>
@@ -1322,15 +1370,17 @@ const SidePanel: React.FC = () => {
                   )}
                 </div>
                 {isTranslating && (
-                  <div className="flex items-center gap-1.5 text-blue-500 font-medium animate-pulse">
+                  <div className="flex items-center gap-1.5 font-medium text-cyan-700 dark:text-cyan-300">
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-600" />
                     </span>
                     {t('preparing_translator')}
                   </div>
                 )}
-                {error && <span className="text-red-500 font-medium">{error}</span>}
+                {error && (
+                  <span className="font-medium text-amber-700 dark:text-amber-300">{error}</span>
+                )}
               </div>
             </div>
           </div>
@@ -1340,12 +1390,13 @@ const SidePanel: React.FC = () => {
           value="file"
           className="flex-1 flex flex-col min-h-0 m-0 focus-visible:outline-none"
         >
-          <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
-            {/* Target Language Selection */}
-            <div className="flex items-center justify-between gap-2 rounded-2xl border border-gray-200/50 bg-white p-4 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
+            <div className={cn('flex items-center justify-between gap-2 p-4', PANEL_CARD_CLASS)}>
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <ArrowLeftRight className="size-4 shrink-0 text-blue-500" />
-                <span className="truncate text-xs font-semibold text-gray-600 dark:text-neutral-400">
+                <span className={ACCENT_TILE_CLASS}>
+                  <ArrowLeftRight className="size-3.5" />
+                </span>
+                <span className="truncate text-xs font-medium text-zinc-600 dark:text-zinc-400">
                   {t('target_language')}
                 </span>
               </div>
@@ -1358,63 +1409,70 @@ const SidePanel: React.FC = () => {
               </div>
             </div>
 
-            {/* File Upload Area */}
             {(!fileState.file || fileState.status === 'completed') && (
               <button
                 type="button"
-                className="group relative flex h-56 w-full cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 border-dashed border-gray-200 transition-all hover:border-blue-400/50 hover:bg-white dark:border-neutral-800 dark:hover:border-blue-500/50 dark:hover:bg-neutral-800/50"
+                className={cn(
+                  'group relative flex h-52 w-full cursor-pointer flex-col items-center justify-center gap-4',
+                  'rounded-2xl border border-dashed border-zinc-300 transition-colors',
+                  'hover:border-cyan-400 hover:bg-white dark:border-zinc-700',
+                  'dark:hover:border-cyan-700 dark:hover:bg-zinc-950',
+                )}
                 onDrop={handleFileDrop}
                 onDragOver={handleDragOver}
                 onClick={triggerFileSelect}
               >
-                <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-neutral-800 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Upload className="size-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <div className={cn('h-14 w-14', ACCENT_TILE_CLASS, 'h-14 w-14 rounded-xl')}>
+                  <Upload className="size-6" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-neutral-300">
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
                     {t('file_upload_area')}
                   </p>
-                  <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-1 uppercase tracking-wider">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     {t('file_supported_formats')}
                   </p>
                 </div>
               </button>
             )}
 
-            {/* File Info Card */}
             {fileState.file && (
-              <div className="p-4 bg-white dark:bg-neutral-800/60 rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+              <div className={cn('p-4', PANEL_CARD_CLASS)}>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-                    <FileText className="size-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold truncate text-gray-800 dark:text-neutral-200">
+                  <span className={cn(ACCENT_TILE_CLASS, 'h-12 w-12 rounded-xl')}>
+                    <FileText className="size-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       {fileState.file.name}
                     </p>
-                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-0.5">
+                    <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                       {(fileState.file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
                   {fileState.status === 'completed' && (
-                    <CheckCircle className="size-5 text-green-500" />
+                    <CheckCircle className="size-5 text-emerald-600 dark:text-emerald-300" />
                   )}
-                  {fileState.status === 'error' && <AlertCircle className="size-5 text-red-500" />}
+                  {fileState.status === 'error' && (
+                    <AlertCircle className="size-5 text-amber-700 dark:text-amber-300" />
+                  )}
                 </div>
 
                 {fileState.isProcessing && (
-                  <div className="mt-4 pt-4 border-t border-gray-50 dark:border-neutral-700/50">
-                    <Progress
-                      value={fileState.progress}
-                      className="h-1.5 rounded-full bg-gray-100 dark:bg-neutral-700"
-                    />
-                    <div className="flex justify-between items-center mt-3">
-                      <span className="text-[11px] font-semibold text-blue-500 animate-pulse uppercase tracking-tight">
+                  <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-cyan-100 dark:bg-cyan-950">
+                      <div
+                        className="h-full rounded-full bg-cyan-600 transition-[width] duration-300 dark:bg-cyan-300"
+                        style={{ width: `${Math.max(0, Math.min(100, fileState.progress))}%` }}
+                      />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-xs font-medium text-cyan-700 dark:text-cyan-300">
                         {fileState.status === 'parsing'
                           ? t('file_parsing')
                           : t('file_translating_progress')}
                       </span>
-                      <span className="text-[11px] text-gray-400 font-mono">
+                      <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
                         {fileState.progress}% — {fileState.currentSegment}/{fileState.totalSegments}
                       </span>
                     </div>
@@ -1423,11 +1481,10 @@ const SidePanel: React.FC = () => {
               </div>
             )}
 
-            {/* Feedback & Actions */}
-            <div className="mt-auto pt-2 space-y-4">
+            <div className="mt-auto space-y-4 pt-2">
               {fileState.error && (
-                <div className="p-3.5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl flex gap-3 text-red-600 dark:text-red-400">
-                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" />
                   <p className="text-xs font-medium leading-relaxed">{fileState.error}</p>
                 </div>
               )}
@@ -1435,34 +1492,34 @@ const SidePanel: React.FC = () => {
               {fileState.file && !fileState.isProcessing && fileState.status !== 'completed' && (
                 <Button
                   onClick={translateFile}
-                  className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+                  className={cn('h-11 w-full rounded-xl', PRIMARY_BUTTON_CLASS)}
                   size="lg"
                 >
-                  <Languages className="size-4 mr-2" />
+                  <Languages className="mr-2 size-4" />
                   {t('translate_full_page')}
                 </Button>
               )}
 
               {fileState.status === 'completed' && fileState.translatedContent && (
-                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
-                  <div className="p-3.5 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 rounded-xl flex gap-3 text-green-600 dark:text-green-400">
-                    <CheckCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="space-y-4">
+                  <div className="flex gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
+                    <CheckCircle className="mt-0.5 size-4 shrink-0" />
                     <p className="text-xs font-medium">{t('translation_completed')}</p>
                   </div>
 
                   <Button
                     onClick={downloadTranslatedFile}
-                    className="w-full h-12 rounded-2xl bg-gray-900 dark:bg-white dark:text-black hover:bg-gray-800 font-bold shadow-lg transition-all active:scale-[0.98]"
+                    className={cn('h-11 w-full rounded-xl', PRIMARY_BUTTON_CLASS)}
                     size="lg"
                   >
-                    <Download className="size-4 mr-2" />
+                    <Download className="mr-2 size-4" />
                     {t('download_translated_file')}
                   </Button>
 
-                  <div className="flex items-center justify-between px-2 pt-2">
+                  <div className="flex items-center justify-between px-1 pt-1">
                     <Label
                       htmlFor="auto-download"
-                      className="text-[11px] font-bold text-gray-400 dark:text-neutral-500 uppercase tracking-widest"
+                      className="text-xs text-zinc-600 dark:text-zinc-400"
                     >
                       {t('auto_download')}
                     </Label>

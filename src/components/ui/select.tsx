@@ -20,7 +20,7 @@ export function AppSelect({ value, onValueChange, options, disabled = false }: A
     <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectPrimitive.Trigger
         className={cn(
-          'w-full relative pr-8 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#282828] px-3 py-2 text-left text-sm',
+          'relative w-full rounded-lg border border-zinc-200 bg-white py-2 pr-8 pl-3 text-left text-sm dark:border-zinc-800 dark:bg-zinc-950',
           disabled && 'cursor-not-allowed opacity-60',
         )}
         disabled={disabled}
@@ -39,7 +39,7 @@ export function AppSelect({ value, onValueChange, options, disabled = false }: A
           avoidCollisions
           sticky="always"
           collisionPadding={8}
-          className="z-[2147483647] rounded border border-gray-200 dark:border-neutral-600 bg-white dark:bg-[#282828] shadow-md w-[var(--radix-select-trigger-width)]"
+          className="z-[2147483647] w-[var(--radix-select-trigger-width)] rounded-lg border border-zinc-200 bg-white shadow-md dark:border-zinc-800 dark:bg-zinc-950"
         >
           <SelectPrimitive.ScrollUpButton className="flex items-center justify-center p-1 text-gray-500 dark:text-gray-400">
             <ChevronUp className="h-4 w-4" />
@@ -49,7 +49,7 @@ export function AppSelect({ value, onValueChange, options, disabled = false }: A
               <SelectPrimitive.Item
                 key={opt.value}
                 value={opt.value}
-                className="cursor-pointer rounded px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100 outline-none data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-neutral-800"
+                className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-zinc-900 outline-none data-[highlighted]:bg-zinc-100 dark:text-zinc-100 dark:data-[highlighted]:bg-zinc-900"
               >
                 <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
               </SelectPrimitive.Item>

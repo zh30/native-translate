@@ -36,7 +36,7 @@ export function VocabTab() {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <input
-        className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm dark:border-zinc-800"
+        className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950"
         placeholder={t('ai_vocab_search')}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
@@ -52,10 +52,10 @@ export function VocabTab() {
                 {items.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-lg border border-zinc-200 p-2 text-sm dark:border-zinc-800"
+                    className="rounded-xl border border-zinc-200 bg-white p-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-950"
                   >
                     <div className="font-medium">{item.word}</div>
-                    <div className="text-xs text-zinc-500">{item.meaning}</div>
+                    <div className="text-xs text-cyan-800 dark:text-cyan-200">{item.meaning}</div>
                   </li>
                 ))}
               </ul>

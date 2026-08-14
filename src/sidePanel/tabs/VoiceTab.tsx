@@ -92,7 +92,7 @@ export function VoiceTab({ targetLanguage }: VoiceTabProps) {
           <Mic className="mr-1 h-4 w-4" />
           {recording ? t('ai_voice_stop') : t('ai_voice_record')} {recording ? `${seconds}s` : ''}
         </Button>
-        <label className="inline-flex cursor-pointer items-center rounded-md border px-3 text-sm">
+        <label className="inline-flex cursor-pointer items-center rounded-lg border border-zinc-200 bg-white px-3 text-sm dark:border-zinc-800 dark:bg-zinc-950">
           {t('ai_voice_file')}
           <input
             type="file"
@@ -110,8 +110,10 @@ export function VoiceTab({ targetLanguage }: VoiceTabProps) {
         <EmptyState icon={<Mic className="h-5 w-5" />} title={t('ai_voice_title')} />
       ) : (
         <div className="grid min-h-0 flex-1 gap-3 overflow-auto md:grid-cols-2">
-          <pre className="whitespace-pre-wrap rounded-xl border p-3 text-[13px]">{transcript}</pre>
-          <pre className="whitespace-pre-wrap rounded-xl border p-3 text-[13px]">
+          <pre className="whitespace-pre-wrap rounded-2xl border border-zinc-200 bg-white p-3 text-[13px] dark:border-zinc-800 dark:bg-zinc-950">
+            {transcript}
+          </pre>
+          <pre className="whitespace-pre-wrap rounded-2xl border border-zinc-200 bg-white p-3 text-[13px] text-cyan-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-cyan-200">
             {result.translation}
           </pre>
         </div>

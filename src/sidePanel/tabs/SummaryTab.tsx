@@ -178,11 +178,11 @@ export function SummaryTab({ targetLanguage, autoStart, onAskPage }: SummaryTabP
           </div>
         ) : null}
 
-        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+        <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_16px_48px_rgba(15,23,42,0.08)] dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-[0_16px_48px_rgba(0,0,0,0.35)]">
           {loading && !text ? <Skeleton lines={3} /> : null}
           {text ? <MarkdownView text={text} /> : null}
           {showBilingual && bilingual.length > 0 ? (
-            <div className="mt-3 space-y-1 text-[12px] text-zinc-500">
+            <div className="mt-3 space-y-1 text-[12px] text-cyan-800 dark:text-cyan-200">
               {bilingual.map((line) => (
                 <p key={line}>{line}</p>
               ))}
