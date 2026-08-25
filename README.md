@@ -8,6 +8,12 @@ English | [简体中文](./README.zh-CN.md)
 
 **Native Translate** is a privacy-focused Chrome extension that uses Chrome's built-in AI Translator and Language Detector APIs. All translation happens locally on your device - no external API calls, no telemetry, complete privacy.
 
+## Official links
+
+- Website: https://zhanghe.dev/products/native-translate
+- Privacy: https://zhanghe.dev/products/native-translate/privacy
+- Chrome Web Store: https://chromewebstore.google.com/detail/npnbioleceelkeepkobjfagfchljkphb
+
 ## Features
 
 ### 🌐 Translation Modes
