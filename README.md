@@ -10,8 +10,8 @@ English | [简体中文](./README.zh-CN.md)
 
 ## Official links
 
-- Website: https://zhanghe.dev/products/native-translate
-- Privacy: https://zhanghe.dev/products/native-translate/privacy
+- Official website: https://zhanghe.dev/products/native-translate
+- Privacy policy: https://zhanghe.dev/products/native-translate/privacy
 - Chrome Web Store: https://chromewebstore.google.com/detail/npnbioleceelkeepkobjfagfchljkphb
 
 ## Features
