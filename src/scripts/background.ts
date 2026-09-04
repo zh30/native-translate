@@ -6,6 +6,8 @@ import {
 import {
   buildExtractMenuPayload,
   buildTranslatePageMessage,
+  deliverTabMessage,
+  openExtensionPopup,
   resolveTranslatePageTarget,
 } from '@/shared/commands'
 import type { LanguageCode } from '@/shared/languages'
@@ -136,12 +138,11 @@ async function openSidePanelWithIntent(
 }
 
 async function sendToTab(tabId: number, message: unknown): Promise<void> {
-  try {
-    await chrome.tabs.sendMessage(tabId, message)
-  } catch {
+  const send = () => chrome.tabs.sendMessage(tabId, message)
+  await deliverTabMessage(send, async () => {
     await chrome.scripting.executeScript({ target: { tabId }, files: ['contentScript.js'] })
-    await chrome.tabs.sendMessage(tabId, message)
-  }
+    return send()
+  })
 }
 
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
@@ -274,8 +275,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true
   }
   if (message.type === MSG_OPEN_SETTINGS) {
-    void chrome.action.openPopup?.()
-    sendResponse({ ok: true })
+    void (async () => {
+      try {
+        await openExtensionPopup({
+          openPopup:
+            typeof chrome.action.openPopup === 'function'
+              ? () => chrome.action.openPopup()
+              : undefined,
+          openPopupWindow: async () => {
+            await chrome.windows.create({
+              url: chrome.runtime.getURL('popup.html'),
+              type: 'popup',
+              focused: true,
+              width: 420,
+              height: 720,
+            })
+          },
+        })
+        sendResponse({ ok: true })
+      } catch (error) {
+        sendResponse({
+          ok: false,
+          error: error instanceof Error ? error.message : 'open settings failed',
+        })
+      }
+    })()
     return true
   }
   if (message.type === MSG_TRANSLATE_TEXT && sender.tab?.id) {

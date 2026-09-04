@@ -50,7 +50,7 @@ describe('product invariant call sites', () => {
     const text = source('src/scripts/contentScript.ts')
     expect(text).toMatch(/async function translateFullPageAutoDetect/)
     expect(text).toMatch(/learningMutexOnPageTranslate\(\)/)
-    expect(text).toMatch(/setLearningMode\(false\)/)
+    expect(text).toMatch(/setLearningMode\(false, \{ persist: false \}\)/)
   })
 
   it('writing init uses writingSurface', () => {

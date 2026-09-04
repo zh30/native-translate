@@ -24,6 +24,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { AppSelect } from '@/components/ui/select'
 import { isAiReady, useAiCapabilities } from '@/shared/ai/capabilities'
 import type { CefrLevel } from '@/shared/ai/types'
+import { deliverTabMessage } from '@/shared/commands'
 import {
   DEFAULT_INPUT_TARGET_LANGUAGE,
   DEFAULT_TARGET_LANGUAGE,
@@ -41,6 +42,7 @@ import {
   AI_SETTINGS_KEY,
   type AiSettings,
   DEFAULT_AI_SETTINGS,
+  LEARNING_ENABLED_KEY,
   POPUP_SETTINGS_KEY,
   SIDE_PANEL_INTENT_KEY,
 } from '@/shared/settings'
@@ -98,7 +100,7 @@ const Popup: React.FC = () => {
     DEFAULT_AI_SETTINGS,
   )
   const { capabilities, refresh } = useAiCapabilities()
-  const [learningOn, setLearningOn] = React.useState(false)
+  const [learningOn, setLearningOn] = useChromeLocalStorage<boolean>(LEARNING_ENABLED_KEY, false)
   const translateBusyRef = React.useRef<boolean>(false)
   const sidePanelBusyRef = React.useRef<boolean>(false)
 
@@ -121,20 +123,17 @@ const Popup: React.FC = () => {
           })
         }
         try {
-          await sendWarm()
-        } catch (error) {
-          const url = tab.url ?? ''
-          if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
-            try {
-              await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                files: ['contentScript.js'],
-              })
-              await sendWarm()
-            } catch (_e) {
-              // ignore warm failure
-            }
-          }
+          await deliverTabMessage(sendWarm, async () => {
+            const url = tab.url ?? ''
+            if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) return
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              files: ['contentScript.js'],
+            })
+            await sendWarm()
+          })
+        } catch {
+          // ignore warm failure
         }
       } catch (_err) {
         // ignore
@@ -186,26 +185,23 @@ const Popup: React.FC = () => {
         })
       }
 
-      try {
-        await send()
-      } catch (_err) {
-        // 若内容脚本未就绪，则主动注入后重试
+      await deliverTabMessage(send, async () => {
+        const url = tab.url ?? ''
+        if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
+          throw new Error('This page is not scriptable')
+        }
         try {
-          const url = tab.url ?? ''
-          if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
-            throw new Error('This page is not scriptable')
-          }
           await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
+            target: { tabId },
             files: ['contentScript.js'],
           })
-          await send()
+          return await send()
         } catch (injectionErr) {
           throw injectionErr instanceof Error
             ? injectionErr
             : new Error('Failed to inject content script')
         }
-      }
+      })
       window.close()
     } catch (e) {
       setError(e instanceof Error ? e.message : t('send_translate_command_failed'))
@@ -256,16 +252,15 @@ const Popup: React.FC = () => {
   const sendToActiveTab = React.useCallback(async (message: unknown) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     if (!tab?.id) throw new Error(t('active_tab_not_found'))
-    try {
-      await chrome.tabs.sendMessage(tab.id, message)
-    } catch {
+    const tabId = tab.id
+    const send = () => chrome.tabs.sendMessage(tabId, message)
+    return deliverTabMessage(send, async () => {
       await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
+        target: { tabId },
         files: ['contentScript.js'],
       })
-      await chrome.tabs.sendMessage(tab.id, message)
-    }
-    return tab
+      return send()
+    })
   }, [])
 
   const openSidePanelWithIntent = React.useCallback(async (kind: 'summary' | 'chat' | 'vocab') => {
@@ -541,27 +536,23 @@ const Popup: React.FC = () => {
                             currentWindow: true,
                           })
                           if (tab?.id) {
-                            try {
-                              await chrome.tabs.sendMessage(tab.id, {
+                            const sendHotkey = () =>
+                              chrome.tabs.sendMessage(tab.id as number, {
                                 type: MSG_UPDATE_HOTKEY,
                                 payload: { hotkeyModifier: next },
                               })
-                            } catch (_err) {
-                              const url = tab.url ?? ''
-                              if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
-                                try {
-                                  await chrome.scripting.executeScript({
-                                    target: { tabId: tab.id },
-                                    files: ['contentScript.js'],
-                                  })
-                                  await chrome.tabs.sendMessage(tab.id, {
-                                    type: MSG_UPDATE_HOTKEY,
-                                    payload: { hotkeyModifier: next },
-                                  })
-                                } catch (_e) {
-                                  /* noop */
-                                }
-                              }
+                            try {
+                              await deliverTabMessage(sendHotkey, async () => {
+                                const url = tab.url ?? ''
+                                if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) return
+                                await chrome.scripting.executeScript({
+                                  target: { tabId: tab.id as number },
+                                  files: ['contentScript.js'],
+                                })
+                                return sendHotkey()
+                              })
+                            } catch {
+                              /* noop */
                             }
                           }
                         } catch (_e) {

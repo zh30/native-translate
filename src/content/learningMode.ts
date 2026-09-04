@@ -7,6 +7,7 @@ import {
   AI_SETTINGS_KEY,
   type AiSettings,
   DEFAULT_AI_SETTINGS,
+  LEARNING_ENABLED_KEY,
   POPUP_SETTINGS_KEY,
 } from '@/shared/settings'
 
@@ -150,8 +151,18 @@ export function restoreLearningMarks(): void {
   marks.length = 0
 }
 
-export async function setLearningMode(next: boolean): Promise<void> {
+export async function setLearningMode(
+  next: boolean,
+  options?: { persist?: boolean },
+): Promise<void> {
   enabled = next
+  if (options?.persist !== false) {
+    try {
+      await chrome.storage.local.set({ [LEARNING_ENABLED_KEY]: next })
+    } catch {
+      // storage may be unavailable in tests or restricted frames
+    }
+  }
   if (!enabled) {
     observer?.disconnect()
     observer = null
@@ -183,8 +194,20 @@ export async function setLearningMode(next: boolean): Promise<void> {
   for (const block of Array.from(blocks)) observer.observe(block)
 }
 
+export async function restoreLearningMode(): Promise<void> {
+  try {
+    const stored = await chrome.storage.local.get(LEARNING_ENABLED_KEY)
+    if (stored[LEARNING_ENABLED_KEY] === true) {
+      await setLearningMode(true, { persist: false })
+    }
+  } catch {
+    // ignore
+  }
+}
+
 export function initLearningMode(): void {
   defineWordElement()
+  void restoreLearningMode()
 }
 
 export function isLearningModeEnabled(): boolean {

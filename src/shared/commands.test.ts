@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { resolveRegionHudKey } from '@/content/regionSelector'
 import { buildSelectionOverflowActions } from '@/content/selectionAssistant'
 import {
   buildExtractMenuPayload,
   buildTranslatePageMessage,
+  classifyTabSendFailure,
+  deliverTabMessage,
+  openExtensionPopup,
   resolveExtractSelectionText,
   resolveLearningModeEnabled,
   resolveTranslatePageTarget,
@@ -27,6 +30,67 @@ describe('command and menu payloads', () => {
     expect(resolveLearningModeEnabled({ toggle: true }, true)).toBe(false)
     expect(resolveLearningModeEnabled({ enabled: true }, false)).toBe(true)
     expect(resolveLearningModeEnabled({ enabled: false }, true)).toBe(false)
+    expect(resolveLearningModeEnabled({ query: true }, true)).toBe(true)
+    expect(resolveLearningModeEnabled({ query: true }, false)).toBe(false)
+  })
+
+  it('retries tab messages only when the content script is missing', async () => {
+    expect(
+      classifyTabSendFailure(
+        new Error('Could not establish connection. Receiving end does not exist.'),
+      ),
+    ).toBe('missing-receiver')
+    expect(
+      classifyTabSendFailure(new Error('The message port closed before a response was received.')),
+    ).toBe('no-response')
+    expect(
+      classifyTabSendFailure(
+        new Error(
+          'A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received',
+        ),
+      ),
+    ).toBe('no-response')
+    expect(classifyTabSendFailure(new Error('This page is not scriptable'))).toBe('other')
+
+    const retry = vi.fn(async () => 'retried')
+    await expect(
+      deliverTabMessage(async () => {
+        throw new Error('The message port closed before a response was received.')
+      }, retry),
+    ).resolves.toBeUndefined()
+    expect(retry).not.toHaveBeenCalled()
+
+    await expect(
+      deliverTabMessage(async () => {
+        throw new Error('Could not establish connection. Receiving end does not exist.')
+      }, retry),
+    ).resolves.toBe('retried')
+    expect(retry).toHaveBeenCalledTimes(1)
+
+    await expect(
+      deliverTabMessage(async () => {
+        throw new Error('This page is not scriptable')
+      }, retry),
+    ).rejects.toThrow('This page is not scriptable')
+    expect(retry).toHaveBeenCalledTimes(1)
+
+    await expect(deliverTabMessage(async () => 'ok', retry)).resolves.toBe('ok')
+  })
+
+  it('opens a popup window when action.openPopup is unavailable', async () => {
+    const openPopupWindow = vi.fn(async () => undefined)
+    await expect(openExtensionPopup({ openPopupWindow })).resolves.toBe('window')
+    expect(openPopupWindow).toHaveBeenCalledTimes(1)
+
+    const openPopup = vi.fn<() => Promise<void>>(async () => {
+      throw new Error('openPopup requires a user gesture')
+    })
+    await expect(openExtensionPopup({ openPopup, openPopupWindow })).resolves.toBe('window')
+    expect(openPopupWindow).toHaveBeenCalledTimes(2)
+
+    openPopup.mockImplementation(async () => {})
+    await expect(openExtensionPopup({ openPopup, openPopupWindow })).resolves.toBe('popup')
+    expect(openPopupWindow).toHaveBeenCalledTimes(2)
   })
 
   it('keeps context-menu selection text for extract', () => {

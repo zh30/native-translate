@@ -39,7 +39,10 @@ export type RuntimeMessage =
       payload: { rect: { x: number; y: number; width: number; height: number }; dpr: number }
     }
   | { type: typeof MSG_SUMMARIZE_PAGE }
-  | { type: typeof MSG_TOGGLE_LEARNING_MODE; payload: { enabled?: boolean; toggle?: boolean } }
+  | {
+      type: typeof MSG_TOGGLE_LEARNING_MODE
+      payload: { enabled?: boolean; toggle?: boolean; query?: boolean }
+    }
   | {
       type: typeof MSG_START_REGION_SELECT
       payload?: { srcUrl?: string; extractSelection?: boolean; selectionText?: string }

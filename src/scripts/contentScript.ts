@@ -4864,7 +4864,7 @@ async function translateFullPage(
 
 async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promise<void> {
   if (learningMutexOnPageTranslate() === 'disable') {
-    void setLearningMode(false)
+    void setLearningMode(false, { persist: false })
   }
   const normalizedTargetLanguage = canonicalizeLanguageForTranslator(targetLanguage)
   stopFullPageTranslationObserver()
@@ -4909,15 +4909,29 @@ async function translateFullPageAutoDetect(targetLanguage: LanguageCode): Promis
   startFullPageTranslationObserver(sourceLanguage, normalizedTargetLanguage)
 }
 
+function ackRuntimeMessage(
+  sendResponse: (response: unknown) => void,
+  payload: Record<string, unknown> = { ok: true },
+): true {
+  try {
+    sendResponse(payload)
+  } catch {
+    // The sender may not be waiting for a response.
+  }
+  return true
+}
+
 // 消息通道：接收 Popup 指令
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+  const sendResponse = _sendResponse as unknown as (response: unknown) => void
   if (!message || typeof message.type !== 'string') return false
   if (message.type === MSG_TRANSLATE_PAGE) {
     const { targetLanguage } = (message.payload ?? {}) as {
       targetLanguage: LanguageCode
     }
+    ackRuntimeMessage(sendResponse)
     void translateFullPageAutoDetect(targetLanguage)
-    return false
+    return true
   }
   if (message.type === MSG_UPDATE_HOTKEY) {
     const { hotkeyModifier } = (message.payload ?? {}) as {
@@ -4927,7 +4941,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       preferredModifier = hotkeyModifier
       if (typeof tryTranslateRef === 'function') tryTranslateRef()
     }
-    return false
+    return ackRuntimeMessage(sendResponse)
   }
   if (message.type === MSG_GET_PAGE_CONTENT) {
     if (
@@ -4980,10 +4994,10 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
           )
         })()
       }
-      return false
+      return ackRuntimeMessage(sendResponse)
     }
     void startRegionSelect({ srcUrl: payload.srcUrl })
-    return false
+    return ackRuntimeMessage(sendResponse)
   }
   if (message.type === MSG_TOGGLE_LEARNING_MODE) {
     if (
@@ -4994,23 +5008,27 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     ) {
       return false
     }
-    const enabled = resolveLearningModeEnabled(
-      message.payload as { enabled?: boolean; toggle?: boolean } | undefined,
-      isLearningModeEnabled(),
-    )
+    const payload = message.payload as
+      | { enabled?: boolean; toggle?: boolean; query?: boolean }
+      | undefined
+    if (payload?.query) {
+      return ackRuntimeMessage(sendResponse, { ok: true, enabled: isLearningModeEnabled() })
+    }
+    const enabled = resolveLearningModeEnabled(payload, isLearningModeEnabled())
     if (enabled) {
       clearPreviousTranslationsAndMarks()
       stopFullPageTranslationObserver()
     }
     void setLearningMode(enabled)
-    return false
+    return ackRuntimeMessage(sendResponse, { ok: true, enabled })
   }
   if (message.type === MSG_CLEAR_PAGE_TRANSLATION) {
     clearPreviousTranslationsAndMarks()
     stopFullPageTranslationObserver()
-    return false
+    return ackRuntimeMessage(sendResponse)
   }
   if (message.type === MSG_WARM_TRANSLATOR) {
+    ackRuntimeMessage(sendResponse)
     void (async () => {
       try {
         const settings = await ensurePopupSettings()
@@ -5031,7 +5049,7 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
         await scheduleWarmTranslatorPair(source as LanguageCode, target)
       } catch (_error) {}
     })()
-    return false
+    return true
   }
   return false
 })
