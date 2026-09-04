@@ -11342,6 +11342,34 @@ describe('content script DOM translation helpers', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
+  it('acks fire-and-forget page commands so popup sendMessage does not re-inject', async () => {
+    await loadContentScriptTestables()
+    const listener = vi.mocked(chrome.runtime.onMessage.addListener).mock.calls[0]?.[0]
+    if (!listener) throw new Error('Missing page command listener')
+    const sendResponse = vi.fn()
+    const accepted = listener(
+      { type: 'NATIVE_TRANSLATE_TRANSLATE_PAGE', payload: { targetLanguage: 'zh-CN' } },
+      {},
+      sendResponse,
+    )
+    expect(accepted).toBe(true)
+    expect(sendResponse).toHaveBeenCalledWith({ ok: true })
+  })
+
+  it('reports learning mode without toggling on query', async () => {
+    await loadContentScriptTestables()
+    const listener = vi.mocked(chrome.runtime.onMessage.addListener).mock.calls[0]?.[0]
+    if (!listener) throw new Error('Missing page command listener')
+    const sendResponse = vi.fn()
+    const accepted = listener(
+      { type: 'NATIVE_TRANSLATE_TOGGLE_LEARNING', payload: { query: true } },
+      {},
+      sendResponse,
+    )
+    expect(accepted).toBe(true)
+    expect(sendResponse).toHaveBeenCalledWith({ ok: true, enabled: false })
+  })
+
   it('uses page Chinese variant hints for hover translations with generic zh detection', async () => {
     document.documentElement.setAttribute('lang', 'zh-TW')
     document.body.innerHTML = '<main><p>繁體 中文 懸停 翻譯 應該 轉成 簡體。</p></main>'

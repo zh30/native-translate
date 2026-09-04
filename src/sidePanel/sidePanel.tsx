@@ -27,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { isAudioReady, useAiCapabilities } from '@/shared/ai/capabilities'
 import { runAiTask } from '@/shared/ai/client'
 import { digestChapterFromSummarize } from '@/shared/ai/productInvariants'
+import { deliverTabMessage } from '@/shared/commands'
 import {
   canonicalizeLanguageForTranslation,
   DEFAULT_TARGET_LANGUAGE,
@@ -755,23 +756,20 @@ const SidePanel: React.FC = () => {
         })
       }
       try {
-        await sendWarm()
-      } catch (error) {
-        const activeTabId = await getActiveTabId()
-        if (!activeTabId) return
-        const tab = await chrome.tabs.get(activeTabId)
-        const url = tab.url ?? ''
-        if (!/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) {
-          try {
-            await chrome.scripting.executeScript({
-              target: { tabId: activeTabId },
-              files: ['contentScript.js'],
-            })
-            await sendWarm()
-          } catch (_e) {
-            // ignore warming failure
-          }
-        }
+        await deliverTabMessage(sendWarm, async () => {
+          const activeTabId = await getActiveTabId()
+          if (!activeTabId) return
+          const tab = await chrome.tabs.get(activeTabId)
+          const url = tab.url ?? ''
+          if (/^(chrome|edge|about|brave|opera|vivaldi):/i.test(url)) return
+          await chrome.scripting.executeScript({
+            target: { tabId: activeTabId },
+            files: ['contentScript.js'],
+          })
+          await sendWarm()
+        })
+      } catch {
+        // ignore warming failure
       }
     },
     [ensureContentScript, getActiveTabId, setFirstRunStatus, sourceLanguage],
