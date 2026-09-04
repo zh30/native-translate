@@ -23,7 +23,7 @@ describe('resolved upgraded packages', () => {
     expect(major(require('@testing-library/jest-dom/package.json').version)).toBeGreaterThanOrEqual(
       7,
     )
-    expect(major(require('vitest/package.json').version)).toBeGreaterThanOrEqual(4)
+    expect(major(require('vitest/package.json').version)).toBeGreaterThanOrEqual(5)
   })
 
   it('lucide-react 1 still provides the icons side panel and popup render', () => {
