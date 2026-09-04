@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-v3.2.1-brightgreen)](https://chromewebstore.google.com/detail/native-translate-%E2%80%94-privat/npnbioleceelkeepkobjfagfchljkphb/)
+[![GitHub release](https://img.shields.io/github/v/release/zh30/native-translate)](https://github.com/zh30/native-translate/releases)
 [![Peerlist](https://github-readme-badge.peerlist.io/api/zhanghe)](https://peerlist.io/zhanghe)
 
 [English](./README.md) | 简体中文
@@ -13,6 +14,7 @@
 - 官方网站: https://zhanghe.dev/products/native-translate
 - 隐私政策: https://zhanghe.dev/products/native-translate/privacy
 - Chrome 网上应用店: https://chromewebstore.google.com/detail/npnbioleceelkeepkobjfagfchljkphb
+- 发行说明: [CHANGELOG.md](./CHANGELOG.md) · [GitHub Releases](https://github.com/zh30/native-translate/releases)
 
 ## 功能特性
 
@@ -108,6 +110,7 @@ pnpm tsc          # 类型检查
 pnpm lint         # Biome
 pnpm lint:fix     # 安全自动修复
 pnpm check:locales
+pnpm release:notes  # 预览当前版本的 GitHub Release 说明
 ```
 
 ### 技术栈

@@ -3,7 +3,11 @@ name: Release on Tag
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-and-release:
@@ -26,11 +30,26 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify versions and extract CHANGELOG
+        id: notes
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          node scripts/extract-changelog.mjs \
+            --tag "${GITHUB_REF_NAME}" \
+            --out release-notes.md \
+            --repo "${GITHUB_REPOSITORY}"
+          test -s release-notes.md
+          echo "Release notes preview:"
+          sed -n '1,40p' release-notes.md
 
       - name: Build
         run: pnpm build
@@ -38,50 +57,23 @@ jobs:
       - name: Verify zip exists
         run: test -f Native-translate.zip && ls -lh Native-translate.zip
 
-      - name: Generate changelog from commits
-        id: changelog
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --tags --force
-          TAG="${GITHUB_REF_NAME}"
-          # Find previous semver tag (descending order), excluding current
-          PREV_TAG=$(git tag --list 'v*' --sort=-v:refname | grep -v "^${TAG}$" | head -n 1 || true)
-          if [ -n "${PREV_TAG}" ]; then
-            RANGE="${PREV_TAG}..${TAG}"
-          else
-            # First tag — include all history up to current tag
-            RANGE="${TAG}"
-          fi
-          echo "Using range: ${RANGE} (prev: ${PREV_TAG:-none})"
-          COMMITS=$(git log --pretty=format:'- %s' ${RANGE} || true)
-          if [ -z "${COMMITS}" ]; then
-            COMMITS="- No changes."
-          fi
-          {
-            echo "text<<EOF"
-            echo "Changes in ${TAG}"
-            echo
-            echo "${COMMITS}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }}
+          name: Native Translate ${{ steps.notes.outputs.version }}
           tag_name: ${{ github.ref_name }}
           generate_release_notes: false
-          body: ${{ steps.changelog.outputs.text }}
+          body_path: release-notes.md
           draft: false
           prerelease: false
+          fail_on_unmatched_files: true
           files: |
             Native-translate.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload to Chrome Web Store
-        if: ${{ success() }}
+        if: ${{ secrets.CHROME_EXTENSION_ID != '' && secrets.CHROME_CLIENT_ID != '' && secrets.CHROME_CLIENT_SECRET != '' && secrets.CHROME_REFRESH_TOKEN != '' }}
         uses: mnao305/chrome-extension-upload@v5.0.0
         with:
           file-path: Native-translate.zip

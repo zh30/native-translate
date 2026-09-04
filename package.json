@@ -10,6 +10,7 @@
     "tsc": "tsc",
     "dev": "rspack build --watch",
     "check:locales": "node scripts/check-locales.mjs",
+    "release:notes": "node scripts/extract-changelog.mjs",
     "build": "node scripts/check-locales.mjs && vitest run && rspack build --mode production",
     "lint": "biome check .",
     "lint:fix": "biome check . --write"
