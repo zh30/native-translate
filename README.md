@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-v3.2.1-brightgreen)](https://chromewebstore.google.com/detail/native-translate-%E2%80%94-privat/npnbioleceelkeepkobjfagfchljkphb/)
+[![GitHub release](https://img.shields.io/github/v/release/zh30/native-translate)](https://github.com/zh30/native-translate/releases)
 [![Peerlist](https://github-readme-badge.peerlist.io/api/zhanghe)](https://peerlist.io/zhanghe)
 
 English | [简体中文](./README.zh-CN.md)
@@ -13,6 +14,7 @@ English | [简体中文](./README.zh-CN.md)
 - Official website: https://zhanghe.dev/products/native-translate
 - Privacy policy: https://zhanghe.dev/products/native-translate/privacy
 - Chrome Web Store: https://chromewebstore.google.com/detail/npnbioleceelkeepkobjfagfchljkphb
+- Release notes: [CHANGELOG.md](./CHANGELOG.md) · [GitHub Releases](https://github.com/zh30/native-translate/releases)
 
 ## Features
 
@@ -108,6 +110,7 @@ pnpm tsc          # type checking
 pnpm lint         # Biome
 pnpm lint:fix     # safe auto-fixes
 pnpm check:locales
+pnpm release:notes  # preview GitHub Release body for the current version
 ```
 
 ### Tech stack

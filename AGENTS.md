@@ -17,7 +17,7 @@ Follow the Biome config: 2-space indentation, 100-character line width, single q
 Until automated tests exist, always run `pnpm lint` and `pnpm tsc` before opening a PR. Manually verify translation flows in Chrome: popup text translation, side panel session handling, file translation, and locale switching (confirm `dir` matches the active language). Name future specs `*.test.ts(x)` beside implementation files and document execution steps in the PR.
 
 ## Commit & Pull Request Guidelines
-Adopt Conventional Commits as in recent history (e.g. `feat(sidePanel): add PDF upload`). Keep commits focused, written in English, and scoped to a feature or module. PR descriptions must summarize behavior changes, list manual checks, link issues, and attach UI screenshots or recordings. Call out localization edits and manifest updates explicitly.
+Adopt Conventional Commits as in recent history (e.g. `feat(sidePanel): add PDF upload`). Keep commits focused, written in English, and scoped to a feature or module. PR descriptions must summarize behavior changes, list manual checks, link issues, and attach UI screenshots or recordings. Call out localization edits and manifest updates explicitly. Version bumps must move every user-facing change from `CHANGELOG.md`'s `[Unreleased]` section into `## [X.Y.Z]` before tagging `vX.Y.Z`; the `release-on-tag` workflow publishes that section as the GitHub Release body.
 
 ## Localization & Security Notes
 Pull user-facing strings from `_locales` via Chrome i18n APIs and update translated copies together. Sanitize external translation responses before rendering, and never commit API keys—store secrets through Chrome-managed configuration or `chrome.storage.local` at runtime.

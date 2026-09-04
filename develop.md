@@ -14,6 +14,7 @@ pnpm dev                # rspack watch; outputs to dist/ with live rebuild
 pnpm build              # production build + zip package
 pnpm tsc --noEmit       # strict type checking
 pnpm lint               # biome lint (see note below about existing formatting noise)
+pnpm release:notes      # preview the GitHub Release body for package.json's version
 ```
 
 > Biome currently reports formatting diffs in several config and locale files. Until that backlog is cleared, `pnpm tsc` acts as the primary gate for CI-quality validation.
@@ -55,9 +56,17 @@ Warm-up state is tracked in `contentScript.ts` (`warmingPairs` + `READY_PAIRS_KE
 - Any heavy DOM mutations should be batched; see `translateBlocksSequentially` for an example using document fragments and idle yields.
 
 ## Release Process
-- Create a tag `vX.Y.Z` to trigger the `release-on-tag` GitHub Action (see badge in README).
-- The action runs `pnpm build`, attaches the packaged zip, and updates the Chrome Web Store listing if credentials are present.
-- Double-check `_locales/` before tagging—Chrome requires every string to have translations for all supported locales.
+GitHub Releases are generated from `CHANGELOG.md`, not from a raw `git log`. The `release-on-tag` workflow only accepts tags matching `vX.Y.Z`.
+
+1. Move items out of `## [Unreleased]` into a new `## [X.Y.Z] - YYYY-MM-DD` section. List **every** user-facing change that ships in that version (Added / Fixed / Changed / Documentation).
+2. Bump `package.json` and `src/manifest.json` to the same `X.Y.Z`.
+3. Preview the GitHub Release body locally: `pnpm release:notes`. This fails if the tag, both version files, and the changelog section disagree.
+4. Merge to `main`, then create and push tag `vX.Y.Z`.
+5. The action verifies versions, extracts that changelog section, runs `pnpm build` on Node 22, creates a GitHub Release named `Native Translate X.Y.Z` with `Native-translate.zip` attached, and uploads to the Chrome Web Store **only** when the CWS secrets are present.
+
+Do not tag until the changelog section is complete. A missing or empty `## [X.Y.Z]` section fails the release job.
+
+Double-check `_locales/` before tagging—Chrome requires every string to have translations for all supported locales.
 
 ## Observability & Debugging
 - Enable “All levels” logging in DevTools for the extension background service worker to catch `console.info` messages from `background.ts`.
