@@ -8,6 +8,7 @@ import { ProgressRing } from '@/components/ui/progress-ring'
 import { Textarea } from '@/components/ui/textarea'
 import { useAiCapabilities } from '@/shared/ai/capabilities'
 import { runAiTask, streamAiTask } from '@/shared/ai/client'
+import { resolveChatDisplayText } from '@/shared/ai/languageChain'
 import { extractFromTextBlocks, joinExtractedText } from '@/shared/extract'
 import type { LanguageCode } from '@/shared/languages'
 import { MSG_GET_PAGE_CONTENT } from '@/shared/messages'
@@ -142,7 +143,11 @@ export function ChatTab({ targetLanguage }: ChatTabProps) {
           }
         },
       )) as { text?: string }
-      const finalText = result?.text ?? acc
+      const finalText = resolveChatDisplayText({
+        streamed: acc,
+        finalized: result?.text,
+        targetLanguage,
+      })
       setMessages((prev) => {
         const next = [...prev]
         const last = next[next.length - 1]

@@ -27,11 +27,10 @@ export function toStringChunk(chunk: unknown, decoder: TextDecoder): string {
   if (typeof chunk === 'string') return chunk
   if (chunk instanceof Uint8Array) return decoder.decode(chunk, { stream: true })
   if (objectWithKey(chunk, 'text') && typeof chunk.text === 'string') return chunk.text
-  try {
-    return String(chunk ?? '')
-  } catch {
-    return ''
-  }
+  if (objectWithKey(chunk, 'content') && typeof chunk.content === 'string') return chunk.content
+  if (objectWithKey(chunk, 'delta') && typeof chunk.delta === 'string') return chunk.delta
+  if (typeof chunk === 'number' || typeof chunk === 'boolean') return String(chunk)
+  return ''
 }
 
 export async function* normalizeToAsyncStringIterable(

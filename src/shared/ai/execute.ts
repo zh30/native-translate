@@ -2,6 +2,7 @@ import { multimodalAudioPart, multimodalImagePart } from '@/shared/ai/imageTask'
 import {
   applyLanguageChain,
   applyLanguageChainFields,
+  chatOutputNeedsTranslation,
   nanoLanguageLabel,
   resolveLanguageChain,
 } from '@/shared/ai/languageChain'
@@ -516,7 +517,9 @@ async function executeChat(
     usage = readSessionUsage(session)
     compacted = true
   }
-  const text = await applyLanguageChain(raw, task.targetLanguage, translateWithLocalTranslator)
+  const text = chatOutputNeedsTranslation(raw, task.targetLanguage)
+    ? await applyLanguageChain(raw, task.targetLanguage, translateWithLocalTranslator)
+    : raw
   return { text, usage, compacted }
 }
 
