@@ -1,3 +1,23 @@
+import { DEFAULT_TARGET_LANGUAGE, type LanguageCode } from '@/shared/languages'
+import { MSG_TRANSLATE_PAGE } from '@/shared/messages'
+
+export function resolveTranslatePageTarget(
+  settings: { targetLanguage?: LanguageCode } | undefined,
+  fallback: LanguageCode = DEFAULT_TARGET_LANGUAGE,
+): LanguageCode {
+  return settings?.targetLanguage ?? fallback
+}
+
+export function buildTranslatePageMessage(targetLanguage: LanguageCode): {
+  type: typeof MSG_TRANSLATE_PAGE
+  payload: { targetLanguage: LanguageCode }
+} {
+  return {
+    type: MSG_TRANSLATE_PAGE,
+    payload: { targetLanguage },
+  }
+}
+
 export function resolveLearningModeEnabled(
   payload: { enabled?: boolean; toggle?: boolean } | undefined,
   currentlyEnabled: boolean,

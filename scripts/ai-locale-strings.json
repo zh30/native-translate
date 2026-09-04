@@ -1,4 +1,17 @@
 {
+  "cmd_translate_page": {
+    "en": "Translate current page",
+    "zh_CN": "翻译当前网页",
+    "es": "Traducir la página actual",
+    "ar": "ترجمة الصفحة الحالية",
+    "hi": "वर्तमान पृष्ठ अनुवाद करें",
+    "id": "Terjemahkan halaman ini",
+    "nl": "Huidige pagina vertalen",
+    "pt": "Traduzir a página atual",
+    "th": "แปลหน้าปัจจุบัน",
+    "tr": "Geçerli sayfayı çevir",
+    "vi": "Dịch trang hiện tại"
+  },
   "cmd_summarize": {
     "en": "Summarize this page",
     "zh_CN": "智能摘要此页面",

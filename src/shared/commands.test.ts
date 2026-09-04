@@ -3,11 +3,25 @@ import { resolveRegionHudKey } from '@/content/regionSelector'
 import { buildSelectionOverflowActions } from '@/content/selectionAssistant'
 import {
   buildExtractMenuPayload,
+  buildTranslatePageMessage,
   resolveExtractSelectionText,
   resolveLearningModeEnabled,
+  resolveTranslatePageTarget,
 } from '@/shared/commands'
+import { DEFAULT_TARGET_LANGUAGE } from '@/shared/languages'
+import { MSG_TRANSLATE_PAGE } from '@/shared/messages'
 
 describe('command and menu payloads', () => {
+  it('uses the stored target language for full-page translation', () => {
+    expect(resolveTranslatePageTarget(undefined)).toBe(DEFAULT_TARGET_LANGUAGE)
+    expect(resolveTranslatePageTarget({})).toBe(DEFAULT_TARGET_LANGUAGE)
+    expect(resolveTranslatePageTarget({ targetLanguage: 'en' })).toBe('en')
+    expect(buildTranslatePageMessage('ja')).toEqual({
+      type: MSG_TRANSLATE_PAGE,
+      payload: { targetLanguage: 'ja' },
+    })
+  })
+
   it('toggles learning instead of always enabling', () => {
     expect(resolveLearningModeEnabled({ toggle: true }, false)).toBe(true)
     expect(resolveLearningModeEnabled({ toggle: true }, true)).toBe(false)

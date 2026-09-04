@@ -3,7 +3,12 @@ import {
   retryUntil,
   waitForOffscreenStreamPort,
 } from '@/shared/ai/streamRelay'
-import { buildExtractMenuPayload } from '@/shared/commands'
+import {
+  buildExtractMenuPayload,
+  buildTranslatePageMessage,
+  resolveTranslatePageTarget,
+} from '@/shared/commands'
+import type { LanguageCode } from '@/shared/languages'
 import {
   MSG_AI_CAPABILITIES,
   MSG_AI_TASK,
@@ -16,7 +21,12 @@ import {
   MSG_TRANSLATE_TEXT,
   PORT_AI_STREAM,
 } from '@/shared/messages'
-import { FIRST_RUN_STATUS_KEY, type FirstRunStatus, SIDE_PANEL_INTENT_KEY } from '@/shared/settings'
+import {
+  FIRST_RUN_STATUS_KEY,
+  type FirstRunStatus,
+  POPUP_SETTINGS_KEY,
+  SIDE_PANEL_INTENT_KEY,
+} from '@/shared/settings'
 
 const ZHANGHE_ORIGIN = 'https://zhanghe.dev'
 const AUTO_OPEN_STATE_KEY = 'nativeTranslate.zhangheAutoOpenState'
@@ -191,6 +201,13 @@ chrome.action.onClicked.addListener((tab) => {
 chrome.commands.onCommand.addListener((command, tab) => {
   const tabId = tab?.id
   if (!tabId) return
+  if (command === 'translate-page') {
+    void (async () => {
+      const stored = await chrome.storage.local.get(POPUP_SETTINGS_KEY)
+      const settings = stored[POPUP_SETTINGS_KEY] as { targetLanguage?: LanguageCode } | undefined
+      await sendToTab(tabId, buildTranslatePageMessage(resolveTranslatePageTarget(settings)))
+    })()
+  }
   if (command === 'summarize-page') {
     void openSidePanelWithIntent(tabId, 'summary')
   }

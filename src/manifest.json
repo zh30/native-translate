@@ -50,6 +50,10 @@
     "contextMenus"
   ],
   "commands": {
+    "translate-page": {
+      "suggested_key": { "default": "Alt+Shift+T" },
+      "description": "__MSG_cmd_translate_page__"
+    },
     "summarize-page": {
       "suggested_key": { "default": "Alt+Shift+Y" },
       "description": "__MSG_cmd_summarize__"
