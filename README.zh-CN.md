@@ -1,7 +1,7 @@
 # 原生翻译 (Native Translate)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-v3.1.1-brightgreen)](https://chromewebstore.google.com/detail/native-translate-%E2%80%94-privat/npnbioleceelkeepkobjfagfchljkphb/)
+[![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-v3.2.0-brightgreen)](https://chromewebstore.google.com/detail/native-translate-%E2%80%94-privat/npnbioleceelkeepkobjfagfchljkphb/)
 [![Peerlist](https://github-readme-badge.peerlist.io/api/zhanghe)](https://peerlist.io/zhanghe)
 
 [English](./README.md) | 简体中文
