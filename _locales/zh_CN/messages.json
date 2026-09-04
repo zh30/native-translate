@@ -339,6 +339,10 @@
     "message": "打开侧边栏里的文件标签页，可以在本地翻译 EPUB 电子书。",
     "description": "欢迎页下一步：文件翻译"
   },
+  "cmd_translate_page": {
+    "message": "翻译当前网页",
+    "description": "cmd_translate_page"
+  },
   "cmd_summarize": {
     "message": "智能摘要此页面",
     "description": "cmd_summarize"

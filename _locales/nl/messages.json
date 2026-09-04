@@ -339,6 +339,10 @@
     "message": "Open the file tab in the side panel to translate EPUB books locally.",
     "description": "Welcome next step: file translation"
   },
+  "cmd_translate_page": {
+    "message": "Huidige pagina vertalen",
+    "description": "cmd_translate_page"
+  },
   "cmd_summarize": {
     "message": "Summarize this page",
     "description": "cmd_summarize"

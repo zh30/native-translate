@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const localesDir = path.join(root, '_locales')
 
 const EN = {
+  cmd_translate_page: 'Translate current page',
   cmd_summarize: 'Summarize this page',
   cmd_screenshot: 'Translate a screenshot',
   cmd_learning: 'Toggle learning mode',
@@ -145,6 +146,7 @@ const EN = {
 }
 
 const ZH = {
+  cmd_translate_page: '翻译当前网页',
   cmd_summarize: '智能摘要此页面',
   cmd_screenshot: '截图翻译',
   cmd_learning: '开关学习模式',

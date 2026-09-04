@@ -31,7 +31,11 @@ pnpm lint               # biome lint (see note below about existing formatting n
    - Upload several EPUB files (valid + invalid) and ensure progress + error states render.
 4. **Input Triple-Space**
    - Use both `<input>` and `contenteditable` targets. Confirm IME composition does not trigger translation mid-flow.
-5. **Background Rules**
+5. **Keyboard shortcuts**
+   - `Alt+Shift+T` translates the current page (same as the popup primary button).
+   - `Alt+Shift+Y` opens the summary tab; `Alt+Shift+S` starts region capture.
+   - Confirm all four commands appear in `chrome://extensions/shortcuts` (learning mode has no default binding).
+6. **Background Rules**
    - Navigate to `https://zhanghe.dev/` to ensure the side panel auto-enables and confetti flag fires once.
 
 ## Messaging & Warm-up

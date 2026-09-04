@@ -362,6 +362,7 @@ const Popup: React.FC = () => {
                     <Globe2 className="h-4 w-4" />
                   )}
                   {t('translate_full_page')}
+                  <Kbd className="ml-auto">Alt+Shift+T</Kbd>
                 </Button>
 
                 <Button
