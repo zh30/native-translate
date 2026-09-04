@@ -52,6 +52,39 @@ export function nanoLanguageLabel(code: NanoLanguage): string {
   }
 }
 
+const CJK_RE = /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]/g
+const LATIN_RE = /[A-Za-z]/g
+
+export function chatOutputNeedsTranslation(raw: string, targetLanguage: string): boolean {
+  const chain = resolveLanguageChain(targetLanguage)
+  if (!chain.needsTranslation) return false
+  const target = primaryLanguageTag(chain.outputLanguage)
+  const cjk = raw.match(CJK_RE)?.length ?? 0
+  const latin = raw.match(LATIN_RE)?.length ?? 0
+  if ((target === 'zh' || target === 'ja' || target === 'ko') && cjk >= 8 && cjk >= latin) {
+    return false
+  }
+  return true
+}
+
+export function looksLikeCorruptAssistantText(text: string): boolean {
+  return /\[object Object\]/.test(text) || /\uFFFD/.test(text)
+}
+
+export function resolveChatDisplayText(input: {
+  streamed: string
+  finalized?: string
+  targetLanguage: LanguageCode | string
+}): string {
+  const streamed = input.streamed
+  const finalized = input.finalized ?? ''
+  if (!finalized.trim()) return streamed
+  if (!streamed.trim()) return finalized
+  if (looksLikeCorruptAssistantText(finalized)) return streamed
+  if (!chatOutputNeedsTranslation(streamed, input.targetLanguage)) return streamed
+  return finalized
+}
+
 export async function applyLanguageChain(
   text: string,
   targetLanguage: LanguageCode | string,

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   applyLanguageChain,
+  chatOutputNeedsTranslation,
   NANO_OUTPUT_LANGUAGES,
+  resolveChatDisplayText,
   resolveLanguageChain,
 } from '@/shared/ai/languageChain'
 
@@ -52,5 +54,42 @@ describe('applyLanguageChain', () => {
       '中文:Key point',
     )
     expect(translate).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('chat stream finalization', () => {
+  it('does not re-translate CJK chat that Nano already wrote in the target script', () => {
+    const chinese = '这篇页面介绍的是设备本地翻译，不会把正文送到云端。'
+    expect(chatOutputNeedsTranslation(chinese, 'zh-CN')).toBe(false)
+    expect(chatOutputNeedsTranslation('The page is about on-device translation.', 'zh-CN')).toBe(
+      true,
+    )
+    expect(chatOutputNeedsTranslation('The page is about on-device translation.', 'ja')).toBe(false)
+  })
+
+  it('keeps the streamed answer when a post-stream Translator pass would clobber CJK', () => {
+    const streamed = '这篇页面介绍的是设备本地翻译，不会把正文送到云端。'
+    const finalized = 'This page 这篇 页 面 介 绍 的是 local translation 云端'
+    expect(resolveChatDisplayText({ streamed, finalized, targetLanguage: 'zh-CN' })).toBe(streamed)
+  })
+
+  it('uses the finalized translation when the stream was English for a Chinese target', () => {
+    expect(
+      resolveChatDisplayText({
+        streamed: 'The page is about on-device translation.',
+        finalized: '该页面介绍的是设备本地翻译。',
+        targetLanguage: 'zh-CN',
+      }),
+    ).toBe('该页面介绍的是设备本地翻译。')
+  })
+
+  it('keeps the stream when the finalized payload looks corrupt', () => {
+    expect(
+      resolveChatDisplayText({
+        streamed: 'The page is about on-device translation.',
+        finalized: 'Hello [object Object]',
+        targetLanguage: 'zh-CN',
+      }),
+    ).toBe('The page is about on-device translation.')
   })
 })

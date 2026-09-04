@@ -101,6 +101,15 @@ describe('product invariant call sites', () => {
     expect(text).toMatch(/shouldCreateDespiteAvailability\(/)
   })
 
+  it('chat keeps streamed text instead of blindly replacing it after language chain', () => {
+    const chat = source('src/sidePanel/tabs/ChatTab.tsx')
+    expect(chat).toMatch(/resolveChatDisplayText\(/)
+    expect(chat).not.toMatch(/const finalText = result\?\.text \?\? acc/)
+    const execute = source('src/shared/ai/execute.ts')
+    expect(execute).toMatch(/async function executeChat/)
+    expect(execute).toMatch(/chatOutputNeedsTranslation\(/)
+  })
+
   it('summary tab ignores aborted supersessions', () => {
     const text = source('src/sidePanel/tabs/SummaryTab.tsx')
     expect(text).toMatch(/isAiAbortError\(/)
