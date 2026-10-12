@@ -14,7 +14,12 @@ Follow the Biome config: 2-space indentation, 100-character line width, single q
 - When touching content-script translations, use `buildCacheKey` helpers and batch DOM writes (see `translateBlocksSequentially`).
 
 ## Testing Guidelines
-Until automated tests exist, always run `pnpm lint` and `pnpm tsc` before opening a PR. Manually verify translation flows in Chrome: popup text translation, side panel session handling, file translation, and locale switching (confirm `dir` matches the active language). Name future specs `*.test.ts(x)` beside implementation files and document execution steps in the PR.
+Before opening a PR, run `pnpm lint`, `pnpm tsc`, and `pnpm test`. Manually verify translation flows in Chrome: popup text translation, side panel session handling, file translation, and locale switching (confirm `dir` matches the active language). Name future specs `*.test.ts(x)` beside implementation files and document execution steps in the PR.
+
+## Cursor Cloud specific instructions
+- Node 22 and pnpm 10.18.3 are already on the login-shell PATH. Install with `pnpm install --frozen-lockfile`. There is no separate app server: `pnpm dev` watches into `dist/`, and `pnpm build` refreshes `dist/` plus `Native-translate.zip`.
+- Google Chrome is installed. After `pnpm build`, load unpacked `dist/` from `chrome://extensions` with Developer mode on. Branded Chrome ignores `--load-extension` unless it is started with `--disable-features=DisableLoadExtensionCommandLineSwitch`.
+- `Translator` and `LanguageDetector` are present, but a fresh VM reports language-pair availability as `downloadable` until Chrome fetches the on-device model. Popup settings, content-script injection, and the translate command can be checked before that download finishes. `pnpm lint` exits 0 with existing warnings.
 
 ## Commit & Pull Request Guidelines
 Adopt Conventional Commits as in recent history (e.g. `feat(sidePanel): add PDF upload`). Keep commits focused, written in English, and scoped to a feature or module. PR descriptions must summarize behavior changes, list manual checks, link issues, and attach UI screenshots or recordings. Call out localization edits and manifest updates explicitly. Version bumps must move every user-facing change from `CHANGELOG.md`'s `[Unreleased]` section into `## [X.Y.Z]` before tagging `vX.Y.Z`; the `release-on-tag` workflow publishes that section as the GitHub Release body.
