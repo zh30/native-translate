@@ -65,7 +65,7 @@
 
 - **Chrome 138+**（桌面）。移动版 Chrome 没有内置 AI。
 - Gemini Nano 通常需要约 22GB 磁盘空闲，以及 GPU > 4GB 显存，或内存 ≥ 16GB 且 4 核以上。语音转写需要 GPU。
-- 从源码构建需要 **pnpm 10.18.3+**。
+- 从源码构建需要 **pnpm 12.11.2+**（见 `package.json` 的 `packageManager` 字段）。
 
 ## 安装
 

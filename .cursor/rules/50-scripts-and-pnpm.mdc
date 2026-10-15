@@ -11,7 +11,7 @@ globs: "package.json,**/*.md,**/*.mdx"
   - `pnpm tsc` — TypeScript 类型检查。
   - `pnpm lint` / `pnpm lint:fix` — 使用 Biome 进行检查与修复。
 - **开发产物**：本地开发不应生成 zip 包；发布或生产构建时产物在 `dist/` 目录。
-- **Node/Chrome 要求**：Chrome 138+，pnpm 9+；首次运行可能触发模型下载。
+- **Node/Chrome 要求**：Chrome 138+，pnpm 12+（见 `packageManager`）；首次运行可能触发模型下载。
 
 ---
 alwaysApply: false

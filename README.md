@@ -65,7 +65,7 @@ Customize every command at `chrome://extensions/shortcuts`.
 
 - **Chrome 138+** (desktop). Built-in AI is not available in mobile Chrome.
 - On-device Gemini Nano typically needs ~22GB free disk, and either GPU > 4GB VRAM or ≥16GB RAM with 4+ cores. Audio transcription requires a GPU.
-- **pnpm 10.18.3+** to build from source.
+- **pnpm 12.11.2+** to build from source (see `packageManager` in `package.json`).
 
 ## Installation
 
