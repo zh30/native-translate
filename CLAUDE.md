@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm tsc` - TypeScript type checking
 - `pnpm lint` - Run Biome linter
 - `pnpm lint:fix` - Run Biome linter with auto-fix
-- **Package Manager**: Uses `pnpm@9.15.1+` (specified in packageManager field)
+- **Package Manager**: Uses `pnpm@12.11.2+` (specified in packageManager field)
 
 ### Development Auto-Reload
 - **Watch Mode**: `pnpm dev` runs Rspack in watch mode, rebuilding on file changes

@@ -12,7 +12,7 @@ Do not tag a version until that section lists every user-facing change that ship
 
 ### Changed
 
-- Dependencies bumped to latest compatible releases (React 19.3, Radix UI minors, Rspack 2.2.9, Vitest 5.0.4, Biome 2.5.15, lucide-react 1.57, pnpm 10.34.7). Requires Node `>=22.19` (jsdom → undici). pnpm 12 left on a later pass (major jump).
+- Dependencies bumped to latest compatible releases (React 19.3, Radix UI minors, Rspack 2.2.9, Vitest 5.0.4, Biome 2.5.15, lucide-react 1.57, **pnpm 12.11.2**). Requires Node `>=22.19` (jsdom → undici). Lockfile regenerated under pnpm 12 supply-chain checks; `react@19.3.1` / `react-dom@19.3.1` listed in `minimumReleaseAgeExclude`.
 
 ## [3.2.1] - 2026-09-04
 

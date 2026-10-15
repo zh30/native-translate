@@ -2,6 +2,10 @@ allowBuilds:
   '@biomejs/biome': true
   esbuild: true
 
+minimumReleaseAgeExclude:
+  - react-dom@19.3.1
+  - react@19.3.1
+
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - '@tailwindcss/oxide'
