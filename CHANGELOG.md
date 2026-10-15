@@ -10,6 +10,10 @@ Do not tag a version until that section lists every user-facing change that ship
 
 ## [Unreleased]
 
+### Changed
+
+- Dependencies bumped to latest compatible releases (React 19.3, Radix UI minors, Rspack 2.2.9, Vitest 5.0.4, Biome 2.5.15, lucide-react 1.57, pnpm 10.34.7). Requires Node `>=22.19` (jsdom → undici). pnpm 12 left on a later pass (major jump).
+
 ## [3.2.1] - 2026-09-04
 
 Chrome Web Store and GitHub release covering every change since **3.1.1**. Intermediate package **3.2.0** was never tagged, so its work is included here. Requires Chrome 138+.
